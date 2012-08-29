@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is goverened by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<meta charset="utf-8">
+<link rel="stylesheet" href="../node_modules/mocha/mocha.css" />
+<script src="../node_modules/expect.js/expect.js"></script>
+<script src="../node_modules/mocha/mocha.js"></script>
+<script src="../map.js"></script>
+<script src="../ShadowRoot.js"></script>
+<script>
+
+// TODO(arv): Move to ShadowDom.js?
+Object.defineProperty(DocumentFragment.prototype, 'innerHTML', {
+  get: function() {
+    throw 'not implemented';
+  },
+  set: function(value) {
+    this.textContent = '';
+    var tmp = this.ownerDocument.createElement('div');
+    tmp.innerHTML = value;
+    while (tmp.firstChild) {
+      this.appendChild(tmp.firstChild);
+    }
+  },
+  enumerable: true,
+  configurable: true
+});
+
+</script>
+<script>mocha.setup('tdd')</script>
+<script src="test.js"></script>
+<div id="mocha"></div>
+<script>
+mocha.run();
+</script>
