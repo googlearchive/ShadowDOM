@@ -159,6 +159,11 @@ var JsShadowRoot, render;
     if (!select)
       return true;
 
+    // Here we know the select attribute is a non empty string.
+    select = select.trim();
+    if (!select)
+      return true;
+
     if (node.nodeType !== Node.ELEMENT_NODE)
       return false;
 
@@ -166,7 +171,7 @@ var JsShadowRoot, render;
     if (!selectorMatchRegExp.test(select))
       return false;
 
-    if (select[0] === ':' && allowedPseudoRegExp.test(select))
+    if (select[0] === ':' &&!allowedPseudoRegExp.test(select))
       return false;
 
     try {
@@ -281,6 +286,10 @@ var JsShadowRoot, render;
     return node.tagName === 'SHADOW';
   }
 
+  function getDistributedChildNodes(insertionPoint) {
+    return insertionPoint.__distributedChildNodes__ || [];
+  }
+
   function renderNode(visualParent, tree, node, isNested) {
     if (isShadowHost(node))
       render(node);
@@ -294,11 +303,12 @@ var JsShadowRoot, render;
 
   function renderInsertionPoint(visualParent, tree, insertionPoint, isNested) {
     // console.log('renderInsertionPoint');
-    if (insertionPoint.__distributedChildNodes__ && insertionPoint.__distributedChildNodes__.length) {
-      insertionPoint.__logicalChildNodes__ = logical.getChildNodesSnapshot(insertionPoint);
+    var distributedChildNodes = getDistributedChildNodes(insertionPoint);
+    if (distributedChildNodes.length) {
+      // insertionPoint.__logicalChildNodes__ = logical.getChildNodesSnapshot(insertionPoint);
       visual.removeAllChildNodes(insertionPoint);
 
-      insertionPoint.__distributedChildNodes__.forEach(function(child) {
+      distributedChildNodes.forEach(function(child) {
         if (isInsertionPoint(child) && isNested)
           renderInsertionPoint(visualParent, tree, child, isNested);
         else
@@ -310,6 +320,7 @@ var JsShadowRoot, render;
     // FIXME: Backup
     insertionPoint.parentNode.removeChild(insertionPoint);
   }
+
   function renderAsAnyDomSubtree(visualParent, tree, child, isNested) {
     // console.log('render', child);
     visual.appendChild(visualParent, child);
@@ -322,16 +333,15 @@ var JsShadowRoot, render;
   }
 
   function renderShadowInsertionPoint(visualParent, tree, shadowInsertionPoint) {
-    if (tree.__nextOlderShadowTree__) {
-      tree = tree.__nextOlderShadowTree__;
-      var shadowDOMChildNodes = logical.getChildNodesSnapshot(tree);
+    var nextOlderTree = getNextOlderTree(tree);
+    if (nextOlderTree) {
+      var shadowDOMChildNodes = logical.getChildNodesSnapshot(nextOlderTree);
 
       // FIXME: Backup
       shadowInsertionPoint.parentNode.removeChild(shadowInsertionPoint);
 
       shadowDOMChildNodes.forEach(function(child) {
-        // renderAsAnyDomSubtree
-        renderNode(visualParent, tree, child, true);
+        renderNode(visualParent, nextOlderTree, child, true);
       });
     } else {
       renderFallbackContent(visualParent, shadowInsertionPoint);

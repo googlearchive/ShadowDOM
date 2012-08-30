@@ -6,14 +6,21 @@
 
 suite('Shadow DOM', function() {
 
-  function testRender(descr, hostInnerHtml, shadowRootInnerHtml,
-                      expectedOuterHtml) {
+  function testRender(descr, hostInnerHtml, shadowRoots,
+                      expectedOuterHtml, opt_beforeRender) {
     test(descr, function() {
       var host = document.createElement('div');
       host.innerHTML = hostInnerHtml;
 
-      var shadowRoot = new JsShadowRoot(host);
-      shadowRoot.innerHTML = shadowRootInnerHtml;
+      if (typeof shadowRoots === 'string')
+        shadowRoots = [shadowRoots];
+      shadowRoots.forEach(function(html) {
+        var shadowRoot = new JsShadowRoot(host);
+        shadowRoot.innerHTML = html;
+      });
+
+      if (opt_beforeRender)
+        opt_beforeRender(host);
 
       render(host);
 
@@ -53,4 +60,156 @@ suite('Shadow DOM', function() {
                '<content select=".b"></content><content select=".a"></content>',
                '<a class="b">b</a><a class="a">a</a>');
   });
+
+  suite('Nested shadow roots', function() {
+    testRender('2 levels deep', 'host', ['oldest shadow', '<shadow></shadow>'],
+               'oldest shadow');
+    testRender('4 levels deep', 'host',
+               ['oldest shadow', '<shadow></shadow>', '<shadow></shadow>',
+                '<shadow></shadow>'],
+               'oldest shadow');
+    testRender('4 levels deep. A bit more interesting', 'host',
+               ['a', 'b<shadow></shadow>c', 'd<shadow></shadow>e',
+                'f<shadow></shadow>g'],
+               'fdbaceg');
+
+    testRender('content and shadow',
+               '<a></a><b></b><c></c>',
+               [
+                 '<content select="a"></content>',
+                 '<shadow></shadow><content select="b"></content>',
+                 '<content select="c"></content><shadow></shadow>'
+               ],
+               '<c></c><a></a><b></b>');
+  });
+
+  suite('matches criteria', function() {
+    suite('empty select attribute', function() {
+      testRender('Content has no select attribute so everything should match',
+                 'a <b>c</b> d',
+                 '<content></content>',
+                 'a <b>c</b> d');
+      testRender('Content has empty select attribute so everything should ' +
+                    'match',
+                 'a <b>c</b> d',
+                 '<content select=""></content>',
+                 'a <b>c</b> d');
+      testRender('Content has an all whitespace select attribute so ' +
+                     'everything should match',
+                 'a <b>c</b> d',
+                 '<content select=" \n \t "></content>',
+                 'a <b>c</b> d');
+    });
+
+    suite('universal selector', function() {
+      testRender('*',
+                 '<a></a> <b></b> <c></c>',
+                 '<content select="*"></content>',
+                 '<a></a><b></b><c></c>');
+      testRender('With whitespace',
+                 '<a></a> <b></b> <c></c>',
+                 '<content select=" * "></content>',
+                 '<a></a><b></b><c></c>');
+
+    });
+
+    suite('type selector', function() {
+      testRender('b',
+                 '<a></a> <b></b> <c></c>',
+                 '<content select="b"></content>',
+                 '<b></b>');
+      testRender('case',
+                 '<a></a> <b></b> <c></c>',
+                 '<content select="B"></content>',
+                 '<b></b>');
+    });
+
+    suite('class selector(s)', function() {
+      testRender('Single',
+                 '<a class="a b"></a><a class="b a"></a><a class="b"></a>',
+                 '<content select=".a"></content>',
+                 '<a class="a b"></a><a class="b a"></a>');
+      testRender('With whitespace',
+                 '<a class="a b"></a><a class="b a"></a><a class="b"></a>',
+                 '<content select=" .a "></content>',
+                 '<a class="a b"></a><a class="b a"></a>');
+      testRender('Multiple',
+                 '<a class="a b"></a><a class="b a"></a><a class="b"></a>',
+                 '<content select=".a.b"></content>',
+                 '<a class="a b"></a><a class="b a"></a>');
+    });
+
+    suite('ID selector', function() {
+      testRender('Simple',
+                 '<a id="a"></a><a id="b"></a>',
+                 '<content select="#a"></content>',
+                 '<a id="a"></a>');
+      testRender('Two elements with the same ID',
+                 '<a id="a"></a><a id="a"></a>',
+                 '<content select="#a"></content>',
+                 '<a id="a"></a><a id="a"></a>');
+    });
+
+    suite('Attribute selector(s)', function() {
+      testRender('Simple',
+                 '<a id="a"></a><a id="b"></a>',
+                 '<content select="[id]"></content>',
+                 '<a id="a"></a><a id="b"></a>');
+      testRender('Attribute with value',
+                 '<a id="a"></a><a id="b"></a>',
+                 '<content select="[id=b]"></content>',
+                 '<a id="b"></a>');
+      testRender('whitespace separated list',
+                 '<a data-test="a b c"></a><a data-test="abc"></a>',
+                 '<content select="[data-test~=b]"></content>',
+                 '<a data-test="a b c"></a>');
+    });
+
+    suite('pseudo-class selector(s)', function() {
+      // Broken in Firefox: https://bugzilla.mozilla.org/show_bug.cgi?id=787134
+      if (!/Firefox/.test(navigator.userAgent)) {
+        testRender(':link',
+                   '<a></a><a href="#"></a>',
+                   '<content select=":link"></content>',
+                   '<a href="#"></a>');
+      }
+
+      // :visited cannot be queried in JS.
+
+      // :target is not supported. matchesSelector(':target') does not seem to
+      // work in WebKit nor Firefox.
+
+      testRender(':enabled',
+                 '<button disabled></button><button></button>',
+                 '<content select=":enabled"></content>',
+                 '<button></button>');
+      testRender(':disabled',
+                 '<button disabled></button><button></button>',
+                 '<content select=":disabled"></content>',
+                 '<button disabled=""></button>');
+      testRender(':checked',
+                 '<input type=checkbox><input checked type=checkbox>',
+                 '<content select=":checked"></content>',
+                 '<input checked="" type="checkbox">');
+      testRender(':indeterminate',
+                 '<input type=checkbox><input type=checkbox>',
+                 '<content select=":indeterminate"></content>',
+                 '<input type="checkbox">',
+                 function(host) {
+                   host.firstChild.indeterminate = true;
+                 });
+
+      // The following are not supported. They depend on ordering.
+      // :nth-child()
+      // :nth-last-child()
+      // :nth-of-type()
+      // :nth-last-of-type()
+      // :first-child
+      // :last-child
+      // :first-of-type
+      // :last-of-type
+    });
+
+  });
+
 });
