@@ -1,8 +1,0 @@
-{
-  "name": "Shadow-DOM-Polyfill",
-  "version": "0.0.1",
-  "devDependencies": {
-    "mocha": "*",
-    "expect.js": "*"
-  }
-}
