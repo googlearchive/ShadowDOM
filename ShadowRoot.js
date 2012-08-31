@@ -11,50 +11,6 @@ var JsShadowRoot, render;
 
   var slice = Array.prototype.slice.call.bind(Array.prototype.slice);
 
-  /**
-   * @param {!Node} node
-   * @return {Array.<!Node> An array of the nodes.
-   * @this
-   */
-  function getChildNodesSnapshot(node) {
-    var result = [], i = 0;
-    for (var child = this.getFirstChild(node); child; child = this.getNextSibling(child)) {
-      result[i++] = child;
-    }
-    return result;
-  }
-
-  // This object groups DOM operations. This is supposed to be the DOM as the
-  // developer sees it.
-  // TODO(arv): Implement a real logical view of the DOM.
-  var logical = {
-    getParentNode: function(node) {
-      return node.parentNode;
-    },
-    getFirstChild: function(node) {
-      return node.firstChild;
-    },
-    getNextSibling: function(node) {
-      return node.nextSibling;
-    },
-    removeAllChildNodes: function(parentNode) {
-      parentNode.textContent = '';
-    },
-    getChildNodesSnapshot: getChildNodesSnapshot
-  };
-
-  // This object groups DOM operations. This is supposed to be the DOM as the
-  // browser/render tree sees it.
-  var visual = {
-    removeAllChildNodes: function(parentNode) {
-      parentNode.textContent = '';
-    },
-    appendChild: function(parentNode, child) {
-      parentNode.appendChild(child);
-    },
-    getChildNodesSnapshot: getChildNodesSnapshot
-  };
-
   var treeToInsertionPointMap = new Map();
 
   function distributeChildToInsertionPoint(child, insertionPoint) {
@@ -212,7 +168,7 @@ var JsShadowRoot, render;
   }
 
   // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#rendering-shadow-subtrees
-  function render(host) {
+  render = function render(host) {
     treeComposition(host);
     var shadowDOM = getYoungestTree(host);
     if (!shadowDOM)
@@ -224,7 +180,7 @@ var JsShadowRoot, render;
     shadowDOMChildNodes.forEach(function(node) {
       renderNode(host, shadowDOM, node, false);
     });
-  }
+  };
 
   function isShadowRoot(node) {
     return node.__shadowHost__;
@@ -305,7 +261,6 @@ var JsShadowRoot, render;
     // console.log('renderInsertionPoint');
     var distributedChildNodes = getDistributedChildNodes(insertionPoint);
     if (distributedChildNodes.length) {
-      // insertionPoint.__logicalChildNodes__ = logical.getChildNodesSnapshot(insertionPoint);
       visual.removeAllChildNodes(insertionPoint);
 
       distributedChildNodes.forEach(function(child) {
@@ -317,8 +272,7 @@ var JsShadowRoot, render;
     } else {
       renderFallbackContent(visualParent, insertionPoint);
     }
-    // FIXME: Backup
-    insertionPoint.parentNode.removeChild(insertionPoint);
+    visual.remove(insertionPoint);
   }
 
   function renderAsAnyDomSubtree(visualParent, tree, child, isNested) {
@@ -336,10 +290,7 @@ var JsShadowRoot, render;
     var nextOlderTree = getNextOlderTree(tree);
     if (nextOlderTree) {
       var shadowDOMChildNodes = logical.getChildNodesSnapshot(nextOlderTree);
-
-      // FIXME: Backup
-      shadowInsertionPoint.parentNode.removeChild(shadowInsertionPoint);
-
+      visual.remove(shadowInsertionPoint);
       shadowDOMChildNodes.forEach(function(child) {
         renderNode(visualParent, nextOlderTree, child, true);
       });
@@ -356,7 +307,7 @@ var JsShadowRoot, render;
     });
   }
 
-  function JsShadowRoot(host) {
+  JsShadowRoot = function JsShadowRoot(host) {
     var newShadowRoot = host.ownerDocument.createDocumentFragment();
     var oldShadowRoot = host.__shadowRoot__;
     if (oldShadowRoot)
@@ -364,9 +315,6 @@ var JsShadowRoot, render;
     host.__shadowRoot__ = newShadowRoot;
     newShadowRoot.__shadowHost__ = host;
     return newShadowRoot;
-  }
+  };
 
-  // Export
-  window.JsShadowRoot = JsShadowRoot;
-  window.render = render;
 })();

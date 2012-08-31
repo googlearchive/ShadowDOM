@@ -5,10 +5,12 @@ Use of this source code is goverened by a BSD-style
 license that can be found in the LICENSE file.
 -->
 <meta charset="utf-8">
-<link rel="stylesheet" href="../../third_party/mocha/mocha.css" />
+<link rel="stylesheet" href="../../third_party/mocha/mocha.css">
 <script src="../../third_party/expect.js/expect.js"></script>
 <script src="../../third_party/mocha/mocha.js"></script>
 <script src="../map.js"></script>
+<script src="../sidetable.js"></script>
+<script src="../paralleltrees.js"></script>
 <script src="../ShadowRoot.js"></script>
 <script>
 
@@ -29,9 +31,21 @@ Object.defineProperty(DocumentFragment.prototype, 'innerHTML', {
   configurable: true
 });
 
+function expectStructure(nodeOrWrapper, nonNullFields) {
+  expect(nodeOrWrapper).to.be.ok();
+  expect(nodeOrWrapper.parentNode).to.be(nonNullFields.parentNode || null);
+  expect(nodeOrWrapper.previousSibling).to.be(
+      nonNullFields.previousSibling || null);
+  expect(nodeOrWrapper.nextSibling).to.be(nonNullFields.nextSibling || null);
+  expect(nodeOrWrapper.firstChild).to.be(nonNullFields.firstChild || null);
+  expect(nodeOrWrapper.lastChild).to.be(nonNullFields.lastChild || null);
+}
+
 </script>
 <script>mocha.setup('tdd')</script>
 <script src="test.js"></script>
+<script src="paralleltrees.js"></script>
+<script src="rerender.js"></script>
 <div id="mocha"></div>
 <script>
 mocha.run();
