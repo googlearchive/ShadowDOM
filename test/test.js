@@ -6,6 +6,12 @@
 
 suite('Shadow DOM', function() {
 
+  function normalizeInnerHtml(s) {
+    // IE9 - Even though the attribute name is stored as "checked" innerHTML
+    // upper case the name.
+    return s.replace(/CHECKED=""/g, 'checked=""')
+  }
+
   function testRender(descr, hostInnerHtml, shadowRoots,
                       expectedOuterHtml, opt_beforeRender) {
     test(descr, function() {
@@ -24,7 +30,8 @@ suite('Shadow DOM', function() {
 
       render(host);
 
-      expect(host.innerHTML).to.be(expectedOuterHtml);
+      expect(normalizeInnerHtml(host.innerHTML)).to.be(
+          normalizeInnerHtml(expectedOuterHtml));
     });
   }
 
