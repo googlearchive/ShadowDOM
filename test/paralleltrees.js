@@ -749,5 +749,155 @@ suite('Parallel Trees', function() {
       });
 
     });
+
+    suite('appendChild', function() {
+      test('simple', function() {
+        var div = document.createElement('div');
+        div.innerHTML = '<a></a><b></b>';
+        var a = div.firstChild;
+        var b = a.nextSibling;
+        var c = document.createElement('c');
+
+        logical.appendChild(div, c);
+
+        expectStructure(div, {
+          firstChild: a,
+          lastChild: c
+        });
+        expectStructure(a, {
+          parentNode: div,
+          nextSibling: b
+        });
+        expectStructure(b, {
+          parentNode: div,
+          previousSibling: a,
+          nextSibling: c
+        });
+        expectStructure(c, {
+          parentNode: div,
+          previousSibling: b
+        });
+
+        var wrapperDiv = logical.getWrapper(div);
+        var wrapperA = logical.getWrapper(a);
+        var wrapperB = logical.getWrapper(b);
+        var wrapperC = logical.getWrapper(c);
+
+        expectStructure(wrapperDiv, {
+          firstChild: wrapperA,
+          lastChild: wrapperC
+        });
+        expectStructure(wrapperA, {
+          parentNode: wrapperDiv,
+          nextSibling: wrapperB
+        });
+        expectStructure(wrapperB, {
+          parentNode: wrapperDiv,
+          previousSibling: wrapperA,
+          nextSibling: wrapperC
+        });
+        expectStructure(wrapperC, {
+          parentNode: wrapperDiv,
+          previousSibling: wrapperB
+        });
+      });
+
+      test('with wrappers before', function() {
+        var div = document.createElement('div');
+        div.innerHTML = '<a></a><b></b>';
+        var a = div.firstChild;
+        var b = a.nextSibling;
+        var c = document.createElement('c');
+
+        var wrapperDiv = logical.getWrapper(div);
+        var wrapperA = logical.getWrapper(a);
+        var wrapperB = logical.getWrapper(b);
+        var wrapperC = logical.getWrapper(c);
+
+        logical.appendChild(div, c);
+
+        expectStructure(div, {
+          firstChild: a,
+          lastChild: c
+        });
+        expectStructure(a, {
+          parentNode: div,
+          nextSibling: b
+        });
+        expectStructure(b, {
+          parentNode: div,
+          previousSibling: a,
+          nextSibling: c
+        });
+        expectStructure(c, {
+          parentNode: div,
+          previousSibling: b
+        });
+
+        expectStructure(wrapperDiv, {
+          firstChild: wrapperA,
+          lastChild: wrapperC
+        });
+        expectStructure(wrapperA, {
+          parentNode: wrapperDiv,
+          nextSibling: wrapperB
+        });
+        expectStructure(wrapperB, {
+          parentNode: wrapperDiv,
+          previousSibling: wrapperA,
+          nextSibling: wrapperC
+        });
+        expectStructure(wrapperC, {
+          parentNode: wrapperDiv,
+          previousSibling: wrapperB
+        });
+      });
+
+      test('change visual first', function() {
+        var div = document.createElement('div');
+        div.innerHTML = '<a></a><b></b>';
+        var a = div.firstChild;
+        var b = a.nextSibling;
+        var c = document.createElement('c');
+
+        visual.removeAllChildNodes(div);
+
+        logical.appendChild(div, c);
+
+        expectStructure(div, {
+          firstChild: c,
+          lastChild: c
+        });
+        expectStructure(a, {});
+        expectStructure(b, {});
+        expectStructure(c, {
+          parentNode: div
+        });
+
+        var wrapperDiv = logical.getWrapper(div);
+        var wrapperA = logical.getWrapper(a);
+        var wrapperB = logical.getWrapper(b);
+        var wrapperC = logical.getWrapper(c);
+
+        expectStructure(wrapperDiv, {
+          firstChild: wrapperA,
+          lastChild: wrapperC
+        });
+        expectStructure(wrapperA, {
+          parentNode: wrapperDiv,
+          nextSibling: wrapperB
+        });
+        expectStructure(wrapperB, {
+          parentNode: wrapperDiv,
+          previousSibling: wrapperA,
+          nextSibling: wrapperC
+        });
+        expectStructure(wrapperC, {
+          parentNode: wrapperDiv,
+          previousSibling: wrapperB
+        });
+      });
+
+    });
   });
 });

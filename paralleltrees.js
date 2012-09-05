@@ -126,6 +126,18 @@ var logical, visual;
       wrapper.removeChild(wrap(childNode));
     },
 
+    appendChild: function(parentNode, childNode) {
+      var wrapper = getExistingWrapper(parentNode);
+      if (!wrapper) {
+        if (!hasAnyChildWrapper(parentNode)) {
+          parentNode.appendChild(childNode)
+          return;
+        }
+        wrapper = wrap(parentNode);
+      }
+      wrapper.appendChild(wrap(childNode));
+    },
+
     getWrapper: wrap,
     getChildNodesSnapshot: getChildNodesSnapshot
   };
@@ -275,19 +287,25 @@ var logical, visual;
   WrapperNode.prototype = {
     // TODO(arv): Implement these
 
-    // appendChild: function(child) {
-    //   assert(child instanceof WrapperNode);
-    //   if (child.parentNode)
-    //     child.parentNode.removeChild(child);
-    //   if (!this.lastChild) {
-    //     this.firstChild_ = this.lastChild_ = child;
-    //   } else {
-    //     this.lastChild.nextSibling_ = child;
-    //     child.previousSibling_ = this.lastChild;
-    //     this.lastChild_ = child;
-    //   }
-    //   child.parentNode_ = this;
-    // },
+    appendChild: function(child) {
+      assert(child instanceof WrapperNode);
+      if (child.parentNode)
+        child.parentNode.removeChild(child);
+      if (!this.lastChild) {
+        this.firstChild_ = this.lastChild_ = child;
+      } else {
+        this.lastChild.nextSibling_ = child;
+        child.previousSibling_ = this.lastChild;
+        this.lastChild_ = child;
+      }
+      child.parentNode_ = this;
+
+      // TODO(arv): It is unclear if we need to update the visual DOM here.
+      // A better aproach might be to make sure we only get here for nodes that
+      // are related to a shadow host and then invalidate that and re-render
+      // the host (on reflow?).
+      this.node.appendChild(unwrap(child));
+    },
 
     removeChild: function(child) {
       assert(child instanceof WrapperNode);

@@ -431,5 +431,40 @@ test('<shadow>', function() {
       render(host);
       expect(host.innerHTML).to.be('<a>Hello</a><b>World</b>fallback a');
     });
+
+    test('appendChild - mutate host', function() {
+      var host = document.createElement('div');
+      host.innerHTML = '<a>Hello</a>';
+
+      var shadowRoot = new JsShadowRoot(host);
+      shadowRoot.innerHTML = '<content></content>';
+
+      render(host);
+      expect(host.innerHTML).to.be('<a>Hello</a>');
+
+      var b = document.createElement('b');
+      logical.appendChild(host, b);
+
+      render(host);
+      expect(host.innerHTML).to.be('<a>Hello</a><b></b>');
+    });
+
+    test('appendChild - mutate shadow', function() {
+      var host = document.createElement('div');
+      host.innerHTML = '<a>Hello</a>';
+
+      var shadowRoot = new JsShadowRoot(host);
+      shadowRoot.innerHTML = '<content></content>';
+
+      render(host);
+      expect(host.innerHTML).to.be('<a>Hello</a>');
+
+      var b = document.createElement('b');
+      logical.appendChild(shadowRoot, b);
+
+      render(host);
+      expect(host.innerHTML).to.be('<a>Hello</a><b></b>');
+    });
+
   });
 });
