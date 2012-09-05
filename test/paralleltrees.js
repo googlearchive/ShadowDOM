@@ -4,7 +4,7 @@
  * license that can be found in the LICENSE file.
  */
 
-suite('Logical DOM', function() {
+suite('Parallel Trees', function() {
 
   suite('Visual', function() {
 
@@ -339,7 +339,85 @@ suite('Logical DOM', function() {
         previousSibling: logicalBWrapper
       });
     });
+  });
 
+  suite('Logical', function() {
 
+    test('removeAllChildNodes', function() {
+      var div = document.createElement('div');
+      div.innerHTML = '<a></a><b></b><c></c>';
+      var a = div.firstChild;
+      var b = a.nextSibling;
+      var c = div.lastChild;
+
+      logical.removeAllChildNodes(div);
+
+      expectStructure(div, {});
+      expectStructure(a, {});
+      expectStructure(b, {});
+      expectStructure(c, {});
+
+      var wrapperDiv = logical.getWrapper(div);
+      var wrapperA = logical.getWrapper(a);
+      var wrapperB = logical.getWrapper(b);
+      var wrapperC = logical.getWrapper(c);
+
+      expectStructure(wrapperDiv, {});
+      expectStructure(wrapperA, {});
+      expectStructure(wrapperB, {});
+      expectStructure(wrapperC, {});
+    });
+
+    test('removeAllChildNodes - with wrappers before removal', function() {
+      var div = document.createElement('div');
+      div.innerHTML = '<a></a><b></b><c></c>';
+      var a = div.firstChild;
+      var b = a.nextSibling;
+      var c = div.lastChild;
+
+      var wrapperDiv = logical.getWrapper(div);
+      var wrapperA = logical.getWrapper(a);
+      var wrapperB = logical.getWrapper(b);
+      var wrapperC = logical.getWrapper(c);
+
+      logical.removeAllChildNodes(div);
+
+      expectStructure(div, {});
+      expectStructure(a, {});
+      expectStructure(b, {});
+      expectStructure(c, {});
+
+      expectStructure(wrapperDiv, {});
+      expectStructure(wrapperA, {});
+      expectStructure(wrapperB, {});
+      expectStructure(wrapperC, {});
+    });
+
+    test('removeAllChildNodes - change visual first', function() {
+      var div = document.createElement('div');
+      div.innerHTML = '<a></a><b></b><c></c>';
+      var a = div.firstChild;
+      var b = a.nextSibling;
+      var c = div.lastChild;
+
+      var wrapperDiv = logical.getWrapper(div);
+      var wrapperA = logical.getWrapper(a);
+      var wrapperB = logical.getWrapper(b);
+      var wrapperC = logical.getWrapper(c);
+
+      visual.removeAllChildNodes(div);
+
+      expectStructure(div, {});
+      expectStructure(a, {});
+      expectStructure(b, {});
+      expectStructure(c, {});
+
+      logical.removeAllChildNodes(div);
+
+      expectStructure(wrapperDiv, {});
+      expectStructure(wrapperA, {});
+      expectStructure(wrapperB, {});
+      expectStructure(wrapperC, {});
+    });
   });
 });

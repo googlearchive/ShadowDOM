@@ -79,6 +79,19 @@ var logical, visual;
     }
   }
 
+  /**
+   * Whether the |node| has any childNode that has a wrapper.
+   * @param {!Node} node
+   * @return {boolean}
+   */
+  function hasAnyChildWrapper(node) {
+    for (var child = node.firstChild; child; child = child.nextSibling) {
+      if (getExistingWrapper(child))
+        return true;
+    }
+    return false;
+  }
+
   // This object groups DOM operations. This is supposed to be the DOM as the
   // developer sees it.
   logical = {
@@ -87,6 +100,17 @@ var logical, visual;
     getLastChild: getLogicalPropertyFunction('lastChild'),
     getNextSibling: getLogicalPropertyFunction('nextSibling'),
     getPreviousSibling: getLogicalPropertyFunction('previousSibling'),
+    removeAllChildNodes: function(node) {
+      var wrapper = getExistingWrapper(node);
+      if (!wrapper) {
+        if (!hasAnyChildWrapper(node)) {
+          node.textContent = '';
+          return;
+        }
+        wrapper = wrap(node);
+      }
+      wrapper.removeAllChildNodes();
+    },
     getWrapper: wrap,
     getChildNodesSnapshot: getChildNodesSnapshot
   };
@@ -187,7 +211,6 @@ var logical, visual;
     getChildNodesSnapshot: getChildNodesSnapshot
   };
 
-
   /**
    * This represents a logical DOM node.
    * @param {!Node} original The original DOM node, aka, the visual DOM node.
@@ -268,13 +291,19 @@ var logical, visual;
     //   child.previousSibling_ = child.nextSibling_ = child.parentNode_ = null;
     // },
 
-    // removeAllChildNodes: function() {
-    //   for (var child = this.firstChild; child; child = child.nextSibling) {
-    //     assert(child.parentNode === this);
-    //     child.previousSibling_ = child.nextSibling_ = child.parentNode_ = null;
-    //   }
-    //   this.firstChild_ = this.lastChild_ = null;
-    // },
+    removeAllChildNodes: function() {
+      var child = this.firstChild;
+      while (child) {
+        assert(child.parentNode === this);
+        var nextSibling = child.nextSibling;
+        var childNode = unwrap(child);
+        child.previousSibling_ = child.nextSibling_ = child.parentNode_ = null;
+        if (childNode.parentNode)
+          childNode.parentNode.removeChild(childNode);
+        child = nextSibling;
+      }
+      this.firstChild_ = this.lastChild_ = null;
+    },
 
     hasChildNodes: function() {
       return this.firstChild === null;

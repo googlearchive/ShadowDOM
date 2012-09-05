@@ -12,13 +12,20 @@ var JsShadowRoot, render;
   var slice = Array.prototype.slice.call.bind(Array.prototype.slice);
 
   var treeToInsertionPointMap = new Map();
+  var distributedChildNodesTable = new SideTable('distributedChildNodes');
 
   function distributeChildToInsertionPoint(child, insertionPoint) {
     // console.log('Distributing', child, 'to', insertionPoint);
     treeToInsertionPointMap.set(child, insertionPoint);
-    if (!insertionPoint.__distributedChildNodes__)
-      insertionPoint.__distributedChildNodes__ = [];
-    insertionPoint.__distributedChildNodes__.push(child);
+    getDistributedChildNodes(insertionPoint).push(child);
+  }
+
+  function resetDistributedChildNodes(insertionPoint) {
+    distributedChildNodesTable.set(insertionPoint, []);
+  }
+
+  function getDistributedChildNodes(insertionPoint) {
+    return distributedChildNodesTable.get(insertionPoint);
   }
 
   /**
@@ -57,6 +64,7 @@ var JsShadowRoot, render;
   function distribute(tree, pool) {
     visit(tree, isActiveInsertionPoint,
         function(insertionPoint) {
+          resetDistributedChildNodes(insertionPoint);
           for (var i = 0; i < pool.length; i++) {  // 1.2
             var node = pool[i];  // 1.2.1
             if (matchesCriteria(node, insertionPoint)) {  // 1.2.2
@@ -240,10 +248,6 @@ var JsShadowRoot, render;
 
   function isShadowInsertionPoint(node) {
     return node.tagName === 'SHADOW';
-  }
-
-  function getDistributedChildNodes(insertionPoint) {
-    return insertionPoint.__distributedChildNodes__ || [];
   }
 
   function renderNode(visualParent, tree, node, isNested) {

@@ -284,4 +284,45 @@ test('<shadow>', function() {
     testRender();
   });
 
+  suite('Mutate logical DOM', function() {
+    test('removeAllChildNodes - mutate host', function() {
+      var host = document.createElement('div');
+      host.innerHTML = '<a>Hello</a>';
+
+      var shadowRoot = new JsShadowRoot(host);
+      shadowRoot.innerHTML = '<content>fallback</content>';
+
+      render(host);
+      expect(host.innerHTML).to.be('<a>Hello</a>');
+
+      logical.removeAllChildNodes(logical.getFirstChild(host));
+      render(host);
+      expect(host.innerHTML).to.be('<a></a>');
+
+      logical.removeAllChildNodes(host);
+      render(host);
+      expect(host.innerHTML).to.be('fallback');
+    });
+
+    test('removeAllChildNodes - mutate shadow', function() {
+      var host = document.createElement('div');
+      host.innerHTML = '<a>Hello</a>';
+
+      var shadowRoot = new JsShadowRoot(host);
+      shadowRoot.innerHTML = '<content></content><b>after</b>';
+
+      render(host);
+      expect(host.innerHTML).to.be('<a>Hello</a><b>after</b>');
+
+      logical.removeAllChildNodes(logical.getLastChild(shadowRoot));
+      render(host);
+      expect(host.innerHTML).to.be('<a>Hello</a><b></b>');
+
+      logical.removeAllChildNodes(shadowRoot);
+      render(host);
+      expect(host.innerHTML).to.be('');
+    });
+
+  });
+
 });
