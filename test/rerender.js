@@ -323,6 +323,113 @@ test('<shadow>', function() {
       expect(host.innerHTML).to.be('');
     });
 
-  });
+    test('removeAllChildNodes - mutate shadow fallback', function() {
+      var host = document.createElement('div');
+      host.innerHTML = '<a>Hello</a>';
 
+      var shadowRoot = new JsShadowRoot(host);
+      shadowRoot.innerHTML = '<content select="xxx"><b>fallback</b></content>';
+
+      render(host);
+      expect(host.innerHTML).to.be('<b>fallback</b>');
+
+      logical.removeAllChildNodes(logical.getFirstChild(logical.getFirstChild(shadowRoot)));
+      render(host);
+      expect(host.innerHTML).to.be('<b></b>');
+
+      logical.removeAllChildNodes(logical.getFirstChild(shadowRoot));
+      render(host);
+      expect(host.innerHTML).to.be('');
+
+      logical.removeAllChildNodes(shadowRoot);
+      render(host);
+      expect(host.innerHTML).to.be('');
+    });
+
+    test('removeChild - mutate host', function() {
+      var host = document.createElement('div');
+      host.innerHTML = '<a>Hello</a>';
+
+      var shadowRoot = new JsShadowRoot(host);
+      shadowRoot.innerHTML = '<content>fallback</content>';
+
+      render(host);
+      expect(host.innerHTML).to.be('<a>Hello</a>');
+
+      logical.removeChild(logical.getFirstChild(host),
+          logical.getFirstChild(logical.getFirstChild(host)));
+      render(host);
+      expect(host.innerHTML).to.be('<a></a>');
+
+      logical.removeChild(host, logical.getFirstChild(host));
+      render(host);
+      expect(host.innerHTML).to.be('fallback');
+    });
+
+    test('removeChild - mutate host 2', function() {
+      var host = document.createElement('div');
+      host.innerHTML = '<a></a><b></b>';
+
+      var shadowRoot = new JsShadowRoot(host);
+      shadowRoot.innerHTML = '<content>fallback</content>';
+
+      render(host);
+      expect(host.innerHTML).to.be('<a></a><b></b>');
+
+      logical.removeChild(host, logical.getLastChild(host));
+      render(host);
+      expect(host.innerHTML).to.be('<a></a>');
+
+      logical.removeChild(host, logical.getFirstChild(host));
+      render(host);
+      expect(host.innerHTML).to.be('fallback');
+    });
+
+    test('removeChild - mutate shadow', function() {
+      var host = document.createElement('div');
+      host.innerHTML = '<a>Hello</a>';
+
+      var shadowRoot = new JsShadowRoot(host);
+      shadowRoot.innerHTML = '<content></content><b>after</b>';
+
+      render(host);
+      expect(host.innerHTML).to.be('<a>Hello</a><b>after</b>');
+
+      logical.removeChild(logical.getLastChild(shadowRoot),
+        logical.getFirstChild(logical.getLastChild(shadowRoot)));
+      render(host);
+      expect(host.innerHTML).to.be('<a>Hello</a><b></b>');
+
+      logical.removeChild(shadowRoot, logical.getLastChild(shadowRoot));
+      render(host);
+      expect(host.innerHTML).to.be('<a>Hello</a>');
+
+      logical.removeChild(shadowRoot, logical.getFirstChild(shadowRoot));
+      render(host);
+      expect(host.innerHTML).to.be('');
+    });
+
+    test('setAttribute select', function() {
+      // TODO(arv): DOM bindings for select.
+      var host = document.createElement('div');
+      host.innerHTML = '<a>Hello</a><b>World</b>';
+
+      var shadowRoot = new JsShadowRoot(host);
+      shadowRoot.innerHTML = '<content select="b">fallback b</content>' +
+                             '<content select="a">fallback a</content>';
+
+      render(host);
+      expect(host.innerHTML).to.be('<b>World</b><a>Hello</a>');
+
+      logical.getFirstChild(shadowRoot).setAttribute('select', 'xxx');
+
+      render(host);
+      expect(host.innerHTML).to.be('fallback b<a>Hello</a>');
+
+      logical.getFirstChild(shadowRoot).setAttribute('select', '');
+
+      render(host);
+      expect(host.innerHTML).to.be('<a>Hello</a><b>World</b>fallback a');
+    });
+  });
 });

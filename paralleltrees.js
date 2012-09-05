@@ -100,6 +100,7 @@ var logical, visual;
     getLastChild: getLogicalPropertyFunction('lastChild'),
     getNextSibling: getLogicalPropertyFunction('nextSibling'),
     getPreviousSibling: getLogicalPropertyFunction('previousSibling'),
+
     removeAllChildNodes: function(node) {
       var wrapper = getExistingWrapper(node);
       if (!wrapper) {
@@ -111,13 +112,27 @@ var logical, visual;
       }
       wrapper.removeAllChildNodes();
     },
+
+    removeChild: function(parentNode, childNode) {
+      assert(logical.getParentNode(childNode) === parentNode);
+      var wrapper = getExistingWrapper(parentNode);
+      if (!wrapper) {
+        if (!hasAnyChildWrapper(parentNode)) {
+          parentNode.removeChild(childNode)
+          return;
+        }
+        wrapper = wrap(parentNode);
+      }
+      wrapper.removeChild(wrap(childNode));
+    },
+
     getWrapper: wrap,
     getChildNodesSnapshot: getChildNodesSnapshot
   };
 
   /**
    * Updates the fields of a wrapper to a snapshot of the logical DOM as needed.
-   * Up means parenNode
+   * Up means parentNode
    * Sideways means previous and next sibling.
    * @param {!WrapperNode} wrapper
    */
@@ -274,22 +289,26 @@ var logical, visual;
     //   child.parentNode_ = this;
     // },
 
-    // removeChild: function(child) {
-    //   assert(child instanceof WrapperNode);
-    //   if (child.parentNode !== this)
-    //     throw Error('wrong parentNode');
+    removeChild: function(child) {
+      assert(child instanceof WrapperNode);
+      if (child.parentNode !== this)
+        throw Error('wrong parentNode');
 
-    //   if (this.firstChild === child)
-    //     this.firstChild_ = child.nextSibling;
-    //   if (this.lastChild === child)
-    //     this.lastChild_ = child.previousSibling;
-    //   if (child.previousSibling)
-    //     child.previousSibling.nextSibling_ = child.nextSibling;
-    //   if (child.nextSibling)
-    //     child.nextSibling.previousSibling_ = child.previousSibling;
+      if (this.firstChild === child)
+        this.firstChild_ = child.nextSibling;
+      if (this.lastChild === child)
+        this.lastChild_ = child.previousSibling;
+      if (child.previousSibling)
+        child.previousSibling.nextSibling_ = child.nextSibling;
+      if (child.nextSibling)
+        child.nextSibling.previousSibling_ = child.previousSibling;
 
-    //   child.previousSibling_ = child.nextSibling_ = child.parentNode_ = null;
-    // },
+      child.previousSibling_ = child.nextSibling_ = child.parentNode_ = null;
+
+      var childNode = unwrap(child);
+      if (childNode.parentNode)
+        childNode.parentNode.removeChild(childNode);
+    },
 
     removeAllChildNodes: function() {
       var child = this.firstChild;
