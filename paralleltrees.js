@@ -138,6 +138,20 @@ var logical, visual;
       wrapper.appendChild(wrap(childNode));
     },
 
+    insertBefore: function(parentNode, childNode, refNode) {
+      if (refNode === undefined)
+        refNode = null;
+      var wrapper = getExistingWrapper(parentNode);
+      if (!wrapper) {
+        if (!hasAnyChildWrapper(parentNode)) {
+          parentNode.insertBefore(childNode, refNode)
+          return;
+        }
+        wrapper = wrap(parentNode);
+      }
+      wrapper.insertBefore(wrap(childNode), wrap(refNode));
+    },
+
     getWrapper: wrap,
     getChildNodesSnapshot: getChildNodesSnapshot
   };
@@ -305,6 +319,36 @@ var logical, visual;
       // are related to a shadow host and then invalidate that and re-render
       // the host (on reflow?).
       this.node.appendChild(unwrap(child));
+
+      return child;
+    },
+
+    insertBefore: function(child, ref) {
+      // TODO(arv): Unify with appendChild
+      if (!ref)
+        return this.appendChild(child);
+
+      assert(child instanceof WrapperNode);
+      assert(ref instanceof WrapperNode);
+      assert(ref.parentNode === this);
+      if (child.parentNode)
+        child.parentNode.removeChild(child);
+
+      if (this.firstChild === ref)
+        this.firstChild_ = child;
+      if (ref.previousSibling)
+        ref.previousSibling.nextSibling_ = child;
+      child.previousSibling_ = ref.previousSibling
+      child.nextSibling_ = ref;
+      child.parentNode_ = this;
+      ref.previousSibling_ = child;
+
+      // insertBefore ref no matter what the parent is?
+      var refNode = unwrap(ref);
+      if (refNode.parentNode)
+        refNode.parentNode.insertBefore(unwrap(child), refNode);
+
+      return child;
     },
 
     removeChild: function(child) {
@@ -326,6 +370,8 @@ var logical, visual;
       var childNode = unwrap(child);
       if (childNode.parentNode)
         childNode.parentNode.removeChild(childNode);
+
+      return child;
     },
 
     removeAllChildNodes: function() {
