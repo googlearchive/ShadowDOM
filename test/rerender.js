@@ -6,6 +6,10 @@
 
 suite('Shadow DOM rerender', function() {
 
+  function getVisualInnerHtml(el) {
+    return HTMLElement_prototype.innerHTML.get.call(el);
+  }
+
   test('No <content> nor <shadow>', function() {
     var host = document.createElement('div');
     host.innerHTML = '<a></a>';
@@ -17,7 +21,7 @@ suite('Shadow DOM rerender', function() {
 
     function testRender() {
       render(host);
-      expect(host.innerHTML).to.be('text');
+      expect(getVisualInnerHtml(host)).to.be('text');
 
       var logicalHostWrapper = logical.getWrapper(host);
       var logicalAWrapper = logical.getWrapper(a);
@@ -58,7 +62,7 @@ test('<content>', function() {
 
     function testRender() {
       render(host);
-      expect(host.innerHTML).to.be('<a></a>');
+      expect(getVisualInnerHtml(host)).to.be('<a></a>');
 
       var logicalHostWrapper = logical.getWrapper(host);
       var logicalAWrapper = logical.getWrapper(a);
@@ -100,7 +104,7 @@ test('<content>', function() {
 
     function testRender() {
       render(host);
-      expect(host.innerHTML).to.be('fallback');
+      expect(getVisualInnerHtml(host)).to.be('fallback');
 
       var logicalHostWrapper = logical.getWrapper(host);
       var logicalAWrapper = logical.getWrapper(a);
@@ -148,7 +152,7 @@ test('<shadow>', function() {
 
     function testRender() {
       render(host);
-      expect(host.innerHTML).to.be('');
+      expect(getVisualInnerHtml(host)).to.be('');
 
       var logicalHostWrapper = logical.getWrapper(host);
       var logicalAWrapper = logical.getWrapper(a);
@@ -190,7 +194,7 @@ test('<shadow>', function() {
 
     function testRender() {
       render(host);
-      expect(host.innerHTML).to.be('fallback');
+      expect(getVisualInnerHtml(host)).to.be('fallback');
 
       var logicalHostWrapper = logical.getWrapper(host);
       var logicalAWrapper = logical.getWrapper(a);
@@ -242,7 +246,7 @@ test('<shadow>', function() {
 
     function testRender() {
       render(host);
-      expect(host.innerHTML).to.be('text');
+      expect(getVisualInnerHtml(host)).to.be('text');
 
       var logicalHostWrapper = logical.getWrapper(host);
       var logicalAWrapper = logical.getWrapper(a);
@@ -293,15 +297,15 @@ test('<shadow>', function() {
       shadowRoot.innerHTML = '<content>fallback</content>';
 
       render(host);
-      expect(host.innerHTML).to.be('<a>Hello</a>');
+      expect(getVisualInnerHtml(host)).to.be('<a>Hello</a>');
 
       logical.removeAllChildNodes(logical.getFirstChild(host));
       render(host);
-      expect(host.innerHTML).to.be('<a></a>');
+      expect(getVisualInnerHtml(host)).to.be('<a></a>');
 
       logical.removeAllChildNodes(host);
       render(host);
-      expect(host.innerHTML).to.be('fallback');
+      expect(getVisualInnerHtml(host)).to.be('fallback');
     });
 
     test('removeAllChildNodes - mutate shadow', function() {
@@ -312,15 +316,15 @@ test('<shadow>', function() {
       shadowRoot.innerHTML = '<content></content><b>after</b>';
 
       render(host);
-      expect(host.innerHTML).to.be('<a>Hello</a><b>after</b>');
+      expect(getVisualInnerHtml(host)).to.be('<a>Hello</a><b>after</b>');
 
       logical.removeAllChildNodes(logical.getLastChild(shadowRoot));
       render(host);
-      expect(host.innerHTML).to.be('<a>Hello</a><b></b>');
+      expect(getVisualInnerHtml(host)).to.be('<a>Hello</a><b></b>');
 
       logical.removeAllChildNodes(shadowRoot);
       render(host);
-      expect(host.innerHTML).to.be('');
+      expect(getVisualInnerHtml(host)).to.be('');
     });
 
     test('removeAllChildNodes - mutate shadow fallback', function() {
@@ -331,19 +335,19 @@ test('<shadow>', function() {
       shadowRoot.innerHTML = '<content select="xxx"><b>fallback</b></content>';
 
       render(host);
-      expect(host.innerHTML).to.be('<b>fallback</b>');
+      expect(getVisualInnerHtml(host)).to.be('<b>fallback</b>');
 
       logical.removeAllChildNodes(logical.getFirstChild(logical.getFirstChild(shadowRoot)));
       render(host);
-      expect(host.innerHTML).to.be('<b></b>');
+      expect(getVisualInnerHtml(host)).to.be('<b></b>');
 
       logical.removeAllChildNodes(logical.getFirstChild(shadowRoot));
       render(host);
-      expect(host.innerHTML).to.be('');
+      expect(getVisualInnerHtml(host)).to.be('');
 
       logical.removeAllChildNodes(shadowRoot);
       render(host);
-      expect(host.innerHTML).to.be('');
+      expect(getVisualInnerHtml(host)).to.be('');
     });
 
     test('removeChild - mutate host', function() {
@@ -354,16 +358,16 @@ test('<shadow>', function() {
       shadowRoot.innerHTML = '<content>fallback</content>';
 
       render(host);
-      expect(host.innerHTML).to.be('<a>Hello</a>');
+      expect(getVisualInnerHtml(host)).to.be('<a>Hello</a>');
 
       logical.removeChild(logical.getFirstChild(host),
           logical.getFirstChild(logical.getFirstChild(host)));
       render(host);
-      expect(host.innerHTML).to.be('<a></a>');
+      expect(getVisualInnerHtml(host)).to.be('<a></a>');
 
       logical.removeChild(host, logical.getFirstChild(host));
       render(host);
-      expect(host.innerHTML).to.be('fallback');
+      expect(getVisualInnerHtml(host)).to.be('fallback');
     });
 
     test('removeChild - mutate host 2', function() {
@@ -374,15 +378,15 @@ test('<shadow>', function() {
       shadowRoot.innerHTML = '<content>fallback</content>';
 
       render(host);
-      expect(host.innerHTML).to.be('<a></a><b></b>');
+      expect(getVisualInnerHtml(host)).to.be('<a></a><b></b>');
 
       logical.removeChild(host, logical.getLastChild(host));
       render(host);
-      expect(host.innerHTML).to.be('<a></a>');
+      expect(getVisualInnerHtml(host)).to.be('<a></a>');
 
       logical.removeChild(host, logical.getFirstChild(host));
       render(host);
-      expect(host.innerHTML).to.be('fallback');
+      expect(getVisualInnerHtml(host)).to.be('fallback');
     });
 
     test('removeChild - mutate shadow', function() {
@@ -393,20 +397,20 @@ test('<shadow>', function() {
       shadowRoot.innerHTML = '<content></content><b>after</b>';
 
       render(host);
-      expect(host.innerHTML).to.be('<a>Hello</a><b>after</b>');
+      expect(getVisualInnerHtml(host)).to.be('<a>Hello</a><b>after</b>');
 
       logical.removeChild(logical.getLastChild(shadowRoot),
         logical.getFirstChild(logical.getLastChild(shadowRoot)));
       render(host);
-      expect(host.innerHTML).to.be('<a>Hello</a><b></b>');
+      expect(getVisualInnerHtml(host)).to.be('<a>Hello</a><b></b>');
 
       logical.removeChild(shadowRoot, logical.getLastChild(shadowRoot));
       render(host);
-      expect(host.innerHTML).to.be('<a>Hello</a>');
+      expect(getVisualInnerHtml(host)).to.be('<a>Hello</a>');
 
       logical.removeChild(shadowRoot, logical.getFirstChild(shadowRoot));
       render(host);
-      expect(host.innerHTML).to.be('');
+      expect(getVisualInnerHtml(host)).to.be('');
     });
 
     test('setAttribute select', function() {
@@ -419,17 +423,17 @@ test('<shadow>', function() {
                              '<content select="a">fallback a</content>';
 
       render(host);
-      expect(host.innerHTML).to.be('<b>World</b><a>Hello</a>');
+      expect(getVisualInnerHtml(host)).to.be('<b>World</b><a>Hello</a>');
 
       logical.getFirstChild(shadowRoot).setAttribute('select', 'xxx');
 
       render(host);
-      expect(host.innerHTML).to.be('fallback b<a>Hello</a>');
+      expect(getVisualInnerHtml(host)).to.be('fallback b<a>Hello</a>');
 
       logical.getFirstChild(shadowRoot).setAttribute('select', '');
 
       render(host);
-      expect(host.innerHTML).to.be('<a>Hello</a><b>World</b>fallback a');
+      expect(getVisualInnerHtml(host)).to.be('<a>Hello</a><b>World</b>fallback a');
     });
 
     test('appendChild - mutate host', function() {
@@ -440,13 +444,13 @@ test('<shadow>', function() {
       shadowRoot.innerHTML = '<content></content>';
 
       render(host);
-      expect(host.innerHTML).to.be('<a>Hello</a>');
+      expect(getVisualInnerHtml(host)).to.be('<a>Hello</a>');
 
       var b = document.createElement('b');
       logical.appendChild(host, b);
 
       render(host);
-      expect(host.innerHTML).to.be('<a>Hello</a><b></b>');
+      expect(getVisualInnerHtml(host)).to.be('<a>Hello</a><b></b>');
     });
 
     test('appendChild - mutate shadow', function() {
@@ -457,13 +461,13 @@ test('<shadow>', function() {
       shadowRoot.innerHTML = '<content></content>';
 
       render(host);
-      expect(host.innerHTML).to.be('<a>Hello</a>');
+      expect(getVisualInnerHtml(host)).to.be('<a>Hello</a>');
 
       var b = document.createElement('b');
       logical.appendChild(shadowRoot, b);
 
       render(host);
-      expect(host.innerHTML).to.be('<a>Hello</a><b></b>');
+      expect(getVisualInnerHtml(host)).to.be('<a>Hello</a><b></b>');
     });
 
     test('insertBefore - mutate host', function() {
@@ -475,13 +479,13 @@ test('<shadow>', function() {
       shadowRoot.innerHTML = '<content></content>';
 
       render(host);
-      expect(host.innerHTML).to.be('<a>Hello</a>');
+      expect(getVisualInnerHtml(host)).to.be('<a>Hello</a>');
 
       var b = document.createElement('b');
       logical.insertBefore(host, b, a);
 
       render(host);
-      expect(host.innerHTML).to.be('<b></b><a>Hello</a>');
+      expect(getVisualInnerHtml(host)).to.be('<b></b><a>Hello</a>');
     });
 
     test('insertBefore - mutate shadow', function() {
@@ -493,13 +497,13 @@ test('<shadow>', function() {
       var content = shadowRoot.firstChild;
 
       render(host);
-      expect(host.innerHTML).to.be('<a>Hello</a>');
+      expect(getVisualInnerHtml(host)).to.be('<a>Hello</a>');
 
       var b = document.createElement('b');
       logical.insertBefore(shadowRoot, b, content);
 
       render(host);
-      expect(host.innerHTML).to.be('<b></b><a>Hello</a>');
+      expect(getVisualInnerHtml(host)).to.be('<b></b><a>Hello</a>');
     });
 
     test('replaceChild - mutate host', function() {

@@ -324,6 +324,9 @@ var JsShadowRoot, render;
       newShadowRoot.__nextOlderShadowTree__ = oldShadowRoot;
     host.__shadowRoot__ = newShadowRoot;
     newShadowRoot.__shadowHost__ = host;
+
+    getShadowOwnerAndInvalidate(host);
+
     return newShadowRoot;
   };
 

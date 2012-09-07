@@ -6,6 +6,10 @@
 
 suite('Shadow DOM', function() {
 
+  function getVisualInnerHtml(el) {
+    return HTMLElement_prototype.innerHTML.get.call(el);
+  }
+
   function normalizeInnerHtml(s) {
     // IE9 - Even though the attribute name is stored as "checked" innerHTML
     // upper case the name.
@@ -30,7 +34,7 @@ suite('Shadow DOM', function() {
 
       render(host);
 
-      expect(normalizeInnerHtml(host.innerHTML)).to.be(
+      expect(normalizeInnerHtml(getVisualInnerHtml(host))).to.be(
           normalizeInnerHtml(expectedOuterHtml));
     });
   }

@@ -5,6 +5,7 @@
  */
 
 var logical, visual;
+var wrap, unwrap, getExistingWrapper;
 
 (function() {
 
@@ -23,7 +24,7 @@ var logical, visual;
    * @param {Node} node
    * @return {WrapperNode}
    */
-  function wrap(node) {
+  wrap = function wrap(node) {
     if (node === null)
       return null;
 
@@ -34,28 +35,28 @@ var logical, visual;
       wrapperTable.set(node, wrapper);
     }
     return wrapper;
-  }
+  };
 
   /**
    * Unwraps a wrapper and returns the node it is wrapping.
    * @param {WrapperNode} wrapper
    * @return {Node}
    */
-  function unwrap(wrapper) {
+  unwrap = function unwrap(wrapper) {
     if (wrapper === null)
       return null;
     assert(wrapper instanceof WrapperNode);
     return wrapper.node;
-  }
+  };
 
   /**
    * @param {!Node} node
    * @return {!WrapperNode|undefined}
    */
-  function getExistingWrapper(node) {
+  getExistingWrapper = function getExistingWrapper(node) {
     assert(node instanceof Node);
     return wrapperTable.get(node);
-  }
+  };
 
   /**
    * @param {!Node} node
@@ -85,7 +86,7 @@ var logical, visual;
    * @return {boolean}
    */
   function hasAnyChildWrapper(node) {
-    for (var child = node.firstChild; child; child = child.nextSibling) {
+    for (var child = Node_prototype.firstChild.get.call(node); child; child = Node_prototype.nextSibling.get.call(child)) {
       if (getExistingWrapper(child))
         return true;
     }
@@ -105,7 +106,7 @@ var logical, visual;
       var wrapper = getExistingWrapper(node);
       if (!wrapper) {
         if (!hasAnyChildWrapper(node)) {
-          node.textContent = '';
+          Node_prototype.textContent.set.call(node, '');
           return;
         }
         wrapper = wrap(node);
@@ -192,7 +193,7 @@ var logical, visual;
 
   function getVisualPropertyFunction(propertyName) {
     return function(node) {
-      return node[propertyName];
+      return Node_prototype[propertyName].get.call(node);
     };
   }
 
@@ -203,14 +204,14 @@ var logical, visual;
   visual = {
     removeAllChildNodes: function(parentNode) {
       var parentNodeWrapper = wrap(parentNode);
-      for (var child = parentNodeWrapper.firstChild;
-           child;
-           child = child.nextSibling) {
-        updateWrapperUpAndSideways(child);
+      for (var childWrapper = parentNodeWrapper.firstChild;
+           childWrapper;
+           childWrapper = childWrapper.nextSibling) {
+        updateWrapperUpAndSideways(childWrapper);
       }
       updateWrapperDown(parentNodeWrapper);
 
-      parentNode.textContent = '';
+      Node_prototype.textContent.set.call(parentNode, '');
     },
 
     appendChild: function(parentNode, child) {
@@ -224,12 +225,12 @@ var logical, visual;
       if (parentNodeWrapper.lastChild === parentNodeWrapper.firstChild)
         parentNodeWrapper.firstChild_ = parentNodeWrapper.firstChild;
 
-      var lastChildWrapper = wrap(parentNode.lastChild);
+      var lastChildWrapper = wrap(Node_prototype.lastChild.get.call(parentNode));
       if (lastChildWrapper) {
         lastChildWrapper.nextSibling_ = lastChildWrapper.nextSibling;
       }
 
-      parentNode.appendChild(child);
+      Node_prototype.appendChild.call(parentNode, child);
     },
 
     removeChild: function(parentNode, child) {
@@ -248,12 +249,13 @@ var logical, visual;
       if (parentNodeWrapper.firstChild === childWrapper)
         parentNodeWrapper.firstChild_ = childWrapper;
 
-      parentNode.removeChild(child);
+      Node_prototype.removeChild.call(parentNode, child);
     },
 
     remove: function(node) {
-      if (node.parentNode)
-        this.removeChild(node.parentNode, node);
+      var parentNode = Node_prototype.parentNode.get.call(node);
+      if (parentNode)
+        this.removeChild(parentNode, node);
     },
 
     getParentNode: getVisualPropertyFunction('parentNode'),
@@ -330,62 +332,64 @@ var logical, visual;
       // A better aproach might be to make sure we only get here for nodes that
       // are related to a shadow host and then invalidate that and re-render
       // the host (on reflow?).
-      this.node.appendChild(unwrap(child));
+      Node_prototype.appendChild.call(this.node, unwrap(child));
 
       return child;
     },
 
-    insertBefore: function(child, ref) {
+    insertBefore: function(childWrapper, refWrapper) {
       // TODO(arv): Unify with appendChild
-      if (!ref)
-        return this.appendChild(child);
+      if (!refWrapper)
+        return this.appendChild(childWrapper);
 
-      assert(child instanceof WrapperNode);
-      assert(ref instanceof WrapperNode);
-      assert(ref.parentNode === this);
-      if (child.parentNode)
-        child.parentNode.removeChild(child);
+      assert(childWrapper instanceof WrapperNode);
+      assert(refWrapper instanceof WrapperNode);
+      assert(refWrapper.parentNode === this);
+      if (childWrapper.parentNode)
+        childWrapper.parentNode.removeChild(childWrapper);
 
-      if (this.firstChild === ref)
-        this.firstChild_ = child;
-      if (ref.previousSibling)
-        ref.previousSibling.nextSibling_ = child;
-      child.previousSibling_ = ref.previousSibling
-      child.nextSibling_ = ref;
-      child.parentNode_ = this;
-      ref.previousSibling_ = child;
+      if (this.firstChild === refWrapper)
+        this.firstChild_ = childWrapper;
+      if (refWrapper.previousSibling)
+        refWrapper.previousSibling.nextSibling_ = childWrapper;
+      childWrapper.previousSibling_ = refWrapper.previousSibling
+      childWrapper.nextSibling_ = refWrapper;
+      childWrapper.parentNode_ = this;
+      refWrapper.previousSibling_ = childWrapper;
 
-      // insertBefore ref no matter what the parent is?
-      var refNode = unwrap(ref);
-      if (refNode.parentNode)
-        refNode.parentNode.insertBefore(unwrap(child), refNode);
+      // insertBefore refWrapper no matter what the parent is?
+      var refNode = unwrap(refWrapper);
+      var parentNode = Node_prototype.parentNode.get.call(refNode);
+      if (parentNode)
+        Node_prototype.insertBefore.call(parentNode, unwrap(childWrapper), refNode);
 
-      return child;
+      return childWrapper;
     },
 
     removeChild: function(child) {
       assert(child instanceof WrapperNode);
-      if (child.parentNode !== this) {
+      if (childWrapper.parentNode !== this) {
         // TODO(arv): DOMException
         throw new Error('NOT_FOUND_ERR');
       }
 
-      if (this.firstChild === child)
-        this.firstChild_ = child.nextSibling;
-      if (this.lastChild === child)
-        this.lastChild_ = child.previousSibling;
-      if (child.previousSibling)
-        child.previousSibling.nextSibling_ = child.nextSibling;
-      if (child.nextSibling)
-        child.nextSibling.previousSibling_ = child.previousSibling;
+      if (this.firstChild === childWrapper)
+        this.firstChild_ = childWrapper.nextSibling;
+      if (this.lastChild === childWrapper)
+        this.lastChild_ = childWrapper.previousSibling;
+      if (childWrapper.previousSibling)
+        childWrapper.previousSibling.nextSibling_ = childWrapper.nextSibling;
+      if (childWrapper.nextSibling)
+        childWrapper.nextSibling.previousSibling_ = childWrapper.previousSibling;
 
-      child.previousSibling_ = child.nextSibling_ = child.parentNode_ = null;
+      childWrapper.previousSibling_ = childWrapper.nextSibling_ = childWrapper.parentNode_ = null;
 
-      var childNode = unwrap(child);
-      if (childNode.parentNode)
-        childNode.parentNode.removeChild(childNode);
+      var childNode = unwrap(childWrapper);
+      var parentNode = Node_prototype.parentNode.get.call(childNode);
+      if (parentNode)
+        Node_prototype.removeChild.call(parentNode, childNode);
 
-      return child;
+      return childWrapper;
     },
 
     replaceChild: function(newChildWrapper, oldChildWrapper) {
@@ -426,15 +430,16 @@ var logical, visual;
     },
 
     removeAllChildNodes: function() {
-      var child = this.firstChild;
-      while (child) {
-        assert(child.parentNode === this);
-        var nextSibling = child.nextSibling;
-        var childNode = unwrap(child);
-        child.previousSibling_ = child.nextSibling_ = child.parentNode_ = null;
-        if (childNode.parentNode)
-          childNode.parentNode.removeChild(childNode);
-        child = nextSibling;
+      var childWrapper = this.firstChild;
+      while (childWrapper) {
+        assert(childWrapper.parentNode === this);
+        var nextSibling = childWrapper.nextSibling;
+        var childNode = unwrap(childWrapper);
+        childWrapper.previousSibling_ = childWrapper.nextSibling_ = childWrapper.parentNode_ = null;
+        var parentNode = Node_prototype.parentNode.get.call(childNode);
+        if (parentNode)
+          Node_prototype.removeChild.call(parentNode, childNode);
+        childWrapper = nextSibling;
       }
       this.firstChild_ = this.lastChild_ = null;
     },
@@ -447,31 +452,31 @@ var logical, visual;
     get parentNode() {
       // If the parentNode has not been overridden, use the original parentNode.
       return this.parentNode_ !== undefined ?
-          this.parentNode_ : wrap(this.node.parentNode);
+          this.parentNode_ : wrap(Node_prototype.parentNode.get.call(this.node));
     },
 
     /** @type {WrapperNode} */
     get firstChild() {
       return this.firstChild_ !== undefined ?
-          this.firstChild_ : wrap(this.node.firstChild);
+          this.firstChild_ : wrap(Node_prototype.firstChild.get.call(this.node));
     },
 
     /** @type {WrapperNode} */
     get lastChild() {
       return this.lastChild_ !== undefined ?
-          this.lastChild_ : wrap(this.node.lastChild);
+          this.lastChild_ : wrap(Node_prototype.lastChild.get.call(this.node));
     },
 
     /** @type {WrapperNode} */
     get nextSibling() {
       return this.nextSibling_ !== undefined ?
-          this.nextSibling_ : wrap(this.node.nextSibling);
+          this.nextSibling_ : wrap(Node_prototype.nextSibling.get.call(this.node));
     },
 
     /** @type {WrapperNode} */
     get previousSibling() {
       return this.previousSibling_ !== undefined ?
-          this.previousSibling_ : wrap(this.node.previousSibling);
+          this.previousSibling_ : wrap(Node_prototype.previousSibling.get.call(this.node));
     },
   };
 

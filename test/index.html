@@ -10,26 +10,11 @@ license that can be found in the LICENSE file.
 <script src="../../third_party/mocha/mocha.js"></script>
 <script src="../map.js"></script>
 <script src="../sidetable.js"></script>
+<script src="../domreflectionutils.js"></script>
+<script src="../domoverrides.js"></script>
 <script src="../paralleltrees.js"></script>
 <script src="../ShadowRoot.js"></script>
 <script>
-
-// TODO(arv): Move to ShadowDom.js?
-Object.defineProperty(DocumentFragment.prototype, 'innerHTML', {
-  get: function() {
-    throw 'not implemented';
-  },
-  set: function(value) {
-    this.textContent = '';
-    var tmp = this.ownerDocument.createElement('div');
-    tmp.innerHTML = value;
-    while (tmp.firstChild) {
-      this.appendChild(tmp.firstChild);
-    }
-  },
-  enumerable: true,
-  configurable: true
-});
 
 function expectStructure(nodeOrWrapper, nonNullFields) {
   expect(nodeOrWrapper).to.be.ok();
