@@ -30,6 +30,7 @@ license that can be found in the LICENSE file.
 
 var el = document.querySelector('.test');
 var sr = new (window.WebKitShadowRoot || window.JsShadowRoot)(el);
+
 sr.innerHTML = 'Before <content></content> After';
 
 function update() {

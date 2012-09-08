@@ -183,7 +183,7 @@ var getShadowOwnerAndInvalidate;
   overrideDescriptor(Node, 'textContent', {
     get: function() {
       if (this instanceof CharacterData)
-        return this.data;
+        return Node_prototype.textContent.get.call(this);
 
       // TODO(arv): This should fallback to Node_prototype.textContent if there
       // are no shadow trees below or above the context node.
@@ -194,14 +194,19 @@ var getShadowOwnerAndInvalidate;
       return s;
     },
     set: function(value) {
+      if (this instanceof CharacterData)
+        return Node_prototype.textContent.set.call(this, value);
+
       var shadowOwner = getShadowOwnerAndInvalidate(this);
-      if (!shadowOwner) {
+      if (!shadowOwner || this instanceof CharacterData) {
         Node_prototype.textContent.set.call(this, value);
       } else {
         var wrapper = wrap(this);
         wrapper.removeAllChildNodes();
-        var textNode = this.ownerDocument.createTextNode(value);
-        wrapper.appendChild(wrap(textNode));
+        if (value !== '') {
+          var textNode = this.ownerDocument.createTextNode(value);
+          wrapper.appendChild(wrap(textNode));
+        }
       }
     }
   });
@@ -278,7 +283,7 @@ var getShadowOwnerAndInvalidate;
 
   overrideDescriptor(HTMLElement, 'innerHTML', {
     get: function() {
-      // TODO(arv): This should fallback to HTMLElement_prototype.textContent if there
+      // TODO(arv): This should fallback to HTMLElement_prototype.innerHTML if there
       // are no shadow trees below or above the context node.
       return getInnerHTML(this);
     },
@@ -301,7 +306,7 @@ var getShadowOwnerAndInvalidate;
 
   overrideDescriptor(HTMLElement, 'outerHTML', {
     get: function() {
-      // TODO(arv): This should fallback to HTMLElement_prototype.textContent if there
+      // TODO(arv): This should fallback to HTMLElement_prototype.outerHTML if there
       // are no shadow trees below or above the context node.
       return getOuterHTML(this);
     },
@@ -324,9 +329,11 @@ var getShadowOwnerAndInvalidate;
       this.textContent = '';
       var tmp = this.ownerDocument.createElement('div');
       tmp.innerHTML = value;
-      while (tmp.firstChild) {
-        this.appendChild(tmp.firstChild);
+      var child;
+      while (child = tmp.firstChild) {
+        this.appendChild(child);
       }
+      ;
     },
     enumerable: true,
     configurable: true
