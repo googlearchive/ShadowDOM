@@ -320,7 +320,7 @@ var getShadowOwnerAndInvalidate;
     }
   });
 
-  // TODO(arv): Move to ShadowDom.js?
+  // TODO(arv): JsShadowDom should have this getter.
   Object.defineProperty(DocumentFragment.prototype, 'innerHTML', {
     get: function() {
       return getInnerHTML(this);
@@ -338,5 +338,22 @@ var getShadowOwnerAndInvalidate;
     enumerable: true,
     configurable: true
   });
+
+  function reflectAttribute(name) {
+    return {
+      get: function() {
+        return this.getAttribute(name);
+      },
+      set: function(value) {
+        this.setAttribute(name, value);
+      },
+      enumerable: true,
+      configurable: true
+    };
+  }
+
+  // TODO(arv): Introduce HTMLContentElement
+  Object.defineProperty(HTMLUnknownElement.prototype, 'select',
+                        reflectAttribute('select'));
 
 })();
