@@ -180,6 +180,22 @@ var getShadowOwnerAndInvalidate;
   overrideNodeGetter('previousSibling');
   overrideNodeGetter('nextSibling');
 
+  function getElementWalker(name) {
+    return function() {
+      for (var node = this[name];
+           node && node.nodeType !== Node.ELEMENT_NODE;
+           node = node[name]) {}
+      return node;
+    };
+  }
+
+  overrideGetter(Element, 'previousElementSibling', getElementWalker('previousSibling'));
+  overrideGetter(Element, 'nextElementSibling', getElementWalker('nextSibling'));
+  overrideGetter(Element, 'firstElementChild', getElementWalker('firstChild'));
+  overrideGetter(Element, 'lastElementChild', getElementWalker('lastChild'));
+  // parentElement is defined on HTMLElement in IE
+  overrideGetter(HTMLElement, 'parentElement', getElementWalker('parentNode'));
+
   overrideDescriptor(Node, 'textContent', {
     get: function() {
       if (this instanceof CharacterData)
