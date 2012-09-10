@@ -515,13 +515,13 @@ test('<shadow>', function() {
       shadowRoot.innerHTML = '<content></content>';
 
       render(host);
-      expect(host.innerHTML).to.be('<a>Hello</a>');
+      expect(getVisualInnerHtml(host)).to.be('<a>Hello</a>');
 
       var b = document.createElement('b');
       logical.replaceChild(host, b, a);
 
       render(host);
-      expect(host.innerHTML).to.be('<b></b>');
+      expect(getVisualInnerHtml(host)).to.be('<b></b>');
     });
 
     test('replaceChild - mutate shadow', function() {
@@ -533,13 +533,13 @@ test('<shadow>', function() {
       var content = shadowRoot.firstChild;
 
       render(host);
-      expect(host.innerHTML).to.be('<a>Hello</a>');
+      expect(getVisualInnerHtml(host)).to.be('<a>Hello</a>');
 
       var b = document.createElement('b');
       logical.replaceChild(shadowRoot, b, content);
 
       render(host);
-      expect(host.innerHTML).to.be('<b></b>');
+      expect(getVisualInnerHtml(host)).to.be('<b></b>');
     });
 
   });
