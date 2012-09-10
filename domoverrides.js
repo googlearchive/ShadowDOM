@@ -71,10 +71,10 @@ var getShadowOwnerAndInvalidate;
   ShadowOwner.scheduleRender = function() {
     if (ShadowOwner.timer)
       return;
-    ShadowOwner.timer = request(ShadowOwner.onTimer, 0);
+    ShadowOwner.timer = request(ShadowOwner.renderAllPending, 0);
   };
 
-  ShadowOwner.onTimer = function() {
+  ShadowOwner.renderAllPending = function() {
     ShadowOwner.timer = null;
     ShadowOwner.pending.forEach(function(owner) {
       owner.render();
@@ -211,6 +211,56 @@ var getShadowOwnerAndInvalidate;
     }
   });
 
+  function getterNeedsReflow(ctor, propertyName) {
+    var originalDescriptor = findDescriptor(ctor, propertyName);
+    if (originalDescriptor) {
+      overrideGetter(ctor, propertyName, function() {
+        ShadowOwner.renderAllPending();
+        return originalDescriptor.get.call(this);
+      });
+    }
+  }
+
+  getterNeedsReflow(Element, 'clientHeight');
+  getterNeedsReflow(Element, 'clientWidth');
+  getterNeedsReflow(Element, 'offsetHeight');
+  getterNeedsReflow(Element, 'offsetWidth');
+  getterNeedsReflow(Element, 'scrollHeight');
+  getterNeedsReflow(Element, 'scrollWidth');
+  // IE
+  getterNeedsReflow(Element, 'currentStyle');
+
+  function accessorNeedsReflow(ctor, propertyName) {
+    var originalDescriptor = findDescriptor(ctor, propertyName);
+    if (originalDescriptor) {
+      overrideDescriptor(ctor, propertyName,{
+        get: function() {
+          ShadowOwner.renderAllPending();
+          return originalDescriptor.get.call(this);
+        },
+        set: function(value) {
+          ShadowOwner.renderAllPending();
+          originalDescriptor.set.call(this, value);
+        }
+      });
+    }
+  }
+
+  accessorNeedsReflow(Element, 'scrollLeft');
+  accessorNeedsReflow(Element, 'scrollTop');
+
+  function methodNeedsReflow(ctor, name) {
+    var originalFunction = findMethod(ctor, name);
+    overrideMethod(ctor, name, function() {
+      ShadowOwner.renderAllPending();
+      return originalFunction.apply(this, arguments);
+    });
+  }
+
+  methodNeedsReflow(Window, 'getComputedStyle');
+  methodNeedsReflow(Element, 'getBoundingClientRect');
+  methodNeedsReflow(Element, 'getClientRects');
+  methodNeedsReflow(HTMLElement, 'scrollIntoView');
 
   /////////////////////////////////////////////////////////////////////////////
   // innerHTML and outerHTML
