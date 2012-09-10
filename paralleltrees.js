@@ -366,8 +366,8 @@ var wrap, unwrap, getExistingWrapper;
       return childWrapper;
     },
 
-    removeChild: function(child) {
-      assert(child instanceof WrapperNode);
+    removeChild: function(childWrapper) {
+      assert(childWrapper instanceof WrapperNode);
       if (childWrapper.parentNode !== this) {
         // TODO(arv): DOMException
         throw new Error('NOT_FOUND_ERR');
