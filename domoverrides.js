@@ -259,7 +259,7 @@ var getShadowOwnerAndInvalidate;
         var s = '<' + tagName;
         var attrs = node.attributes;
         for (var i = 0, attr; attr = attrs[i]; i++) {
-          s += ' ' + attr.nodeName + '="' + escape(attr.nodeValue) + '"';
+          s += ' ' + attr.name + '="' + escape(attr.value) + '"';
         }
         s += '>';
         if (voidElements[tagName])
