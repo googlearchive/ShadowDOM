@@ -502,5 +502,41 @@ test('<shadow>', function() {
       expect(host.innerHTML).to.be('<b></b><a>Hello</a>');
     });
 
+    test('replaceChild - mutate host', function() {
+      var host = document.createElement('div');
+      host.innerHTML = '<a>Hello</a>';
+      var a = host.firstChild;
+
+      var shadowRoot = new JsShadowRoot(host);
+      shadowRoot.innerHTML = '<content></content>';
+
+      render(host);
+      expect(host.innerHTML).to.be('<a>Hello</a>');
+
+      var b = document.createElement('b');
+      logical.replaceChild(host, b, a);
+
+      render(host);
+      expect(host.innerHTML).to.be('<b></b>');
+    });
+
+    test('replaceChild - mutate shadow', function() {
+      var host = document.createElement('div');
+      host.innerHTML = '<a>Hello</a>';
+
+      var shadowRoot = new JsShadowRoot(host);
+      shadowRoot.innerHTML = '<content></content>';
+      var content = shadowRoot.firstChild;
+
+      render(host);
+      expect(host.innerHTML).to.be('<a>Hello</a>');
+
+      var b = document.createElement('b');
+      logical.replaceChild(shadowRoot, b, content);
+
+      render(host);
+      expect(host.innerHTML).to.be('<b></b>');
+    });
+
   });
 });

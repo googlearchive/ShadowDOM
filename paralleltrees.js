@@ -152,6 +152,18 @@ var logical, visual;
       wrapper.insertBefore(wrap(childNode), wrap(refNode));
     },
 
+    replaceChild: function(parentNode, newChild, oldChild) {
+      var wrapper = getExistingWrapper(parentNode);
+      if (!wrapper) {
+        if (!hasAnyChildWrapper(parentNode)) {
+          parentNode.replaceChild(newChild, oldChild)
+          return;
+        }
+        wrapper = wrap(parentNode);
+      }
+      wrapper.replaceChild(wrap(newChild), wrap(oldChild));
+    },
+
     getWrapper: wrap,
     getChildNodesSnapshot: getChildNodesSnapshot
   };
@@ -353,8 +365,10 @@ var logical, visual;
 
     removeChild: function(child) {
       assert(child instanceof WrapperNode);
-      if (child.parentNode !== this)
-        throw Error('wrong parentNode');
+      if (child.parentNode !== this) {
+        // TODO(arv): DOMException
+        throw new Error('NOT_FOUND_ERR');
+      }
 
       if (this.firstChild === child)
         this.firstChild_ = child.nextSibling;
@@ -372,6 +386,43 @@ var logical, visual;
         childNode.parentNode.removeChild(childNode);
 
       return child;
+    },
+
+    replaceChild: function(newChildWrapper, oldChildWrapper) {
+      assert(newChildWrapper instanceof WrapperNode);
+      assert(oldChildWrapper instanceof WrapperNode);
+      if (oldChildWrapper.parentNode !== this) {
+        // TODO(arv): DOMException
+        throw new Error('NOT_FOUND_ERR');
+      }
+
+      if (newChildWrapper.parentNode)
+        newChildWrapper.parentNode.removeChild(newChildWrapper);
+
+      if (this.firstChild === oldChildWrapper)
+        this.firstChild_ = newChildWrapper;
+      if (this.lastChild === oldChildWrapper)
+        this.lastChild_ = newChildWrapper;
+      if (oldChildWrapper.previousSibling)
+        oldChildWrapper.previousSibling.nextSibling_ = newChildWrapper;
+      if (oldChildWrapper.nextSibling)
+        oldChildWrapper.nextSibling.previousSibling_ = newChildWrapper;
+      newChildWrapper.previousSibling_ = oldChildWrapper.previousSibling;
+      newChildWrapper.nextSibling_ = oldChildWrapper.nextSibling;
+
+      oldChildWrapper.previousSibling_ = null;
+      oldChildWrapper.nextSibling_ = null;
+      oldChildWrapper.parentNode_ = null;
+      newChildWrapper.parentNode_ = this;
+
+      // replaceChild no matter what the parent is?
+      var oldChildNode = unwrap(oldChildWrapper);
+      if (oldChildNode.parentNode) {
+        oldChildNode.parentNode.replaceChild(unwrap(newChildWrapper),
+                                             oldChildNode);
+      }
+
+      return oldChildWrapper;
     },
 
     removeAllChildNodes: function() {
