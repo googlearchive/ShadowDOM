@@ -251,14 +251,16 @@ var JsShadowRoot, render;
   }
 
   function renderNode(visualParent, tree, node, isNested) {
-    if (isShadowHost(node))
+    if (isShadowHost(node)) {
+      visual.appendChild(visualParent, node);
       render(node);
-    else if (isInsertionPoint(node))
+    } else if (isInsertionPoint(node)) {
       renderInsertionPoint(visualParent, tree, node, isNested);
-    else if (isShadowInsertionPoint(node))
+    } else if (isShadowInsertionPoint(node)) {
       renderShadowInsertionPoint(visualParent, tree, node);
-    else
+    } else {
       renderAsAnyDomSubtree(visualParent, tree, node, isNested);
+    }
   }
 
   function renderInsertionPoint(visualParent, tree, insertionPoint, isNested) {
@@ -283,11 +285,15 @@ var JsShadowRoot, render;
     // console.log('render', child);
     visual.appendChild(visualParent, child);
 
-    var parent = child;
-    var logicalChildNodes = logical.getChildNodesSnapshot(parent);
-    logicalChildNodes.forEach(function(node) {
-      renderNode(parent, tree, node, isNested);
-    });
+    if (isShadowHost(child)) {
+      render(child);
+    } else {
+      var parent = child;
+      var logicalChildNodes = logical.getChildNodesSnapshot(parent);
+      logicalChildNodes.forEach(function(node) {
+        renderNode(parent, tree, node, isNested);
+      });
+    }
   }
 
   function renderShadowInsertionPoint(visualParent, tree, shadowInsertionPoint) {

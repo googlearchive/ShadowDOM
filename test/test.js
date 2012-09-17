@@ -219,4 +219,42 @@ suite('Shadow DOM', function() {
 
   });
 
+  suite('Nested shadow hosts', function() {
+
+    test('Child has a shadow host', function() {
+      var host = document.createElement('div');
+      host.innerHTML = '<a>3</a>';
+
+      var a = host.firstChild;
+
+      var hostShadowRoot = new JsShadowRoot(host);
+      hostShadowRoot.innerHTML = '1<content></content>5';
+
+      var aShadowRoot = new JsShadowRoot(a);
+      aShadowRoot.innerHTML = '2<content></content>4';
+
+      render(host);
+
+      expect(host.innerHTML).to.be('1<a>234</a>5');
+    });
+
+    test('Shadow DOM has a shadow host', function() {
+      var host = document.createElement('div');
+      host.innerHTML = '6';
+
+      var hostShadowRoot = new JsShadowRoot(host);
+      hostShadowRoot.innerHTML = '1<a>3</a>5<content></content>7';
+
+      var a = hostShadowRoot.firstChild.nextSibling;
+
+      var aShadowRoot = new JsShadowRoot(a);
+      aShadowRoot.innerHTML = '2<content></content>4';
+
+      render(host);
+
+      expect(host.innerHTML).to.be('1<a>234</a>567');
+    });
+
+  });
+
 });
