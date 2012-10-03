@@ -239,7 +239,7 @@ suite('Shadow DOM', function() {
 
       render(host);
 
-      expect(host.innerHTML).to.be('1<a>234</a>5');
+      expect(getVisualInnerHtml(host)).to.be('1<a>234</a>5');
     });
 
     test('Shadow DOM has a shadow host', function() {
@@ -256,7 +256,7 @@ suite('Shadow DOM', function() {
 
       render(host);
 
-      expect(host.innerHTML).to.be('1<a>234</a>567');
+      expect(getVisualInnerHtml(host)).to.be('1<a>234</a>567');
     });
 
   });
