@@ -332,8 +332,12 @@ var getShadowOwnerAndInvalidate;
           return s;
 
         return s + getInnerHTML(node) + '</' + tagName + '>';
+
       case Node.TEXT_NODE:
         return escape(node.nodeValue);
+
+      case Node.COMMENT_NODE:
+        return '<!--' + escape(node.nodeValue) + '-->';
       default:
         throw new Error('not implemented');
     }
