@@ -146,10 +146,22 @@ var JsShadowRoot, render;
     }
   }
 
-  // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#multiple-shadow-subtrees
+  // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#dfn-tree-composition
   function treeComposition(shadowHost) {
     var tree = getYoungestTree(shadowHost);
-    var pool = logical.getChildNodesSnapshot(shadowHost);
+    var pool = [];
+    var shadowHostChildNodes = logical.getChildNodesSnapshot(shadowHost);
+    shadowHostChildNodes.forEach(function(child) {
+      if (isInsertionPoint(child)) {
+        var reprojected = getDistributedChildNodes(child);
+        if (!reprojected.length)
+          reprojected = logical.getChildNodesSnapshot(child);
+        pool.push.apply(pool, reprojected);
+      } else {
+        pool.push(child);
+      }
+    });
+
     var shadowInsertionPoint, point;
     while (tree) {
       shadowInsertionPoint = undefined;  // Reset every iteration.
@@ -162,7 +174,6 @@ var JsShadowRoot, render;
       if (point) {
         var nextOlderTree = getNextOlderTree(tree);
         if (!nextOlderTree) {
-          distributeRemainingTo(pool, point);
           break;
         } else {
           tree = nextOlderTree;
@@ -175,7 +186,7 @@ var JsShadowRoot, render;
     }
   }
 
-  // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#rendering-shadow-subtrees
+  // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#rendering-shadow-trees
   render = function render(host) {
     treeComposition(host);
     var shadowDOM = getYoungestTree(host);
@@ -259,7 +270,7 @@ var JsShadowRoot, render;
     } else if (isShadowInsertionPoint(node)) {
       renderShadowInsertionPoint(visualParent, tree, node);
     } else {
-      renderAsAnyDomSubtree(visualParent, tree, node, isNested);
+      renderAsAnyDomTree(visualParent, tree, node, isNested);
     }
   }
 
@@ -273,7 +284,7 @@ var JsShadowRoot, render;
         if (isInsertionPoint(child) && isNested)
           renderInsertionPoint(visualParent, tree, child, isNested);
         else
-          renderAsAnyDomSubtree(visualParent, tree, child, isNested);
+          renderAsAnyDomTree(visualParent, tree, child, isNested);
       });
     } else {
       renderFallbackContent(visualParent, insertionPoint);
@@ -281,7 +292,7 @@ var JsShadowRoot, render;
     visual.remove(insertionPoint);
   }
 
-  function renderAsAnyDomSubtree(visualParent, tree, child, isNested) {
+  function renderAsAnyDomTree(visualParent, tree, child, isNested) {
     // console.log('render', child);
     visual.appendChild(visualParent, child);
 
