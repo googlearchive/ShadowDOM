@@ -197,28 +197,51 @@ var wrap, unwrap, getExistingWrapper;
     };
   }
 
+  function collectAndRemoveNodes(node) {
+    if (node.nodeType !== Node.DOCUMENT_FRAGMENT_NODE) {
+      if (node.parentNode)
+        node.parentNode.removeChild(node);
+      return [node];
+    }
+
+    var nodes = [];
+    var firstChild;
+    while (firstChild = node.firstChild) {
+      node.removeChild(node.firstChild);
+      nodes.push(firstChild);
+    }
+    return nodes;
+  }
+
+  function updateAllChildNodes(parentNode) {
+    var parentNodeWrapper = wrap(parentNode);
+    for (var childWrapper = parentNodeWrapper.firstChild;
+         childWrapper;
+         childWrapper = childWrapper.nextSibling) {
+      updateWrapperUpAndSideways(childWrapper);
+    }
+    updateWrapperDown(parentNodeWrapper);
+  }
+
   // This object groups DOM operations. This is supposed to be the DOM as the
   // browser/render tree sees it.
   // When changes are done to the visual DOM the logical DOM needs to be updated
   // to reflect the correct tree.
   visual = {
     removeAllChildNodes: function(parentNode) {
-      var parentNodeWrapper = wrap(parentNode);
-      for (var childWrapper = parentNodeWrapper.firstChild;
-           childWrapper;
-           childWrapper = childWrapper.nextSibling) {
-        updateWrapperUpAndSideways(childWrapper);
-      }
-      updateWrapperDown(parentNodeWrapper);
-
+      updateAllChildNodes(parentNode);
       Node_prototype.textContent.set.call(parentNode, '');
     },
 
     appendChild: function(parentNode, child) {
-      this.remove(child);
+      if (child.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+        updateAllChildNodes(child);
 
-      var childWrapper = wrap(child);
-      updateWrapperUpAndSideways(childWrapper);
+      } else {
+        this.remove(child);
+        var childWrapper = wrap(child);
+        updateWrapperUpAndSideways(childWrapper);
+      }
 
       var parentNodeWrapper = wrap(parentNode);
       parentNodeWrapper.lastChild_ = parentNodeWrapper.lastChild;
@@ -315,26 +338,31 @@ var wrap, unwrap, getExistingWrapper;
   WrapperNode.prototype = {
     // TODO(arv): Implement these
 
-    appendChild: function(child) {
-      assert(child instanceof WrapperNode);
-      if (child.parentNode)
-        child.parentNode.removeChild(child);
-      if (!this.lastChild) {
-        this.firstChild_ = this.lastChild_ = child;
-      } else {
-        this.lastChild.nextSibling_ = child;
-        child.previousSibling_ = this.lastChild;
-        this.lastChild_ = child;
+    appendChild: function(childWrapper) {
+      assert(childWrapper instanceof WrapperNode);
+
+      var nodes = collectAndRemoveNodes(childWrapper);
+      var oldLastChild = this.lastChild;
+      this.lastChild_ = nodes[nodes.length - 1];
+
+      if (oldLastChild)
+        oldLastChild.nextSibling_ = nodes[0];
+      else
+        this.firstChild_ = nodes[0];
+
+      for (var i = 0; i < nodes.length; i++) {
+        nodes[i].previousSibling_ = nodes[i - 1] || oldLastChild;
+        nodes[i].nextSibling_ = nodes[i + 1] || null;
+        nodes[i].parentNode_ = this;
       }
-      child.parentNode_ = this;
 
       // TODO(arv): It is unclear if we need to update the visual DOM here.
       // A better aproach might be to make sure we only get here for nodes that
       // are related to a shadow host and then invalidate that and re-render
       // the host (on reflow?).
-      Node_prototype.appendChild.call(this.node, unwrap(child));
+      Node_prototype.appendChild.call(this.node, unwrap(childWrapper));
 
-      return child;
+      return childWrapper;
     },
 
     insertBefore: function(childWrapper, refWrapper) {
@@ -345,17 +373,23 @@ var wrap, unwrap, getExistingWrapper;
       assert(childWrapper instanceof WrapperNode);
       assert(refWrapper instanceof WrapperNode);
       assert(refWrapper.parentNode === this);
-      if (childWrapper.parentNode)
-        childWrapper.parentNode.removeChild(childWrapper);
+
+      var nodes = collectAndRemoveNodes(childWrapper);
+
+      var previousNode = refWrapper.previousSibling;
+      if (previousNode)
+        previousNode.nextSibling_ = nodes[0];
+      var nextNode = refWrapper;
+      refWrapper.previousSibling_ = nodes[nodes.length - 1];
+
+      for (var i = 0; i < nodes.length; i++) {
+        nodes[i].previousSibling_ = nodes[i - 1] || previousNode;
+        nodes[i].nextSibling_ = nodes[i + 1] || nextNode;
+        nodes[i].parentNode_ = this;
+      }
 
       if (this.firstChild === refWrapper)
-        this.firstChild_ = childWrapper;
-      if (refWrapper.previousSibling)
-        refWrapper.previousSibling.nextSibling_ = childWrapper;
-      childWrapper.previousSibling_ = refWrapper.previousSibling
-      childWrapper.nextSibling_ = refWrapper;
-      childWrapper.parentNode_ = this;
-      refWrapper.previousSibling_ = childWrapper;
+        this.firstChild_ = nodes[0];
 
       // insertBefore refWrapper no matter what the parent is?
       var refNode = unwrap(refWrapper);
@@ -370,7 +404,7 @@ var wrap, unwrap, getExistingWrapper;
       assert(childWrapper instanceof WrapperNode);
       if (childWrapper.parentNode !== this) {
         // TODO(arv): DOMException
-        throw new Error('NOT_FOUND_ERR');
+        throw new Error('NotFoundError');
       }
 
       if (this.firstChild === childWrapper)
@@ -397,7 +431,7 @@ var wrap, unwrap, getExistingWrapper;
       assert(oldChildWrapper instanceof WrapperNode);
       if (oldChildWrapper.parentNode !== this) {
         // TODO(arv): DOMException
-        throw new Error('NOT_FOUND_ERR');
+        throw new Error('NotFoundError');
       }
 
       if (newChildWrapper.parentNode)
@@ -478,6 +512,10 @@ var wrap, unwrap, getExistingWrapper;
       return this.previousSibling_ !== undefined ?
           this.previousSibling_ : wrap(Node_prototype.previousSibling.get.call(this.node));
     },
+
+    get nodeType() {
+      return this.node.nodeType;
+    }
   };
 
 })();
