@@ -9,8 +9,6 @@ var wrap, unwrap, getExistingWrapper;
 
 (function() {
 
-  var slice = Array.prototype.slice.call.bind(Array.prototype.slice);
-
   var wrapperTable = new SideTable('wrapper');
 
   function assert(b) {
@@ -58,115 +56,37 @@ var wrap, unwrap, getExistingWrapper;
     return wrapperTable.get(node);
   };
 
-  /**
-   * @param {!Node} node
-   * @return {Array.<!Node> An array of the nodes.
-   * @this
-   */
-  function getChildNodesSnapshot(node) {
-    var result = [], i = 0;
-    for (var child = this.getFirstChild(node); child; child = this.getNextSibling(child)) {
-      result[i++] = child;
-    }
-    return result;
-  }
-
-  function getLogicalPropertyFunction(propertyName) {
-    return function(node) {
-      var wrapper = getExistingWrapper(node);
-      if (wrapper)
-        return unwrap(wrapper[propertyName]);
-      return node[propertyName];
-    }
-  }
-
-  /**
-   * Whether the |node| has any childNode that has a wrapper.
-   * @param {!Node} node
-   * @return {boolean}
-   */
-  function hasAnyChildWrapper(node) {
-    for (var child = Node_prototype.firstChild.get.call(node); child; child = Node_prototype.nextSibling.get.call(child)) {
-      if (getExistingWrapper(child))
-        return true;
-    }
-    return false;
-  }
-
   // This object groups DOM operations. This is supposed to be the DOM as the
   // developer sees it.
   logical = {
-    getParentNode: getLogicalPropertyFunction('parentNode'),
-    getFirstChild: getLogicalPropertyFunction('firstChild'),
-    getLastChild: getLogicalPropertyFunction('lastChild'),
-    getNextSibling: getLogicalPropertyFunction('nextSibling'),
-    getPreviousSibling: getLogicalPropertyFunction('previousSibling'),
-
-    removeAllChildNodes: function(node) {
+    getFirstChild: function(node) {
       var wrapper = getExistingWrapper(node);
-      if (!wrapper) {
-        if (!hasAnyChildWrapper(node)) {
-          Node_prototype.textContent.set.call(node, '');
-          return;
-        }
-        wrapper = wrap(node);
-      }
-      wrapper.removeAllChildNodes();
+      if (wrapper)
+        return unwrap(wrapper.firstChild);
+      return node.firstChild;
     },
 
-    removeChild: function(parentNode, childNode) {
-      assert(logical.getParentNode(childNode) === parentNode);
-      var wrapper = getExistingWrapper(parentNode);
-      if (!wrapper) {
-        if (!hasAnyChildWrapper(parentNode)) {
-          parentNode.removeChild(childNode)
-          return;
-        }
-        wrapper = wrap(parentNode);
-      }
-      wrapper.removeChild(wrap(childNode));
-    },
-
-    appendChild: function(parentNode, childNode) {
-      var wrapper = getExistingWrapper(parentNode);
-      if (!wrapper) {
-        if (!hasAnyChildWrapper(parentNode)) {
-          parentNode.appendChild(childNode)
-          return;
-        }
-        wrapper = wrap(parentNode);
-      }
-      wrapper.appendChild(wrap(childNode));
-    },
-
-    insertBefore: function(parentNode, childNode, refNode) {
-      if (refNode === undefined)
-        refNode = null;
-      var wrapper = getExistingWrapper(parentNode);
-      if (!wrapper) {
-        if (!hasAnyChildWrapper(parentNode)) {
-          parentNode.insertBefore(childNode, refNode)
-          return;
-        }
-        wrapper = wrap(parentNode);
-      }
-      wrapper.insertBefore(wrap(childNode), wrap(refNode));
-    },
-
-    replaceChild: function(parentNode, newChild, oldChild) {
-      var wrapper = getExistingWrapper(parentNode);
-      if (!wrapper) {
-        if (!hasAnyChildWrapper(parentNode)) {
-          parentNode.replaceChild(newChild, oldChild)
-          return;
-        }
-        wrapper = wrap(parentNode);
-      }
-      wrapper.replaceChild(wrap(newChild), wrap(oldChild));
+    getNextSibling: function(node) {
+      var wrapper = getExistingWrapper(node);
+      if (wrapper)
+        return unwrap(wrapper.nextSibling);
+      return node.nextSibling;
     },
 
     getWrapper: wrap,
-    getChildNodesSnapshot: getChildNodesSnapshot
+
+    /**
+     * @param {!Node} node
+     * @return {Array.<!Node> An array of the nodes.
+     * @this
+     */
+    getChildNodesSnapshot: function(node) {
+      var result = [], i = 0;
+      for (var child = this.getFirstChild(node); child; child = this.getNextSibling(child)) {
+        result[i++] = child;
+      }
+      return result;
+    }
   };
 
   /**
@@ -189,12 +109,6 @@ var wrap, unwrap, getExistingWrapper;
   function updateWrapperDown(wrapper) {
     wrapper.firstChild_ = wrapper.firstChild;
     wrapper.lastChild_ = wrapper.lastChild;
-  }
-
-  function getVisualPropertyFunction(propertyName) {
-    return function(node) {
-      return Node_prototype[propertyName].get.call(node);
-    };
   }
 
   function collectAndRemoveNodes(node) {
@@ -279,14 +193,7 @@ var wrap, unwrap, getExistingWrapper;
       var parentNode = Node_prototype.parentNode.get.call(node);
       if (parentNode)
         this.removeChild(parentNode, node);
-    },
-
-    getParentNode: getVisualPropertyFunction('parentNode'),
-    getFirstChild: getVisualPropertyFunction('firstChild'),
-    getLastChild: getVisualPropertyFunction('lastChild'),
-    getNextSibling: getVisualPropertyFunction('nextSibling'),
-    getPreviousSibling: getVisualPropertyFunction('previousSibling'),
-    getChildNodesSnapshot: getChildNodesSnapshot
+    }
   };
 
   /**

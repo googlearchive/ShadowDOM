@@ -37,9 +37,9 @@ var JsShadowRoot, render;
    */
   function visit(tree, predicate, visitor) {
     // This operates on logical DOM.
-    for (var node = logical.getFirstChild(tree);
-         node;
-         node = logical.getNextSibling(node)) {
+    var nodes = logical.getChildNodesSnapshot(tree);
+    for (var i = 0; i < nodes.length; i++) {
+      var node = nodes[i];
       if (predicate(node)) {
         if (visitor(node) === false)
           return;
