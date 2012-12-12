@@ -27,6 +27,7 @@ var HTMLElement_prototype = {
 var getShadowOwnerAndInvalidate;
 
 (function() {
+  'use strict';
 
   var shadowOwnerTable = new SideTable('shadowOwner');
 
@@ -47,6 +48,10 @@ var getShadowOwnerAndInvalidate;
   function ShadowOwner(host) {
     this.host = host;
     this.dirty = false;
+
+    // TODO(arv): Merge this and ShadowRenderer.
+    var shadowRenderer = host.__getShadowRenderer__();
+    shadowRenderer.shadowOwner = this;  // sigh
   }
   ShadowOwner.prototype = {
     invalidate: function() {
@@ -58,7 +63,7 @@ var getShadowOwnerAndInvalidate;
     },
     render: function() {
       if (this.dirty) {
-        render(this.host);
+        this.host.__getShadowRenderer__().render();
         this.dirty = false;
       }
     }
@@ -82,39 +87,13 @@ var getShadowOwnerAndInvalidate;
     ShadowOwner.pending = [];
   };
 
-  function findShadowHost(wrapper) {
-    if (!wrapper)
-      return null;
-    if (wrapper.node.__shadowHost__)
-      return wrapper.node.__shadowHost__;
-    if (wrapper.node.__shadowRoot__)
-      return wrapper.node;
-    return findShadowHost(wrapper.parentNode);
-  }
-
   function getShadowOwner(node) {
     if (!node)
       return null;
-    var shadowHost;
-    if (node.__shadowHost__) {
-      shadowHost = node.__shadowHost__;
-    } else if (node.__shadowRoot__) {
-      shadowHost = node;
-    } else {
-      var wrapper = getExistingWrapper(node);
-      if (!wrapper)
-        return null;
-      var shadowHost = findShadowHost(wrapper);
-      if (!shadowHost)
-        return null;
-    }
-
-    var shadowOwner = shadowOwnerTable.get(shadowHost);
-    if (!shadowOwner) {
-      shadowOwner = new ShadowOwner(shadowHost);
-      shadowOwnerTable.set(shadowHost, shadowOwner);
-    }
-    return shadowOwner;
+    var renderer = node.__getShadowRenderer__();
+    if (renderer)
+      return renderer.shadowOwner;
+    return null;
   }
 
   getShadowOwnerAndInvalidate = function getShadowOwnerAndInvalidate(node) {
@@ -167,8 +146,7 @@ var getShadowOwnerAndInvalidate;
 
   function overrideNodeGetter(propertyName) {
     overrideGetter(Node, propertyName, function() {
-      var shadowOwner = getShadowOwner(this);
-      if (shadowOwner)
+      if (this.__getShadowRenderer__())
         return unwrap(wrap(this)[propertyName]);
       return Node_prototype[propertyName].get.call(this);
     });
