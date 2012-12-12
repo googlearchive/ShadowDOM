@@ -6,7 +6,7 @@ license that can be found in the LICENSE file.
 -->
 <meta charset="utf-8">
 <link rel="stylesheet" href="../../third_party/mocha/mocha.css">
-<script src="../../third_party/expect.js/expect.js"></script>
+<script src="../../third_party/chai/chai.js"></script>
 <script src="../../third_party/mocha/mocha.js"></script>
 <script src="../map.js"></script>
 <script src="../sidetable.js"></script>
@@ -16,14 +16,16 @@ license that can be found in the LICENSE file.
 <script src="../ShadowRoot.js"></script>
 <script>
 
+var assert = chai.assert;
+
 function expectStructure(nodeOrWrapper, nonNullFields) {
-  expect(nodeOrWrapper).to.be.ok();
-  expect(nodeOrWrapper.parentNode).to.be(nonNullFields.parentNode || null);
-  expect(nodeOrWrapper.previousSibling).to.be(
+  assert(nodeOrWrapper);
+  assert.strictEqual(nodeOrWrapper.parentNode, nonNullFields.parentNode || null);
+  assert.strictEqual(nodeOrWrapper.previousSibling,
       nonNullFields.previousSibling || null);
-  expect(nodeOrWrapper.nextSibling).to.be(nonNullFields.nextSibling || null);
-  expect(nodeOrWrapper.firstChild).to.be(nonNullFields.firstChild || null);
-  expect(nodeOrWrapper.lastChild).to.be(nonNullFields.lastChild || null);
+  assert.strictEqual(nodeOrWrapper.nextSibling, nonNullFields.nextSibling || null);
+  assert.strictEqual(nodeOrWrapper.firstChild, nonNullFields.firstChild || null);
+  assert.strictEqual(nodeOrWrapper.lastChild, nonNullFields.lastChild || null);
 }
 
 </script>
