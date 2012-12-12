@@ -15,7 +15,7 @@ suite('Shadow DOM rerender', function() {
     host.innerHTML = '<a></a>';
     var a = host.firstChild;
 
-    var shadowRoot = new JsShadowRoot(host);
+    var shadowRoot = host.jsCreateShadowRoot();
     shadowRoot.textContent = 'text';
     var textNode = shadowRoot.firstChild;
 
@@ -56,7 +56,7 @@ test('<content>', function() {
     host.innerHTML = '<a></a>';
     var a = host.firstChild;
 
-    var shadowRoot = new JsShadowRoot(host);
+    var shadowRoot = host.jsCreateShadowRoot();
     shadowRoot.innerHTML = '<content></content>';
     var content = shadowRoot.firstChild;
 
@@ -97,7 +97,7 @@ test('<content>', function() {
     host.innerHTML = '<a></a>';
     var a = host.firstChild;
 
-    var shadowRoot = new JsShadowRoot(host);
+    var shadowRoot = host.jsCreateShadowRoot();
     shadowRoot.innerHTML = '<content select="b">fallback</content>';
     var content = shadowRoot.firstChild;
     var fallback = content.firstChild;
@@ -146,7 +146,7 @@ test('<shadow>', function() {
     host.innerHTML = '<a></a>';
     var a = host.firstChild;
 
-    var shadowRoot = new JsShadowRoot(host);
+    var shadowRoot = host.jsCreateShadowRoot();
     shadowRoot.innerHTML = '<shadow></shadow>';
     var shadow = shadowRoot.firstChild;
 
@@ -187,7 +187,7 @@ test('<shadow>', function() {
     host.innerHTML = '<a></a>';
     var a = host.firstChild;
 
-    var shadowRoot = new JsShadowRoot(host);
+    var shadowRoot = host.jsCreateShadowRoot();
     shadowRoot.innerHTML = '<shadow>fallback</shadow>';
     var shadow = shadowRoot.firstChild;
     var fallback = shadow.firstChild;
@@ -236,11 +236,11 @@ test('<shadow>', function() {
     host.innerHTML = '<a></a>';
     var a = host.firstChild;
 
-    var oldestShadowRoot = new JsShadowRoot(host);
+    var oldestShadowRoot = host.jsCreateShadowRoot();
     oldestShadowRoot.textContent = 'text';
     var textNode = oldestShadowRoot.firstChild;
 
-    var youngestShadowRoot = new JsShadowRoot(host);
+    var youngestShadowRoot = host.jsCreateShadowRoot();
     youngestShadowRoot.innerHTML = '<shadow></shadow>';
     var shadow = youngestShadowRoot.firstChild;
 
@@ -293,7 +293,7 @@ test('<shadow>', function() {
       var host = document.createElement('div');
       host.innerHTML = '<a>Hello</a>';
 
-      var shadowRoot = new JsShadowRoot(host);
+      var shadowRoot = host.jsCreateShadowRoot();
       shadowRoot.innerHTML = '<content>fallback</content>';
 
       render(host);
@@ -314,7 +314,7 @@ test('<shadow>', function() {
       var host = document.createElement('div');
       host.innerHTML = '<a>Hello</a>';
 
-      var shadowRoot = new JsShadowRoot(host);
+      var shadowRoot = host.jsCreateShadowRoot();
       shadowRoot.innerHTML = '<content></content><b>after</b>';
 
       render(host);
@@ -335,7 +335,7 @@ test('<shadow>', function() {
       var host = document.createElement('div');
       host.innerHTML = '<a>Hello</a>';
 
-      var shadowRoot = new JsShadowRoot(host);
+      var shadowRoot = host.jsCreateShadowRoot();
       shadowRoot.innerHTML = '<content select="xxx"><b>fallback</b></content>';
 
       render(host);
@@ -362,7 +362,7 @@ test('<shadow>', function() {
       var host = document.createElement('div');
       host.innerHTML = '<a>Hello</a>';
 
-      var shadowRoot = new JsShadowRoot(host);
+      var shadowRoot = host.jsCreateShadowRoot();
       shadowRoot.innerHTML = '<content>fallback</content>';
 
       render(host);
@@ -383,7 +383,7 @@ test('<shadow>', function() {
       var host = document.createElement('div');
       host.innerHTML = '<a></a><b></b>';
 
-      var shadowRoot = new JsShadowRoot(host);
+      var shadowRoot = host.jsCreateShadowRoot();
       shadowRoot.innerHTML = '<content>fallback</content>';
 
       render(host);
@@ -404,7 +404,7 @@ test('<shadow>', function() {
       var host = document.createElement('div');
       host.innerHTML = '<a>Hello</a>';
 
-      var shadowRoot = new JsShadowRoot(host);
+      var shadowRoot = host.jsCreateShadowRoot();
       shadowRoot.innerHTML = '<content></content><b>after</b>';
 
       render(host);
@@ -432,7 +432,7 @@ test('<shadow>', function() {
       var host = document.createElement('div');
       host.innerHTML = '<a>Hello</a><b>World</b>';
 
-      var shadowRoot = new JsShadowRoot(host);
+      var shadowRoot = host.jsCreateShadowRoot();
       shadowRoot.innerHTML = '<content select="b">fallback b</content>' +
                              '<content select="a">fallback a</content>';
 
@@ -454,7 +454,7 @@ test('<shadow>', function() {
       var host = document.createElement('div');
       host.innerHTML = '<a>Hello</a>';
 
-      var shadowRoot = new JsShadowRoot(host);
+      var shadowRoot = host.jsCreateShadowRoot();
       shadowRoot.innerHTML = '<content></content>';
 
       render(host);
@@ -474,7 +474,7 @@ test('<shadow>', function() {
       var host = document.createElement('div');
       host.innerHTML = '<a>Hello</a>';
 
-      var shadowRoot = new JsShadowRoot(host);
+      var shadowRoot = host.jsCreateShadowRoot();
       shadowRoot.innerHTML = '<content></content>';
 
       render(host);
@@ -495,7 +495,7 @@ test('<shadow>', function() {
       host.innerHTML = '<a>Hello</a>';
       var a = host.firstChild;
 
-      var shadowRoot = new JsShadowRoot(host);
+      var shadowRoot = host.jsCreateShadowRoot();
       shadowRoot.innerHTML = '<content></content>';
 
       render(host);
@@ -517,7 +517,7 @@ test('<shadow>', function() {
       var host = document.createElement('div');
       host.innerHTML = '<a>Hello</a>';
 
-      var shadowRoot = new JsShadowRoot(host);
+      var shadowRoot = host.jsCreateShadowRoot();
       shadowRoot.innerHTML = '<content></content>';
       var content = shadowRoot.firstChild;
 
@@ -541,7 +541,7 @@ test('<shadow>', function() {
       host.innerHTML = '<a>Hello</a>';
       var a = host.firstChild;
 
-      var shadowRoot = new JsShadowRoot(host);
+      var shadowRoot = host.jsCreateShadowRoot();
       shadowRoot.innerHTML = '<content></content>';
 
       render(host);
@@ -563,7 +563,7 @@ test('<shadow>', function() {
       var host = document.createElement('div');
       host.innerHTML = '<a>Hello</a>';
 
-      var shadowRoot = new JsShadowRoot(host);
+      var shadowRoot = host.jsCreateShadowRoot();
       shadowRoot.innerHTML = '<content></content>';
       var content = shadowRoot.firstChild;
 
