@@ -34,7 +34,7 @@ suite('Shadow DOM', function() {
 
       render(host);
 
-      expect(normalizeInnerHtml(getVisualInnerHtml(host))).to.be(
+      assert.strictEqual(normalizeInnerHtml(getVisualInnerHtml(host)),
           normalizeInnerHtml(expectedOuterHtml));
     });
   }
@@ -239,7 +239,7 @@ suite('Shadow DOM', function() {
 
       render(host);
 
-      expect(getVisualInnerHtml(host)).to.be('1<a>234</a>5');
+      assert.strictEqual(getVisualInnerHtml(host), '1<a>234</a>5');
     });
 
     test('Shadow DOM has a shadow host', function() {
@@ -256,7 +256,7 @@ suite('Shadow DOM', function() {
 
       render(host);
 
-      expect(getVisualInnerHtml(host)).to.be('1<a>234</a>567');
+      assert.strictEqual(getVisualInnerHtml(host), '1<a>234</a>567');
     });
 
   });

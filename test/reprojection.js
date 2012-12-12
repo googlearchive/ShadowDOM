@@ -32,7 +32,8 @@ suite('Shadow DOM reprojection', function() {
 
     function testRender() {
       render(host);
-      expect(getVisualInnerHtml(host)).to.be('<p>a: <a></a>b: <b></b></p>');
+      assert.strictEqual(getVisualInnerHtml(host),
+                         '<p>a: <a></a>b: <b></b></p>');
 
       var logicalHostWrapper = logical.getWrapper(host);
       var logicalAWrapper = logical.getWrapper(a);
