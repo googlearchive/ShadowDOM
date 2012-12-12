@@ -28,6 +28,13 @@ function expectStructure(nodeOrWrapper, nonNullFields) {
   assert.strictEqual(nodeOrWrapper.lastChild, nonNullFields.lastChild || null);
 }
 
+function assertArrayEqual(a, b, msg) {
+  assert.equal(a.length, b.length, msg);
+  for (var i = 0; i < a.length; i++) {
+    assert.equal(a[i], b[i], msg);
+  }
+}
+
 </script>
 <script>mocha.setup({
   ui: 'tdd',
@@ -37,6 +44,7 @@ function expectStructure(nodeOrWrapper, nonNullFields) {
 <script src="paralleltrees.js"></script>
 <script src="rerender.js"></script>
 <script src="reprojection.js"></script>
+<script src="content-element.js"></script>
 <div id="mocha"></div>
 <script>
 mocha.run();

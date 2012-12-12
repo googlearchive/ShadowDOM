@@ -395,4 +395,40 @@ var render;
     enumerable: true
   });
 
+  function reflectAttribute(name) {
+    return {
+      get: function() {
+        return this.getAttribute(name);
+      },
+      set: function(value) {
+        this.setAttribute(name, value);
+      },
+      enumerable: true,
+      configurable: true
+    };
+  }
+
+  // TODO(arv): Introduce HTMLContentElement
+  Object.defineProperty(HTMLUnknownElement.prototype, 'select',
+                        reflectAttribute('select'));
+
+  // TODO(arv): Introduce HTMLContentElement
+  Object.defineProperty(HTMLUnknownElement.prototype, 'jsGetDistributedNodes', {
+    value: function() {
+      if (!isInsertionPoint(this))
+        throw new TypeError();
+
+      // This needs to force an update.
+      var renderer = this.__getShadowRenderer__();
+      if (!renderer)
+        return [];
+      // TODO(arv): Unify with ShadowOwner.
+      renderer.render();
+      return getDistributedChildNodes(this);
+    },
+    writable: true,
+    enumerable: true,
+    configurable: true
+  });
+
 })();

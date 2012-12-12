@@ -387,21 +387,4 @@ var getShadowOwnerAndInvalidate;
     configurable: true
   });
 
-  function reflectAttribute(name) {
-    return {
-      get: function() {
-        return this.getAttribute(name);
-      },
-      set: function(value) {
-        this.setAttribute(name, value);
-      },
-      enumerable: true,
-      configurable: true
-    };
-  }
-
-  // TODO(arv): Introduce HTMLContentElement
-  Object.defineProperty(HTMLUnknownElement.prototype, 'select',
-                        reflectAttribute('select'));
-
 })();
