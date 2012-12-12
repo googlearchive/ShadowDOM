@@ -13,6 +13,7 @@ var render;
   var distributedChildNodesTable = new SideTable('distributedChildNodes');
   // TODO(arv): Use side table for __shadowHost__, __shadowRoot__ and 
   // __nextOlderShadowTree__.
+  var shadowDOMRendererTable = new SideTable('shadowDOMRenderer');
 
   function distributeChildToInsertionPoint(child, insertionPoint) {
     // console.log('Distributing', child, 'to', insertionPoint);
@@ -146,59 +147,169 @@ var render;
     }
   }
 
-  // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#dfn-tree-composition
-  function treeComposition(shadowHost) {
-    var tree = getYoungestTree(shadowHost);
-    var pool = [];
-    var shadowHostChildNodes = logical.getChildNodesSnapshot(shadowHost);
-    shadowHostChildNodes.forEach(function(child) {
-      if (isInsertionPoint(child)) {
-        var reprojected = getDistributedChildNodes(child);
-        if (!reprojected.length)
-          reprojected = logical.getChildNodesSnapshot(child);
-        pool.push.apply(pool, reprojected);
-      } else {
-        pool.push(child);
-      }
-    });
-
-    var shadowInsertionPoint, point;
-    while (tree) {
-      shadowInsertionPoint = undefined;  // Reset every iteration.
-      visit(tree, isActiveShadowInsertionPoint, function(point) {
-        shadowInsertionPoint = point;
-        return false;
-      });
-      point = shadowInsertionPoint;
-      distribute(tree, pool);
-      if (point) {
-        var nextOlderTree = getNextOlderTree(tree);
-        if (!nextOlderTree) {
-          break;
-        } else {
-          tree = nextOlderTree;
-          assignShadowTreeToShadowInsertionPoint(tree, point);
-          continue;
-        }
-      } else {
-        break;
-      }
-    }
+  function ShadowRenderer(host) {
+    this.host = host;
+    this.associateNode(host);
   }
+
+  ShadowRenderer.prototype = {
+    // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#rendering-shadow-trees
+    render: function() {
+      var host = this.host;
+      this.treeComposition();
+      var shadowDOM = getYoungestTree(host);
+      if (!shadowDOM)
+        return;
+
+      this.removeAllChildNodes(this.host);
+
+      var shadowDOMChildNodes = logical.getChildNodesSnapshot(shadowDOM);
+      shadowDOMChildNodes.forEach(function(node) {
+        this.renderNode(host, shadowDOM, node, false);
+      }, this);
+    },
+
+    renderNode: function(visualParent, tree, node, isNested) {
+      if (isShadowHost(node)) {
+        this.appendChild(visualParent, node);
+        var renderer = new ShadowRenderer(node);
+        renderer.render();
+      } else if (isInsertionPoint(node)) {
+        this.renderInsertionPoint(visualParent, tree, node, isNested);
+      } else if (isShadowInsertionPoint(node)) {
+        this.renderShadowInsertionPoint(visualParent, tree, node);
+      } else {
+        this.renderAsAnyDomTree(visualParent, tree, node, isNested);
+      }
+    },
+
+    renderAsAnyDomTree: function(visualParent, tree, child, isNested) {
+      // console.log('render', child);
+      this.appendChild(visualParent, child);
+
+      if (isShadowHost(child)) {
+        render(child);
+      } else {
+        var parent = child;
+        var logicalChildNodes = logical.getChildNodesSnapshot(parent);
+        logicalChildNodes.forEach(function(node) {
+          this.renderNode(parent, tree, node, isNested);
+        }, this);
+      }
+    },
+
+    renderInsertionPoint: function(visualParent, tree, insertionPoint, isNested) {
+      // console.log('renderInsertionPoint');
+      var distributedChildNodes = getDistributedChildNodes(insertionPoint);
+      if (distributedChildNodes.length) {
+        this.removeAllChildNodes(insertionPoint);
+
+        distributedChildNodes.forEach(function(child) {
+          if (isInsertionPoint(child) && isNested)
+            this.renderInsertionPoint(visualParent, tree, child, isNested);
+          else
+            this.renderAsAnyDomTree(visualParent, tree, child, isNested);
+        }, this);
+      } else {
+        this.renderFallbackContent(visualParent, insertionPoint);
+      }
+      this.remove(insertionPoint);
+    },
+
+    renderShadowInsertionPoint: function(visualParent, tree, shadowInsertionPoint) {
+      var nextOlderTree = getNextOlderTree(tree);
+      if (nextOlderTree) {
+        this.remove(shadowInsertionPoint);
+        var shadowDOMChildNodes = logical.getChildNodesSnapshot(nextOlderTree);
+        shadowDOMChildNodes.forEach(function(node) {
+          this.renderNode(visualParent, nextOlderTree, node, true);
+        }, this);
+      } else {
+        this.renderFallbackContent(visualParent, shadowInsertionPoint);
+      }
+    },
+
+    renderFallbackContent: function (visualParent, fallbackHost) {
+      var logicalChildNodes = logical.getChildNodesSnapshot(fallbackHost);
+      logicalChildNodes.forEach(function(node) {
+        // console.log('renderFallbackContent', node);
+        this.appendChild(visualParent, node);
+      }, this);
+    },
+
+    // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#dfn-tree-composition
+    treeComposition: function () {
+      var shadowHost = this.host;
+      var tree = getYoungestTree(shadowHost);
+      var pool = [];
+      var shadowHostChildNodes = logical.getChildNodesSnapshot(shadowHost);
+      shadowHostChildNodes.forEach(function(child) {
+        if (isInsertionPoint(child)) {
+          var reprojected = getDistributedChildNodes(child);
+          if (!reprojected.length)
+            reprojected = logical.getChildNodesSnapshot(child);
+          pool.push.apply(pool, reprojected);
+        } else {
+          pool.push(child);
+        }
+      });
+
+      var shadowInsertionPoint, point;
+      while (tree) {
+        shadowInsertionPoint = undefined;  // Reset every iteration.
+        visit(tree, isActiveShadowInsertionPoint, function(point) {
+          shadowInsertionPoint = point;
+          return false;
+        });
+        point = shadowInsertionPoint;
+        distribute(tree, pool);
+        if (point) {
+          var nextOlderTree = getNextOlderTree(tree);
+          if (!nextOlderTree) {
+            break;
+          } else {
+            tree = nextOlderTree;
+            assignShadowTreeToShadowInsertionPoint(tree, point);
+            continue;
+          }
+        } else {
+          break;
+        }
+      }
+    },
+
+    // Visual DOM mutation.
+    appendChild: function(parent, child) {
+      visual.appendChild(parent, child);
+      this.associateNode(child);
+    },
+
+    remove: function(node) {
+      visual.remove(node);
+      this.associateNode(node);
+    },
+
+    removeAllChildNodes: function(parent) {
+      visual.removeAllChildNodes(parent);
+      // TODO(arv): Does this need to associate all the nodes with this renderer?
+    },
+
+    associateNode: function(node) {
+      shadowDOMRendererTable.set(node, this);
+    }
+  };
+
+
+  Object.defineProperty(Node.prototype, '__getShadowRenderer__', {
+    value: function() {
+      return shadowDOMRendererTable.get(this);
+    }
+  });
+
 
   // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#rendering-shadow-trees
   render = function render(host) {
-    treeComposition(host);
-    var shadowDOM = getYoungestTree(host);
-    if (!shadowDOM)
-      return;
-    var shadowDOMChildNodes = logical.getChildNodesSnapshot(shadowDOM);
-
-    visual.removeAllChildNodes(host);
-
-    shadowDOMChildNodes.forEach(function(node) {
-      renderNode(host, shadowDOM, node, false);
-    });
+    new ShadowRenderer(host).render();
   };
 
   function isShadowRoot(node) {
@@ -261,73 +372,6 @@ var render;
     return node.tagName === 'SHADOW';
   }
 
-  function renderNode(visualParent, tree, node, isNested) {
-    if (isShadowHost(node)) {
-      visual.appendChild(visualParent, node);
-      render(node);
-    } else if (isInsertionPoint(node)) {
-      renderInsertionPoint(visualParent, tree, node, isNested);
-    } else if (isShadowInsertionPoint(node)) {
-      renderShadowInsertionPoint(visualParent, tree, node);
-    } else {
-      renderAsAnyDomTree(visualParent, tree, node, isNested);
-    }
-  }
-
-  function renderInsertionPoint(visualParent, tree, insertionPoint, isNested) {
-    // console.log('renderInsertionPoint');
-    var distributedChildNodes = getDistributedChildNodes(insertionPoint);
-    if (distributedChildNodes.length) {
-      visual.removeAllChildNodes(insertionPoint);
-
-      distributedChildNodes.forEach(function(child) {
-        if (isInsertionPoint(child) && isNested)
-          renderInsertionPoint(visualParent, tree, child, isNested);
-        else
-          renderAsAnyDomTree(visualParent, tree, child, isNested);
-      });
-    } else {
-      renderFallbackContent(visualParent, insertionPoint);
-    }
-    visual.remove(insertionPoint);
-  }
-
-  function renderAsAnyDomTree(visualParent, tree, child, isNested) {
-    // console.log('render', child);
-    visual.appendChild(visualParent, child);
-
-    if (isShadowHost(child)) {
-      render(child);
-    } else {
-      var parent = child;
-      var logicalChildNodes = logical.getChildNodesSnapshot(parent);
-      logicalChildNodes.forEach(function(node) {
-        renderNode(parent, tree, node, isNested);
-      });
-    }
-  }
-
-  function renderShadowInsertionPoint(visualParent, tree, shadowInsertionPoint) {
-    var nextOlderTree = getNextOlderTree(tree);
-    if (nextOlderTree) {
-      var shadowDOMChildNodes = logical.getChildNodesSnapshot(nextOlderTree);
-      visual.remove(shadowInsertionPoint);
-      shadowDOMChildNodes.forEach(function(child) {
-        renderNode(visualParent, nextOlderTree, child, true);
-      });
-    } else {
-      renderFallbackContent(visualParent, shadowInsertionPoint);
-    }
-  }
-
-  function renderFallbackContent(visualParent, fallbackHost) {
-    var logicalChildNodes = logical.getChildNodesSnapshot(fallbackHost);
-    logicalChildNodes.forEach(function(node) {
-      // console.log('renderFallbackContent', node);
-      visual.appendChild(visualParent, node);
-    });
-  }
-
   Element.prototype.jsCreateShadowRoot = function() {
     var newShadowRoot = this.ownerDocument.createDocumentFragment();
     var oldShadowRoot = this.__shadowRoot__;
@@ -335,6 +379,8 @@ var render;
       newShadowRoot.__nextOlderShadowTree__ = oldShadowRoot;
     this.__shadowRoot__ = newShadowRoot;
     newShadowRoot.__shadowHost__ = this;
+
+    var renderer = new ShadowRenderer(this);
 
     getShadowOwnerAndInvalidate(this);
 
