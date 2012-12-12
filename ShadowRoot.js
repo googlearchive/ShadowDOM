@@ -4,15 +4,15 @@
  * license that can be found in the LICENSE file.
  */
 
-var JsShadowRoot, render;
+var render;
 
 (function() {
   'use strict';
 
-  var slice = Array.prototype.slice.call.bind(Array.prototype.slice);
-
   var treeToInsertionPointMap = new Map();
   var distributedChildNodesTable = new SideTable('distributedChildNodes');
+  // TODO(arv): Use side table for __shadowHost__, __shadowRoot__ and 
+  // __nextOlderShadowTree__.
 
   function distributeChildToInsertionPoint(child, insertionPoint) {
     // console.log('Distributing', child, 'to', insertionPoint);
@@ -328,17 +328,25 @@ var JsShadowRoot, render;
     });
   }
 
-  JsShadowRoot = function JsShadowRoot(host) {
-    var newShadowRoot = host.ownerDocument.createDocumentFragment();
-    var oldShadowRoot = host.__shadowRoot__;
+  Element.prototype.jsCreateShadowRoot = function() {
+    var newShadowRoot = this.ownerDocument.createDocumentFragment();
+    var oldShadowRoot = this.__shadowRoot__;
     if (oldShadowRoot)
       newShadowRoot.__nextOlderShadowTree__ = oldShadowRoot;
-    host.__shadowRoot__ = newShadowRoot;
-    newShadowRoot.__shadowHost__ = host;
+    this.__shadowRoot__ = newShadowRoot;
+    newShadowRoot.__shadowHost__ = this;
 
-    getShadowOwnerAndInvalidate(host);
+    getShadowOwnerAndInvalidate(this);
 
     return newShadowRoot;
   };
+
+  Object.defineProperty(Element.prototype, 'jsShadowRoot', {
+    get: function() {
+      return getYoungestTree(this) || null;
+    },
+    configurable: true,
+    enumerable: true
+  });
 
 })();

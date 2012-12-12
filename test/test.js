@@ -25,7 +25,7 @@ suite('Shadow DOM', function() {
       if (typeof shadowRoots === 'string')
         shadowRoots = [shadowRoots];
       shadowRoots.forEach(function(html) {
-        var shadowRoot = new JsShadowRoot(host);
+        var shadowRoot = host.jsCreateShadowRoot();
         shadowRoot.innerHTML = html;
       });
 
@@ -231,10 +231,10 @@ suite('Shadow DOM', function() {
 
       var a = host.firstChild;
 
-      var hostShadowRoot = new JsShadowRoot(host);
+      var hostShadowRoot = host.jsCreateShadowRoot();
       hostShadowRoot.innerHTML = '1<content></content>5';
 
-      var aShadowRoot = new JsShadowRoot(a);
+      var aShadowRoot = a.jsCreateShadowRoot();
       aShadowRoot.innerHTML = '2<content></content>4';
 
       render(host);
@@ -246,12 +246,12 @@ suite('Shadow DOM', function() {
       var host = document.createElement('div');
       host.innerHTML = '6';
 
-      var hostShadowRoot = new JsShadowRoot(host);
+      var hostShadowRoot = host.jsCreateShadowRoot();
       hostShadowRoot.innerHTML = '1<a>3</a>5<content></content>7';
 
       var a = hostShadowRoot.firstChild.nextSibling;
 
-      var aShadowRoot = new JsShadowRoot(a);
+      var aShadowRoot = a.jsCreateShadowRoot();
       aShadowRoot.innerHTML = '2<content></content>4';
 
       render(host);
