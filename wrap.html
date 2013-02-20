@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<!--
+Copyright 2012 The Toolkitchen Authors. All rights reserved.
+Use of this source code is goverened by a BSD-style
+license that can be found in the LICENSE file.
+-->
+<meta charset="utf-8">
+<script src="map.js"></script>
+<script src="sidetable.js"></script>
+<script src="domreflectionutils.js"></script>
+<script src="paralleltrees.js"></script>
+<script src="domwrapper.js"></script>
+<script src="WrapperNode.js"></script>
+<script src="WrapperDocumentFragment.js"></script>
+<script src="WrapperShadowRoot.js"></script>
+<script src="WrapperCharacterData.js"></script>
+<script src="WrapperElement.js"></script>
+<script src="WrapperHTMLElement.js"></script>
+<script src="WrapperHTMLTextAreaElement.js"></script>
+<script src="ShadowRenderer.js"></script>
+<style>
+
+.el,
+.sr {
+  height: 300px;
+  width: 300px;
+}
+
+</style>
+<textarea class="el" placeholder="Element host"></textarea>
+<textarea class="sr" placeholder="Shadow Root"></textarea>
+<button onclick="update()">Update</button>
+
+<div class="test">Real</div>
+
+<script>
+
+var el = document.querySelector('.test');
+// var sr = new (window.WebKitShadowRoot || window.JsShadowRoot)(el);
+var sr = el.jsCreateShadowRoot();
+
+
+
+// console.log(el.parentNode.innerHTML);
+
+sr.innerHTML = 'Before <content></content> After';
+
+// el.__$shadowDOMRenderer$__.render();
+// render(el);
+
+function update() {
+  el.innerHTML = document.querySelector('.el').value;
+  sr.innerHTML = document.querySelector('.sr').value;
+  // el.__$shadowDOMRenderer$__.render();
+  // render(el);
+}
+
+document.querySelector('.el').value = el.innerHTML;
+document.querySelector('.sr').value = sr.innerHTML;
+
+</script>

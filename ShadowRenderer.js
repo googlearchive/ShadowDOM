@@ -1,12 +1,8 @@
-/*
- * Copyright 2012 The Toolkitchen Authors. All rights reserved.
- * Use of this source code is governed by a BSD-style
- * license that can be found in the LICENSE file.
- */
+// Copyright 2013 The Toolkitchen Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
 
-var render;
-
-(function() {
+(function(exports) {
   'use strict';
 
   var treeToInsertionPointMap = new Map();
@@ -14,6 +10,8 @@ var render;
   // TODO(arv): Use side table for __shadowHost__, __shadowRoot__ and 
   // __nextOlderShadowTree__.
   var shadowDOMRendererTable = new SideTable('shadowDOMRenderer');
+  var treeToShadowInsertionPointMap = new Map();
+
 
   function distributeChildToInsertionPoint(child, insertionPoint) {
     // console.log('Distributing', child, 'to', insertionPoint);
@@ -29,6 +27,14 @@ var render;
     return distributedChildNodesTable.get(insertionPoint);
   }
 
+  function getChildNodesSnapshot(node) {
+    var result = [], i = 0;
+    for (var child = node.firstChild; child; child = child.nextSibling) {
+      result[i++] = child;
+    }
+    return result;
+  }
+
   /**
    * Visits all nodes in the tree that fulfils the |predicate|. If the |visitor|
    * function returns |false| the traversal is aborted.
@@ -38,7 +44,7 @@ var render;
    */
   function visit(tree, predicate, visitor) {
     // This operates on logical DOM.
-    var nodes = logical.getChildNodesSnapshot(tree);
+    var nodes = getChildNodesSnapshot(tree);
     for (var i = 0; i < nodes.length; i++) {
       var node = nodes[i];
       if (predicate(node)) {
@@ -48,17 +54,6 @@ var render;
         visit(node, predicate, visitor);
       }
     }
-  }
-
-  function distributeNodeToInsertionPoint(node, insertionPoint) {
-    treeToInsertionPointMap.set(node, insertionPoint);
-  }
-
-
-  function distributeRemainingTo(nodes, insertionPoint) {
-    nodes.forEach(function(node) {
-      distributeNodeToInsertionPoint(node, insertionPoint);
-    });
   }
 
   // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#dfn-distribution-algorithm
@@ -76,6 +71,7 @@ var render;
           }
         });
   }
+
 
   // Matching Insertion Points
   // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#matching-insertion-points
@@ -147,14 +143,36 @@ var render;
     }
   }
 
+  var request = oneOf(window, [
+    'requestAnimationFrame',
+    'mozRequestAnimationFrame',
+    'webkitRequestAnimationFrame',
+    'setTimeout'
+  ]);
+
+  var pendingDirtyRenderers = [];
+  var renderTimer;
+
+  function renderAllPending() {
+    renderTimer = null;
+    pendingDirtyRenderers.forEach(function(owner) {
+      owner.render();
+    });
+    pendingDirtyRenderers = [];
+  }
+
   function ShadowRenderer(host) {
     this.host = host;
+    this.dirty = false;
     this.associateNode(host);
   }
 
   ShadowRenderer.prototype = {
     // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#rendering-shadow-trees
     render: function() {
+      if (!this.dirty)
+        return;
+
       var host = this.host;
       this.treeComposition();
       var shadowDOM = getYoungestTree(host);
@@ -163,10 +181,22 @@ var render;
 
       this.removeAllChildNodes(this.host);
 
-      var shadowDOMChildNodes = logical.getChildNodesSnapshot(shadowDOM);
+      var shadowDOMChildNodes = getChildNodesSnapshot(shadowDOM);
       shadowDOMChildNodes.forEach(function(node) {
         this.renderNode(host, shadowDOM, node, false);
       }, this);
+
+      this.dirty = false;
+    },
+
+    invalidate: function() {
+      if (!this.dirty) {
+        this.dirty = true;
+        pendingDirtyRenderers.push(this);
+        if (renderTimer)
+          return;
+        renderTimer = window[request](renderAllPending, 0);
+      }
     },
 
     renderNode: function(visualParent, tree, node, isNested) {
@@ -191,7 +221,7 @@ var render;
         render(child);
       } else {
         var parent = child;
-        var logicalChildNodes = logical.getChildNodesSnapshot(parent);
+        var logicalChildNodes = getChildNodesSnapshot(parent);
         logicalChildNodes.forEach(function(node) {
           this.renderNode(parent, tree, node, isNested);
         }, this);
@@ -220,7 +250,7 @@ var render;
       var nextOlderTree = getNextOlderTree(tree);
       if (nextOlderTree) {
         this.remove(shadowInsertionPoint);
-        var shadowDOMChildNodes = logical.getChildNodesSnapshot(nextOlderTree);
+        var shadowDOMChildNodes = getChildNodesSnapshot(nextOlderTree);
         shadowDOMChildNodes.forEach(function(node) {
           this.renderNode(visualParent, nextOlderTree, node, true);
         }, this);
@@ -230,7 +260,7 @@ var render;
     },
 
     renderFallbackContent: function (visualParent, fallbackHost) {
-      var logicalChildNodes = logical.getChildNodesSnapshot(fallbackHost);
+      var logicalChildNodes = getChildNodesSnapshot(fallbackHost);
       logicalChildNodes.forEach(function(node) {
         // console.log('renderFallbackContent', node);
         this.appendChild(visualParent, node);
@@ -242,12 +272,13 @@ var render;
       var shadowHost = this.host;
       var tree = getYoungestTree(shadowHost);
       var pool = [];
-      var shadowHostChildNodes = logical.getChildNodesSnapshot(shadowHost);
+      var shadowHostChildNodes = getChildNodesSnapshot(shadowHost);
       shadowHostChildNodes.forEach(function(child) {
         if (isInsertionPoint(child)) {
           var reprojected = getDistributedChildNodes(child);
-          if (!reprojected.length)
-            reprojected = logical.getChildNodesSnapshot(child);
+          // if reprojected is undef... reset it?
+          if (!reprojected || !reprojected.length)
+            reprojected = getChildNodesSnapshot(child);
           pool.push.apply(pool, reprojected);
         } else {
           pool.push(child);
@@ -295,34 +326,14 @@ var render;
     },
 
     associateNode: function(node) {
+      // TODO: Clear when moved out of shadow tree.
       shadowDOMRendererTable.set(node, this);
     }
   };
 
-
-  Object.defineProperty(Node.prototype, '__getShadowRenderer__', {
-    value: function() {
-      return shadowDOMRendererTable.get(this);
-    }
-  });
-
-
-  // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#rendering-shadow-trees
-  render = function render(host) {
-    new ShadowRenderer(host).render();
-  };
-
-  function isShadowRoot(node) {
-    return node.__shadowHost__;
-  }
-
   function isInsertionPoint(node) {
     // Should this include <shadow>?
     return node.tagName == 'CONTENT';
-  }
-
-  function getShadowHost(shadowRoot) {
-    throw shadowRoot.__shadowHost__;
   }
 
   function isActiveInsertionPoint(node) {
@@ -351,84 +362,34 @@ var render;
     return tree.__nextOlderShadowTree__;
   }
 
-  var treeToShadowInsertionPointMap = new Map();
-
   function assignShadowTreeToShadowInsertionPoint(tree, point) {
+    // TODO: No one is reading the map below.
+    throw 'No one is reading the map below.'
+
     // console.log('Assign %o to %o', tree, point);
     treeToShadowInsertionPointMap.set(tree, point);
-  }
-
-  function isAssignedToAShadowInsertionPoint(node) {
-    // This is wrong
-    return treeToShadowInsertionPointMap.has(node);
-  }
-
-  function getShadowInsertionPointNode(node) {
-    // This is wrong
-    return treeToShadowInsertionPointMap.get(node);
   }
 
   function isShadowInsertionPoint(node) {
     return node.tagName === 'SHADOW';
   }
 
-  Element.prototype.jsCreateShadowRoot = function() {
-    var newShadowRoot = this.ownerDocument.createDocumentFragment();
-    var oldShadowRoot = this.__shadowRoot__;
-    if (oldShadowRoot)
-      newShadowRoot.__nextOlderShadowTree__ = oldShadowRoot;
-    this.__shadowRoot__ = newShadowRoot;
-    newShadowRoot.__shadowHost__ = this;
-
-    var renderer = new ShadowRenderer(this);
-
-    getShadowOwnerAndInvalidate(this);
-
-    return newShadowRoot;
+  // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#rendering-shadow-trees
+  function render(host) {
+    new ShadowRenderer(host).render();
   };
 
-  Object.defineProperty(Element.prototype, 'jsShadowRoot', {
-    get: function() {
-      return getYoungestTree(this) || null;
-    },
-    configurable: true,
-    enumerable: true
-  });
+  WrapperNode.prototype.invalidateShadowRenderer = function() {
+    var renderer = shadowDOMRendererTable.get(this);
+    if (!renderer)
+      return false;
 
-  function reflectAttribute(name) {
-    return {
-      get: function() {
-        return this.getAttribute(name);
-      },
-      set: function(value) {
-        this.setAttribute(name, value);
-      },
-      enumerable: true,
-      configurable: true
-    };
-  }
+    renderer.invalidate();
+    return true;
+  };
 
-  // TODO(arv): Introduce HTMLContentElement
-  Object.defineProperty(HTMLUnknownElement.prototype, 'select',
-                        reflectAttribute('select'));
 
-  // TODO(arv): Introduce HTMLContentElement
-  Object.defineProperty(HTMLUnknownElement.prototype, 'jsGetDistributedNodes', {
-    value: function() {
-      if (!isInsertionPoint(this))
-        throw new TypeError();
+  exports.ShadowRenderer = ShadowRenderer;
+  exports.render = render;
 
-      // This needs to force an update.
-      var renderer = this.__getShadowRenderer__();
-      if (!renderer)
-        return [];
-      // TODO(arv): Unify with ShadowOwner.
-      renderer.render();
-      return getDistributedChildNodes(this);
-    },
-    writable: true,
-    enumerable: true,
-    configurable: true
-  });
-
-})();
+})(this);
