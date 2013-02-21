@@ -1,20 +1,16 @@
-/*
- * Copyright 2012 The Toolkitchen Authors. All rights reserved.
- * Use of this source code is goverened by a BSD-style
- * license that can be found in the LICENSE file.
- */
-
-var overrideMethod, overrideGetter, overrideDescriptor,
-    findMethod, findGetter, findDescriptor;
+// Copyright 2012 The Toolkitchen Authors. All rights reserved.
+// Use of this source code is goverened by a BSD-style
+// license that can be found in the LICENSE file.
 
 (function() {
   'use strict';
 
-  var isFirefox = /Firefox/.test(navigator.userAgent);
+  // Firefox uses strange XPCCOM wrappers around dom objects which do not have
+  // constructor set correctly.
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=843661
+  if (!/Firefox/.test(navigator.userAgent))
+    return;
 
-  // Firefox does not create the interfaces unless there is an instance or if
-  // the constructor is asked for. We therefore list all the "known" interfaces
-  // (that extends Node).
   var nodeInterfaces = [
     'Node',
     'ProcessingInstruction',
@@ -26,20 +22,24 @@ var overrideMethod, overrideGetter, overrideDescriptor,
     'DocumentType',
     'Element',
     'HTMLAnchorElement',
+    'HTMLAppletElement',
     'HTMLAreaElement',
     'HTMLAudioElement',
     'HTMLBRElement',
     'HTMLBaseElement',
     'HTMLBodyElement',
     'HTMLButtonElement',
+    'HTMLCanvasElement',
     'HTMLCommandElement',
     'HTMLDListElement',
     'HTMLDataListElement',
-    'HTMLDetailsElement',
+    'HTMLDirectoryElement',
     'HTMLDivElement',
+    'HTMLDocument',
     'HTMLElement',
     'HTMLEmbedElement',
     'HTMLFieldSetElement',
+    'HTMLFontElement',
     'HTMLFormElement',
     'HTMLFrameElement',
     'HTMLFrameSetElement',
@@ -50,7 +50,6 @@ var overrideMethod, overrideGetter, overrideDescriptor,
     'HTMLIFrameElement',
     'HTMLImageElement',
     'HTMLInputElement',
-    'HTMLKeygenElement',
     'HTMLLIElement',
     'HTMLLabelElement',
     'HTMLLegendElement',
@@ -58,6 +57,7 @@ var overrideMethod, overrideGetter, overrideDescriptor,
     'HTMLMapElement',
     'HTMLMediaElement',
     'HTMLMenuElement',
+    'HTMLMenuItemElement',
     'HTMLMetaElement',
     'HTMLMeterElement',
     'HTMLModElement',
@@ -79,67 +79,19 @@ var overrideMethod, overrideGetter, overrideDescriptor,
     'HTMLTableCaptionElement',
     'HTMLTableCellElement',
     'HTMLTableColElement',
-    'HTMLTableDataCellElement',
     'HTMLTableElement',
-    'HTMLTableHeaderCellElement',
     'HTMLTableRowElement',
     'HTMLTableSectionElement',
     'HTMLTextAreaElement',
-    'HTMLTimeElement',
     'HTMLTitleElement',
-    'HTMLTrackElement',
     'HTMLUListElement',
     'HTMLUnknownElement',
     'HTMLVideoElement'
   ];
 
-  overrideDescriptor = function overrideDescriptor(ctor, propertyName, descr) {
-    if (isFirefox) {
-      nodeInterfaces.forEach(function(interfaceName) {
-        var c = window[interfaceName];
-        if (c === ctor || c && c.prototype && c.prototype instanceof ctor) {
-          // Tickle Firefox
-          c.prototype.__lookupGetter__(propertyName);
-          var d = Object.getOwnPropertyDescriptor(c.prototype, propertyName);
-          if (d)
-            Object.defineProperty(c.prototype, propertyName, descr);
-        }
-      });
-    }
-    Object.defineProperty(ctor.prototype, propertyName, descr);
-  };
-
-  findDescriptor = function findDescriptor(ctor, propertyName) {
-    if (isFirefox) {
-      for (var i = 0; i < nodeInterfaces.length; i++) {
-        var interfaceName = nodeInterfaces[i];
-        var c = window[interfaceName];
-        if (c === ctor || c && c.prototype && c.prototype instanceof ctor) {
-          // Tickle Firefox
-          c.prototype.__lookupGetter__(propertyName);
-          var descr = Object.getOwnPropertyDescriptor(c.prototype, propertyName);
-          if (descr)
-            return descr;
-        }
-      };
-    }
-    return Object.getOwnPropertyDescriptor(ctor.prototype, propertyName);
-  };
-
-  overrideMethod = function overrideMethod(ctor, methodName, func) {
-    overrideDescriptor(ctor, methodName, {value: func});
-  };
-
-  findMethod = function findMethod(ctor, methodName) {
-    return findDescriptor(ctor, methodName).value;
-  };
-
-  overrideGetter = function overrideGetter(ctor, getterName, getter) {
-    overrideDescriptor(ctor, getterName, {get: getter});
-  };
-
-  findGetter = function findGetter(ctor, getterName) {
-    return findDescriptor(ctor, getterName).get;
-  };
+  nodeInterfaces.forEach(function(name) {
+    var ctor = window[name];
+    ctor.prototype.constructor = ctor;
+  });
 
 })();

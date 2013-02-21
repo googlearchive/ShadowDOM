@@ -23,10 +23,19 @@
       // TODO: Add macro for this?
       return this.node.getAttribute(name);
     },
+    setAttribute: function(name, value) {
+      // TODO: Add macro for this?
+      // TODO: Invalidate???
+      this.node.setAttribute(name, value);
+    },
 
     webkitMatchesSelector: function(selectors) {
       // TODO: Add macro for this?
       return this.node.webkitMatchesSelector(selectors);
+    },
+    mozMatchesSelector: function(selectors) {
+      // TODO: Add macro for this?
+      return this.node.mozMatchesSelector(selectors);
     },
 
     jsCreateShadowRoot: function() {
