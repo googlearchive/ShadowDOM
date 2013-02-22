@@ -17,7 +17,7 @@
   });
 
   if (typeof HTMLShadowElement !== 'undefined')
-    constructorTable.set(HTMLShadowElement, WrapperHTMLShadowElement);
+    wrappers.register(HTMLShadowElement, WrapperHTMLShadowElement);
 
   exports.WrapperHTMLShadowElement = WrapperHTMLShadowElement;
 })(this);

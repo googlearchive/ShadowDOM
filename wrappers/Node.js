@@ -250,20 +250,6 @@
           this.previousSibling_ : wrap(this.node.previousSibling);
     },
 
-    get nodeType() {
-      // TODO: auto generate
-      return this.node.nodeType;
-    },
-
-    get nodeValue() {
-      // TODO: auto generate
-      return this.node.nodeValue;   
-    },
-
-    set nodeValue(nodeValue) {
-      // TODO: auto generate
-      this.node.nodeValue = nodeValue; 
-    },
     get textContent() {
       // TODO(arv): This should fallback to this.node.textContent if there
       // are no shadow trees below or above the context node.
@@ -287,7 +273,13 @@
     }
   };
 
-  constructorTable.set(Node, WrapperNode);
+  // We use a DocumentFragment as a base and then delete the properties of
+  // DocumentFragment.prototype from the WrapperNode. Since delete makes objects
+  // slow in some JS engines we recreate the prototype object.
+  wrappers.register(Node, WrapperNode, document.createDocumentFragment());
+  delete WrapperNode.prototype.querySelector;
+  delete WrapperNode.prototype.querySelectorAll;
+  WrapperNode.prototype = mixin({}, WrapperNode.prototype);
 
   exports.WrapperNode = WrapperNode;
 

@@ -14,13 +14,4 @@
     return wrap(querySelector.apply(this, arguments));
   };
 
-  function mixin(to, from) {
-    Object.getOwnPropertyNames(from).forEach(function(name) {
-      Object.defineProperty(to, name,
-                            Object.getOwnPropertyDescriptor(from, name));
-    });
-  }
-
-  exports.mixin = mixin;
-
 })(this);

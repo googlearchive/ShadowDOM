@@ -2,8 +2,16 @@
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
 
-(function() {
+(function(exports) {
   'use strict';
+
+  exports.mixin = function mixin(to, from) {
+    Object.getOwnPropertyNames(from).forEach(function(name) {
+      Object.defineProperty(to, name,
+                            Object.getOwnPropertyDescriptor(from, name));
+    });
+    return to;
+  };
 
   // Firefox uses strange XPCCOM wrappers around dom objects which do not have
   // constructor set correctly.
@@ -94,4 +102,4 @@
     ctor.prototype.constructor = ctor;
   });
 
-})();
+})(this);

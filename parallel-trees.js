@@ -2,65 +2,13 @@
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
 
-var visual;
-var wrap, unwrap;
-var constructorTable;
-
 (function(exports) {
   'use strict';
-
-  var wrapperTable = new SideTable('wrapper');
-  constructorTable = new SideTable('constructor');
 
   function assert(b) {
     if (!b)
       throw new Error('Assertion failed');
   }
-
-  function getWrapperConstructor(node) {
-
-    var constructor = node.constructor;
-    var wrapperConstructor = constructorTable.get(constructor);
-    if (wrapperConstructor)
-      return wrapperConstructor;
-
-    var proto = Object.getPrototypeOf(node);
-    var protoWrapperConstructor = getWrapperConstructor(proto);
-    constructorTable.set(constructor, protoWrapperConstructor);
-    return protoWrapperConstructor;    
-  }
-
-  /**
-   * Wraps a node in a WrapperNode. If there already exists a wrapper for the
-   * |node| that wrapper is returned instead.
-   * @param {Node} node
-   * @return {WrapperNode}
-   */
-  wrap = function wrap(node) {
-    if (node === null)
-      return null;
-
-    assert(node instanceof Node);
-    var wrapper = wrapperTable.get(node);
-    if (!wrapper) {
-      var wrapperConstructor = getWrapperConstructor(node);
-      wrapper = new wrapperConstructor(node);
-      wrapperTable.set(node, wrapper);
-    }
-    return wrapper;
-  };
-
-  /**
-   * Unwraps a wrapper and returns the node it is wrapping.
-   * @param {WrapperNode} wrapper
-   * @return {Node}
-   */
-  unwrap = function unwrap(wrapper) {
-    if (wrapper === null)
-      return null;
-    assert(wrapper instanceof WrapperNode);
-    return wrapper.node;
-  };
 
   /**
    * Updates the fields of a wrapper to a snapshot of the logical DOM as needed.
@@ -98,7 +46,7 @@ var constructorTable;
   // browser/render tree sees it.
   // When changes are done to the visual DOM the logical DOM needs to be updated
   // to reflect the correct tree.
-  visual = {
+  var visual = {
     removeAllChildNodes: function(parentNodeWrapper) {
       var parentNode = unwrap(parentNodeWrapper);
       updateAllChildNodes(parentNodeWrapper);
@@ -154,5 +102,7 @@ var constructorTable;
         this.removeChild(wrap(parentNode), nodeWrapper);
     }
   };
+
+  exports.visual = visual;
 
 })(this);

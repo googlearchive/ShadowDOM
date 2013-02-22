@@ -24,7 +24,7 @@
   });
 
   if (typeof HTMLContentElement !== 'undefined')
-    constructorTable.set(HTMLContentElement, WrapperHTMLContentElement);
+    wrappers.register(HTMLContentElement, WrapperHTMLContentElement);
 
   exports.WrapperHTMLContentElement = WrapperHTMLContentElement;
 })(this);

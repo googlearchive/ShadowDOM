@@ -15,6 +15,6 @@
     WrapperHTMLElement.call(this, node);
   }
   WrapperHTMLUnknownElement.prototype = Object.create(WrapperHTMLElement.prototype);
-  constructorTable.set(HTMLUnknownElement, WrapperHTMLUnknownElement);
+  wrappers.register(HTMLUnknownElement, WrapperHTMLUnknownElement);
   exports.WrapperHTMLUnknownElement = WrapperHTMLUnknownElement;
 })(this);

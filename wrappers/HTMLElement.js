@@ -66,6 +66,7 @@
       case Node.COMMENT_NODE:
         return '<!--' + escape(node.nodeValue) + '-->';
       default:
+        console.error(node);
         throw new Error('not implemented');
     }
   }
@@ -136,7 +137,7 @@
       }
     }
   });
-  constructorTable.set(HTMLElement, WrapperHTMLElement);
+  wrappers.register(HTMLElement, WrapperHTMLElement, 'br');
 
   exports.WrapperHTMLElement = WrapperHTMLElement;
 

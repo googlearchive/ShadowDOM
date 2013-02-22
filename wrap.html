@@ -8,18 +8,19 @@ license that can be found in the LICENSE file.
 <script src="map.js"></script>
 <script src="sidetable.js"></script>
 <script src="domreflectionutils.js"></script>
-<script src="paralleltrees.js"></script>
+<script src="wrappers.js"></script>
+<script src="parallel-trees.js"></script>
 <script src="domwrapper.js"></script>
 <script src="wrappers/Node.js"></script>
-<script src="wrappers/DocumentFragment.js"></script>
-<script src="wrappers/ShadowRoot.js"></script>
-<script src="wrappers/CharacterData.js"></script>
 <script src="wrappers/Element.js"></script>
 <script src="wrappers/HTMLElement.js"></script>
-<script src="wrappers/HTMLTextAreaElement.js"></script>
 <script src="wrappers/HTMLUnknownElement.js"></script>
 <script src="wrappers/HTMLContentElement.js"></script>
 <script src="wrappers/HTMLShadowElement.js"></script>
+
+<script src="wrappers/generic.js"></script>
+<script src="wrappers/ShadowRoot.js"></script>
+
 <script src="ShadowRenderer.js"></script>
 <style>
 
@@ -39,23 +40,13 @@ license that can be found in the LICENSE file.
 <script>
 
 var el = document.querySelector('.test');
-// var sr = new (window.WebKitShadowRoot || window.JsShadowRoot)(el);
 var sr = el.jsCreateShadowRoot();
 
-
-
-// console.log(el.parentNode.innerHTML);
-
 sr.innerHTML = 'Before <content></content> After';
-
-// el.__$shadowDOMRenderer$__.render();
-// render(el);
 
 function update() {
   el.innerHTML = document.querySelector('.el').value;
   sr.innerHTML = document.querySelector('.sr').value;
-  // el.__$shadowDOMRenderer$__.render();
-  // render(el);
 }
 
 document.querySelector('.el').value = el.innerHTML;

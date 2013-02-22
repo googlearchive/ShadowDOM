@@ -10,34 +10,6 @@
   }
   WrapperElement.prototype = Object.create(WrapperNode.prototype);
   mixin(WrapperElement.prototype, {
-    get tagName() {
-      return this.node.tagName;
-    },
-
-    get attributes() {
-      // Wrap attributes?
-      return this.node.attributes;
-    },
-
-    getAttribute: function(name) {
-      // TODO: Add macro for this?
-      return this.node.getAttribute(name);
-    },
-    setAttribute: function(name, value) {
-      // TODO: Add macro for this?
-      // TODO: Invalidate???
-      this.node.setAttribute(name, value);
-    },
-
-    webkitMatchesSelector: function(selectors) {
-      // TODO: Add macro for this?
-      return this.node.webkitMatchesSelector(selectors);
-    },
-    mozMatchesSelector: function(selectors) {
-      // TODO: Add macro for this?
-      return this.node.mozMatchesSelector(selectors);
-    },
-
     jsCreateShadowRoot: function() {
       var newShadowRoot = new WrapperShadowRoot(this);
       this.__shadowRoot__ = newShadowRoot;
@@ -53,7 +25,7 @@
       return getYoungestTree(this) || null;
     },
   });
-  constructorTable.set(Element, WrapperElement);
+  wrappers.register(Element, WrapperElement);
 
   exports.WrapperElement = WrapperElement;
 })(this);

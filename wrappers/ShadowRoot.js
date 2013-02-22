@@ -5,6 +5,9 @@
 (function(exports) {
   'use strict';
 
+  var WrapperDocumentFragment =
+      wrappers.findWrapperConstructor(DocumentFragment);
+
   function WrapperShadowRoot(hostWrapper) {
     var node = hostWrapper.node.ownerDocument.createDocumentFragment();
     WrapperDocumentFragment.call(this, node);
@@ -34,9 +37,6 @@
       }
 
       this.__shadowHost__.invalidateShadowRenderer();
-      // // TODO: Precompute.
-      // Object.getOwnPropertyDescriptor(
-      //     WrapperHTMLElement.prototype, 'innerHTML').set.call(this, value);
     }
   });
 
