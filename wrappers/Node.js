@@ -72,6 +72,11 @@
      * @private
      */
     this.previousSibling_ = undefined;
+
+    /**
+     * @type {WrapperNodeList}
+     */
+    this.childNodes_ = null;
   }
 
   WrapperNode.prototype = {
@@ -272,6 +277,12 @@
           wrapper.appendChild(wrap(textNode));
         }
       }
+    },
+
+    get childNodes() {
+      if (this.childNodes_)
+        return this.childNodes_;
+      return this.childNodes_ = new WrapperChildNodeList(this);
     }
   };
 
