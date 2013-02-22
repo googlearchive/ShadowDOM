@@ -37,7 +37,11 @@
         this.appendChild(wrap(firstChild));
       }
 
-      this.__shadowHost__.invalidateShadowRenderer();
+      this.invalidateShadowRenderer();
+    },
+
+    invalidateShadowRenderer: function() {
+      return this.__shadowHost__.invalidateShadowRenderer();
     }
   });
 

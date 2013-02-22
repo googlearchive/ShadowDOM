@@ -17,9 +17,9 @@
       this.setAttribute('select', value);
       this.invalidateShadowRenderer();
     },
-    getDistributedNodes: function() {
-      throw new Error('Not implemented');
-    }
+
+    // getDistributedNodes is added in ShadowRenderer
+
     // TODO: attribute boolean resetStyleInheritance;
   });
 

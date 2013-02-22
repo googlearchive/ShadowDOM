@@ -10,7 +10,9 @@
   // TODO(arv): Use side table for __shadowHost__, __shadowRoot__ and 
   // __nextOlderShadowTree__.
   var shadowDOMRendererTable = new SideTable('shadowDOMRenderer');
-  var treeToShadowInsertionPointMap = new Map();
+
+  // Is this a remnant of the past?
+  // var treeToShadowInsertionPointMap = new Map();
 
 
   function distributeChildToInsertionPoint(child, insertionPoint) {
@@ -364,10 +366,8 @@
 
   function assignShadowTreeToShadowInsertionPoint(tree, point) {
     // TODO: No one is reading the map below.
-    throw 'No one is reading the map below.'
-
     // console.log('Assign %o to %o', tree, point);
-    treeToShadowInsertionPointMap.set(tree, point);
+    // treeToShadowInsertionPointMap.set(tree, point);
   }
 
   function isShadowInsertionPoint(node) {
@@ -380,12 +380,20 @@
   };
 
   WrapperNode.prototype.invalidateShadowRenderer = function() {
+    // TODO: If this is in light DOM we only need to invalidate renderer if this
+    // is a direct child of a ShadowRoot.
+    // Maybe we should only associate renderers with direct child nodes of a
+    // shadow root (and all nodes in the shadow dom).
     var renderer = shadowDOMRendererTable.get(this);
     if (!renderer)
       return false;
 
     renderer.invalidate();
     return true;
+  };
+
+  WrapperHTMLContentElement.prototype.getDistributedChildNodes = function() {
+    return getDistributedChildNodes(this);
   };
 
   exports.ShadowRenderer = ShadowRenderer;

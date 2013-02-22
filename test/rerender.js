@@ -217,39 +217,31 @@ test('<shadow>', function() {
     function testRender() {
       assert.strictEqual(getVisualInnerHtml(host), 'text');
 
-      var wrapperHost = logical.getWrapper(host);
-      var wrapperA = logical.getWrapper(a);
-      var logicalOldestShadowRootWrapper = logical.getWrapper(oldestShadowRoot);
-      var wrapperTextNode = logical.getWrapper(textNode);
-      var logicalYoungestShadowRootWrapper =
-          logical.getWrapper(youngestShadowRoot);
-      var logicalShadowWrapper = logical.getWrapper(shadow);
-
-      expectStructure(wrapperHost, {
-        firstChild: wrapperA,
-        lastChild: wrapperA
+      expectStructure(host, {
+        firstChild: a,
+        lastChild: a
       });
 
-      expectStructure(wrapperA, {
-        parentNode: wrapperHost
+      expectStructure(a, {
+        parentNode: host
       });
 
-      expectStructure(logicalOldestShadowRootWrapper, {
-        firstChild: wrapperTextNode,
-        lastChild: wrapperTextNode
+      expectStructure(oldestShadowRoot, {
+        firstChild: textNode,
+        lastChild: textNode
       });
 
-      expectStructure(wrapperTextNode, {
-        parentNode: logicalOldestShadowRootWrapper
+      expectStructure(textNode, {
+        parentNode: oldestShadowRoot
       });
 
-      expectStructure(logicalYoungestShadowRootWrapper, {
-        firstChild: logicalShadowWrapper,
-        lastChild: logicalShadowWrapper
+      expectStructure(youngestShadowRoot, {
+        firstChild: shadow,
+        lastChild: shadow
       });
 
-      expectStructure(logicalShadowWrapper, {
-        parentNode: logicalYoungestShadowRootWrapper
+      expectStructure(shadow, {
+        parentNode: youngestShadowRoot
       });
     }
 
@@ -267,12 +259,11 @@ test('<shadow>', function() {
 
       assert.strictEqual(getVisualInnerHtml(host), '<a>Hello</a>');
 
-      var wrapperHost = logical.getWrapper(host);
-      wrapperHost.firstChild.removeAllChildNodes();
+      host.firstChild.textContent = '';
 
       assert.strictEqual(getVisualInnerHtml(host), '<a></a>');
 
-      wrapperHost.removeAllChildNodes();
+      host.textContent = '';
       assert.strictEqual(getVisualInnerHtml(host), 'fallback');
     });
 
@@ -285,12 +276,11 @@ test('<shadow>', function() {
 
       assert.strictEqual(getVisualInnerHtml(host), '<a>Hello</a><b>after</b>');
 
-      var wrapperShadowRoot = logical.getWrapper(shadowRoot);
-      wrapperShadowRoot.lastChild.removeAllChildNodes();
+      shadowRoot.lastChild.textContent = '';
 
       assert.strictEqual(getVisualInnerHtml(host), '<a>Hello</a><b></b>');
 
-      wrapperShadowRoot.removeAllChildNodes();
+      shadowRoot.textContent = '';
       assert.strictEqual(getVisualInnerHtml(host), '');
     });
 
@@ -303,17 +293,16 @@ test('<shadow>', function() {
 
       assert.strictEqual(getVisualInnerHtml(host), '<b>fallback</b>');
 
-      var wrapperShadowRoot = logical.getWrapper(shadowRoot);
 
-      wrapperShadowRoot.firstChild.firstChild.removeAllChildNodes();
+      shadowRoot.firstChild.firstChild.textContent = '';
 
       assert.strictEqual(getVisualInnerHtml(host), '<b></b>');
 
-      wrapperShadowRoot.firstChild.removeAllChildNodes();
+      shadowRoot.firstChild.textContent = '';
 
       assert.strictEqual(getVisualInnerHtml(host), '');
 
-      wrapperShadowRoot.removeAllChildNodes();
+      shadowRoot.textContent = '';
       assert.strictEqual(getVisualInnerHtml(host), '');
     });
 
@@ -326,12 +315,11 @@ test('<shadow>', function() {
 
       assert.strictEqual(getVisualInnerHtml(host), '<a>Hello</a>');
 
-      var wrapperHost = logical.getWrapper(host);
-      wrapperHost.firstChild.removeChild(wrapperHost.firstChild.firstChild);
+      host.firstChild.removeChild(host.firstChild.firstChild);
 
       assert.strictEqual(getVisualInnerHtml(host), '<a></a>');
 
-      wrapperHost.removeChild(wrapperHost.firstChild);
+      host.removeChild(host.firstChild);
       assert.strictEqual(getVisualInnerHtml(host), 'fallback');
     });
 
@@ -344,12 +332,11 @@ test('<shadow>', function() {
 
       assert.strictEqual(getVisualInnerHtml(host), '<a></a><b></b>');
 
-      var wrapperHost = logical.getWrapper(host);
-      wrapperHost.removeChild(wrapperHost.lastChild);
+      host.removeChild(host.lastChild);
 
       assert.strictEqual(getVisualInnerHtml(host), '<a></a>');
 
-      wrapperHost.removeChild(wrapperHost.firstChild);
+      host.removeChild(host.firstChild);
       assert.strictEqual(getVisualInnerHtml(host), 'fallback');
     });
 
@@ -362,17 +349,16 @@ test('<shadow>', function() {
 
       assert.strictEqual(getVisualInnerHtml(host), '<a>Hello</a><b>after</b>');
 
-      var wrapperShadowRoot = logical.getWrapper(shadowRoot);
 
-      wrapperShadowRoot.lastChild.removeChild(
-          wrapperShadowRoot.lastChild.firstChild);
+      shadowRoot.lastChild.removeChild(
+          shadowRoot.lastChild.firstChild);
 
       assert.strictEqual(getVisualInnerHtml(host), '<a>Hello</a><b></b>');
 
-      wrapperShadowRoot.removeChild(wrapperShadowRoot.lastChild);
+      shadowRoot.removeChild(shadowRoot.lastChild);
       assert.strictEqual(getVisualInnerHtml(host), '<a>Hello</a>');
 
-      wrapperShadowRoot.removeChild(wrapperShadowRoot.firstChild);
+      shadowRoot.removeChild(shadowRoot.firstChild);
       assert.strictEqual(getVisualInnerHtml(host), '');
     });
 
@@ -387,11 +373,11 @@ test('<shadow>', function() {
 
       assert.strictEqual(getVisualInnerHtml(host), '<b>World</b><a>Hello</a>');
 
-      logical.getFirstChild(shadowRoot).setAttribute('select', 'xxx');
+      shadowRoot.firstChild.setAttribute('select', 'xxx');
 
       assert.strictEqual(getVisualInnerHtml(host), 'fallback b<a>Hello</a>');
 
-      logical.getFirstChild(shadowRoot).setAttribute('select', '');
+      shadowRoot.firstChild.setAttribute('select', '');
 
       assert.strictEqual(getVisualInnerHtml(host), '<a>Hello</a><b>World</b>fallback a');
     });
@@ -407,9 +393,7 @@ test('<shadow>', function() {
 
       var b = document.createElement('b');
 
-      var wrapperHost = logical.getWrapper(host);
-      var wrapperB = logical.getWrapper(b);
-      wrapperHost.appendChild(wrapperB);
+      host.appendChild(b);
 
       assert.strictEqual(getVisualInnerHtml(host), '<a>Hello</a><b></b>');
     });
@@ -425,9 +409,7 @@ test('<shadow>', function() {
 
       var b = document.createElement('b');
 
-      var wrapperShadowRoot = logical.getWrapper(shadowRoot);
-      var wrapperB = logical.getWrapper(b);
-      wrapperShadowRoot.appendChild(wrapperB);
+      shadowRoot.appendChild(b);
 
       assert.strictEqual(getVisualInnerHtml(host), '<a>Hello</a><b></b>');
     });
@@ -444,11 +426,8 @@ test('<shadow>', function() {
 
       var b = document.createElement('b');
 
-      var wrapperHost = logical.getWrapper(host);
-      var wrapperA = logical.getWrapper(a);
-      var wrapperB = logical.getWrapper(b);
 
-      wrapperHost.insertBefore(wrapperB, wrapperA);
+      host.insertBefore(b, a);
 
       assert.strictEqual(getVisualInnerHtml(host), '<b></b><a>Hello</a>');
     });
@@ -465,11 +444,9 @@ test('<shadow>', function() {
 
       var b = document.createElement('b');
 
-      var wrapperShadowRoot = logical.getWrapper(shadowRoot);
-      var wrapperB = logical.getWrapper(b);
       var wrapperContent = logical.getWrapper(content);
 
-      wrapperShadowRoot.insertBefore(wrapperB, wrapperContent);
+      shadowRoot.insertBefore(b, wrapperContent);
 
       assert.strictEqual(getVisualInnerHtml(host), '<b></b><a>Hello</a>');
     });
@@ -486,11 +463,8 @@ test('<shadow>', function() {
 
       var b = document.createElement('b');
 
-      var wrapperHost = logical.getWrapper(host);
-      var wrapperA = logical.getWrapper(a);
-      var wrapperB = logical.getWrapper(b);
 
-      wrapperHost.replaceChild(wrapperB, wrapperA);
+      host.replaceChild(b, a);
 
       assert.strictEqual(getVisualInnerHtml(host), '<b></b>');
     });

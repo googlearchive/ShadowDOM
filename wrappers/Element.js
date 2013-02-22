@@ -23,6 +23,14 @@
 
     get shadowRoot() {
       return getYoungestTree(this) || null;
+    },
+
+    setAttribute: function(name, value) {
+      this.node.setAttribute(name, value);
+      // This is a bit agressive. We need to invalidate if it affects
+      // the rendering content[select] or if it effects the value of a content
+      // select.
+      this.invalidateShadowRenderer();
     }
   });
 

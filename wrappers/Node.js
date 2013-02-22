@@ -207,6 +207,7 @@
       return oldChildWrapper;
     },
 
+    // TODO(arv): Remove this
     removeAllChildNodes: function() {
       var childWrapper = this.firstChild;
       while (childWrapper) {
@@ -214,7 +215,7 @@
         var nextSibling = childWrapper.nextSibling;
         var childNode = unwrap(childWrapper);
         childWrapper.previousSibling_ = childWrapper.nextSibling_ = childWrapper.parentNode_ = null;
-        var parentNode = childNode.panreNode;
+        var parentNode = childNode.parentNode;
         if (parentNode)
           parentNode.removeChild(childNode);
         childWrapper = nextSibling;
