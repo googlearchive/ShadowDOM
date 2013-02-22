@@ -100,6 +100,7 @@
   nodeInterfaces.forEach(function(name) {
     var ctor = window[name];
     ctor.prototype.constructor = ctor;
+    ctor.name = name;
   });
 
 })(this);

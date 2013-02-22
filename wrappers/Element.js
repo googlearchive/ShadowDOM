@@ -23,8 +23,11 @@
 
     get jsShadowRoot() {
       return getYoungestTree(this) || null;
-    },
+    }
   });
+
+  mixin(WrapperElement.prototype, parentNodeInterface);
+
   wrappers.register(Element, WrapperElement);
 
   exports.WrapperElement = WrapperElement;

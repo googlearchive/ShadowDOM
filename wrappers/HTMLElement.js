@@ -115,7 +115,8 @@
       } else {
         var wrapper = this;
         wrapper.removeAllChildNodes();
-        var tempElement = this.node.ownerDocument.createElement(this.tagName);
+        var tempElement =
+            unwrap(this.node.ownerDocument.createElement(this.tagName));
         tempElement.innerHTML = value;
         var firstChild;
         while (firstChild = tempElement.firstChild) {

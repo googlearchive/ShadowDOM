@@ -5,11 +5,8 @@
 (function(exports) {
   'use strict';
 
-  var WrapperDocumentFragment =
-      wrappers.findWrapperConstructor(DocumentFragment);
-
   function WrapperShadowRoot(hostWrapper) {
-    var node = hostWrapper.node.ownerDocument.createDocumentFragment();
+    var node = unwrap(hostWrapper.node.ownerDocument.createDocumentFragment());
     WrapperDocumentFragment.call(this, node);
 
     var oldShadowRoot = hostWrapper.__shadowRoot__;
@@ -19,7 +16,7 @@
     // TODO: are we invalidating on both sides?
     hostWrapper.invalidateShadowRenderer();
   }
-  WrapperShadowRoot.prototype = Object.create(WrapperNode.prototype);
+  WrapperShadowRoot.prototype = Object.create(WrapperDocumentFragment.prototype);
   mixin(WrapperShadowRoot.prototype, {
     get innerHTML() {
       return getInnerHTML(this);
@@ -29,7 +26,7 @@
     },
     set innerHTML(value) {
       this.removeAllChildNodes();
-      var tempElement = this.node.ownerDocument.createElement('div');
+      var tempElement = unwrap(this.node.ownerDocument.createElement('div'));
       tempElement.innerHTML = value;
       var firstChild;
       while (firstChild = tempElement.firstChild) {

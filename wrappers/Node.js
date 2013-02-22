@@ -32,6 +32,8 @@
    * @constructor
    */
   function WrapperNode(original) {
+    assert(original instanceof Node);
+
     /**
      * @type {!Node}
      */

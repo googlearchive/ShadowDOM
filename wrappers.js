@@ -93,6 +93,16 @@
     }
   }
 
+  /**
+   * Creates a generic wrapper constructor based on |object| and its
+   * constsructor.
+   * Sometimes the constructor does not have an associated instance
+   * (CharacterData for example). In that case you can pass the constructor that
+   * you want to map the object to using |opt_nativeConstructor|.
+   * @param {Node} object
+   * @param {Function=} opt_nativeConstructor
+   * @return {Function} The generated constructor.
+   */
   function registerObject(object, opt_nativeConstructor) {
     var nativeConstructor = opt_nativeConstructor || object.constructor;
     var proto = Object.getPrototypeOf(nativeConstructor.prototype);
@@ -106,6 +116,8 @@
         Object.create(superWrapperConstructor.prototype);
 
     register(nativeConstructor, GeneratedWrapper, object);
+
+    return GeneratedWrapper;
   }
 
   function registerHTMLElement(tagName) {
@@ -116,15 +128,6 @@
     }
     registerObject(element);
   }
-
-  var wrappers = {
-    register: register,
-    registerHTMLElement: registerHTMLElement,
-    registerObject: registerObject,
-    findWrapperConstructor: function(nativeConstructor) {
-      return constructorTable.get(nativeConstructor);
-    }
-  };
 
   /**
    * Wraps a node in a WrapperNode. If there already exists a wrapper for the
@@ -156,6 +159,12 @@
       return null;
     assert(wrapper instanceof WrapperNode);
     return wrapper.node;
+  };
+
+  var wrappers = {
+    register: register,
+    registerHTMLElement: registerHTMLElement,
+    registerObject: registerObject
   };
 
   exports.wrap = wrap;
