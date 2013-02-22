@@ -16,13 +16,13 @@ suite('Shadow DOM reprojection', function() {
     host.innerHTML = '<a></a>';
     var a = host.firstChild;
 
-    var shadowRoot = host.jsCreateShadowRoot();
+    var shadowRoot = host.createShadowRoot();
     shadowRoot.innerHTML = '<p><b></b><content></content></p>';
     var p = shadowRoot.firstChild;
     var b = p.firstChild;
     var content = p.lastChild;
 
-    var pShadowRoot = p.jsCreateShadowRoot();
+    var pShadowRoot = p.createShadowRoot();
     pShadowRoot.innerHTML =
         'a: <content select=a></content>b: <content select=b></content>';
     var textNodeA = pShadowRoot.firstChild;

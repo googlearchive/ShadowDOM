@@ -171,4 +171,7 @@
   exports.unwrap = unwrap;
   exports.wrappers = wrappers;
 
+  // Needed to override the wrapper in ShadowRoot.
+  exports.wrapperTable = wrapperTable;
+
 })(this);

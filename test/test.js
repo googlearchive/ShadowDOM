@@ -7,7 +7,7 @@
 suite('Shadow DOM', function() {
 
   function getVisualInnerHtml(el) {
-    return HTMLElement_prototype.innerHTML.get.call(el);
+    return unwrap(el).innerHTML;
   }
 
   function normalizeInnerHtml(s) {
@@ -25,14 +25,16 @@ suite('Shadow DOM', function() {
       if (typeof shadowRoots === 'string')
         shadowRoots = [shadowRoots];
       shadowRoots.forEach(function(html) {
-        var shadowRoot = host.jsCreateShadowRoot();
+        var shadowRoot = host.createShadowRoot();
         shadowRoot.innerHTML = html;
       });
 
       if (opt_beforeRender)
         opt_beforeRender(host);
 
-      render(host);
+      // render(host);
+
+      renderAllPending();
 
       assert.strictEqual(normalizeInnerHtml(getVisualInnerHtml(host)),
           normalizeInnerHtml(expectedOuterHtml));
@@ -231,10 +233,10 @@ suite('Shadow DOM', function() {
 
       var a = host.firstChild;
 
-      var hostShadowRoot = host.jsCreateShadowRoot();
+      var hostShadowRoot = host.createShadowRoot();
       hostShadowRoot.innerHTML = '1<content></content>5';
 
-      var aShadowRoot = a.jsCreateShadowRoot();
+      var aShadowRoot = a.createShadowRoot();
       aShadowRoot.innerHTML = '2<content></content>4';
 
       render(host);
@@ -246,12 +248,12 @@ suite('Shadow DOM', function() {
       var host = document.createElement('div');
       host.innerHTML = '6';
 
-      var hostShadowRoot = host.jsCreateShadowRoot();
+      var hostShadowRoot = host.createShadowRoot();
       hostShadowRoot.innerHTML = '1<a>3</a>5<content></content>7';
 
       var a = hostShadowRoot.firstChild.nextSibling;
 
-      var aShadowRoot = a.jsCreateShadowRoot();
+      var aShadowRoot = a.createShadowRoot();
       aShadowRoot.innerHTML = '2<content></content>4';
 
       render(host);

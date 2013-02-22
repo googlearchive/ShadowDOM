@@ -27,7 +27,7 @@ suite('HTMLContentElement', function() {
     var a = host.firstChild;
     var b = host.lastChild;
 
-    var sr = host.jsCreateShadowRoot();
+    var sr = host.createShadowRoot();
     sr.innerHTML = '<content></content>';
     var content = sr.firstChild;
 

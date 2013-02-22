@@ -10,7 +10,7 @@
   }
   WrapperElement.prototype = Object.create(WrapperNode.prototype);
   mixin(WrapperElement.prototype, {
-    jsCreateShadowRoot: function() {
+    createShadowRoot: function() {
       var newShadowRoot = new WrapperShadowRoot(this);
       this.__shadowRoot__ = newShadowRoot;
 
@@ -21,7 +21,7 @@
       return newShadowRoot;
     },
 
-    get jsShadowRoot() {
+    get shadowRoot() {
       return getYoungestTree(this) || null;
     }
   });

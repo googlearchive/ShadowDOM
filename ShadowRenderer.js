@@ -388,8 +388,9 @@
     return true;
   };
 
-
   exports.ShadowRenderer = ShadowRenderer;
   exports.render = render;
+  exports.getYoungestTree = getYoungestTree;
+  exports.renderAllPending = renderAllPending;
 
 })(this);

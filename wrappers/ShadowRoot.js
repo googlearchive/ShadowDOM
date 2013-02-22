@@ -9,6 +9,10 @@
     var node = unwrap(hostWrapper.node.ownerDocument.createDocumentFragment());
     WrapperDocumentFragment.call(this, node);
 
+    // createDocumentFragment associates the node with a WrapperDocumentFragment
+    // instance. Override that.
+    wrapperTable.set(node, this);
+
     var oldShadowRoot = hostWrapper.__shadowRoot__;
     this.__nextOlderShadowTree__ = oldShadowRoot;
     this.__shadowHost__ = hostWrapper;

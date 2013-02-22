@@ -9,7 +9,6 @@
       wrappers.registerObject(document.createDocumentFragment());
   mixin(WrapperDocumentFragment.prototype, parentNodeInterface);
 
-  wrappers.registerObject(document.createTextNode(''), CharacterData)
   wrappers.registerObject(document.createTextNode(''));
   wrappers.registerObject(document.createComment(''));
 
