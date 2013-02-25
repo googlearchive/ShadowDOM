@@ -194,10 +194,13 @@ suite('Shadow DOM', function() {
                  '<button disabled></button><button></button>',
                  '<content select=":disabled"></content>',
                  '<button disabled=""></button>');
+
       testRender(':checked',
-                 '<input type=checkbox><input checked type=checkbox>',
+                 '<input type=checkbox><input type=checkbox checked>',
                  '<content select=":checked"></content>',
-                 '<input checked="" type="checkbox">');
+                 /Firefox/.test(navigator.userAgent) ?
+                     '<input checked="" type="checkbox">' :
+                     '<input type="checkbox" checked="">');
       testRender(':indeterminate',
                  '<input type=checkbox><input type=checkbox>',
                  '<content select=":indeterminate"></content>',

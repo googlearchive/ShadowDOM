@@ -138,7 +138,10 @@
       }
     }
   });
-  wrappers.register(HTMLElement, WrapperHTMLElement, 'br');
+
+  // HTMLElement is abstract so we use a subclass that has no members.
+  wrappers.register(HTMLElement, WrapperHTMLElement,
+                    document.createElement('span'));
 
   exports.WrapperHTMLElement = WrapperHTMLElement;
 

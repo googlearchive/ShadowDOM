@@ -10,6 +10,7 @@
   [
     'map.js',
     'sidetable.js',
+    'fixdomreflection.js',
     'wrappers.js',
     'parallel-trees.js',
     'wrappers/Node.js',

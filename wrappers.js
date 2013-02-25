@@ -94,11 +94,8 @@
     assert(constructorTable.get(nativeConstructor) === undefined);
     constructorTable.set(nativeConstructor, wrapperConstructor);
     addForwardingProperties(nativeConstructor, wrapperConstructor);
-    if (opt_instance) {
-      if (typeof opt_instance === 'string')
-        opt_instance = document.createElement(opt_instance);
+    if (opt_instance)
       registerInstanceProperties(wrapperConstructor, opt_instance);  
-    }
   }
 
   /**
