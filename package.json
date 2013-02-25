@@ -1,0 +1,10 @@
+{
+  "name": "ShadowDOM",
+  "version": "0.0.1",
+  "devDependencies": {
+    "grunt": "*",
+    "grunt-contrib-uglify": "*",
+    "mocha": "*",
+    "chai": "*"
+  }
+}
