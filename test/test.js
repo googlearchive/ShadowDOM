@@ -7,7 +7,8 @@
 suite('Shadow DOM', function() {
 
   function getVisualInnerHtml(el) {
-    return HTMLElement_prototype.innerHTML.get.call(el);
+    renderAllPending();
+    return unwrap(el).innerHTML;
   }
 
   function normalizeInnerHtml(s) {
@@ -25,14 +26,12 @@ suite('Shadow DOM', function() {
       if (typeof shadowRoots === 'string')
         shadowRoots = [shadowRoots];
       shadowRoots.forEach(function(html) {
-        var shadowRoot = host.jsCreateShadowRoot();
+        var shadowRoot = host.createShadowRoot();
         shadowRoot.innerHTML = html;
       });
 
       if (opt_beforeRender)
         opt_beforeRender(host);
-
-      render(host);
 
       assert.strictEqual(normalizeInnerHtml(getVisualInnerHtml(host)),
           normalizeInnerHtml(expectedOuterHtml));
@@ -177,13 +176,10 @@ suite('Shadow DOM', function() {
     });
 
     suite('pseudo-class selector(s)', function() {
-      // Broken in Firefox: https://bugzilla.mozilla.org/show_bug.cgi?id=787134
-      if (!/Firefox/.test(navigator.userAgent)) {
-        testRender(':link',
-                   '<a></a><a href="#"></a>',
-                   '<content select=":link"></content>',
-                   '<a href="#"></a>');
-      }
+      testRender(':link',
+                 '<a></a><a href="#"></a>',
+                 '<content select=":link"></content>',
+                 '<a href="#"></a>');
 
       // :visited cannot be queried in JS.
 
@@ -198,10 +194,13 @@ suite('Shadow DOM', function() {
                  '<button disabled></button><button></button>',
                  '<content select=":disabled"></content>',
                  '<button disabled=""></button>');
+
       testRender(':checked',
-                 '<input type=checkbox><input checked type=checkbox>',
+                 '<input type=checkbox><input type=checkbox checked>',
                  '<content select=":checked"></content>',
-                 '<input checked="" type="checkbox">');
+                 /Firefox/.test(navigator.userAgent) ?
+                     '<input checked="" type="checkbox">' :
+                     '<input type="checkbox" checked="">');
       testRender(':indeterminate',
                  '<input type=checkbox><input type=checkbox>',
                  '<content select=":indeterminate"></content>',
@@ -231,13 +230,11 @@ suite('Shadow DOM', function() {
 
       var a = host.firstChild;
 
-      var hostShadowRoot = host.jsCreateShadowRoot();
+      var hostShadowRoot = host.createShadowRoot();
       hostShadowRoot.innerHTML = '1<content></content>5';
 
-      var aShadowRoot = a.jsCreateShadowRoot();
+      var aShadowRoot = a.createShadowRoot();
       aShadowRoot.innerHTML = '2<content></content>4';
-
-      render(host);
 
       assert.strictEqual(getVisualInnerHtml(host), '1<a>234</a>5');
     });
@@ -246,15 +243,13 @@ suite('Shadow DOM', function() {
       var host = document.createElement('div');
       host.innerHTML = '6';
 
-      var hostShadowRoot = host.jsCreateShadowRoot();
+      var hostShadowRoot = host.createShadowRoot();
       hostShadowRoot.innerHTML = '1<a>3</a>5<content></content>7';
 
       var a = hostShadowRoot.firstChild.nextSibling;
 
-      var aShadowRoot = a.jsCreateShadowRoot();
+      var aShadowRoot = a.createShadowRoot();
       aShadowRoot.innerHTML = '2<content></content>4';
-
-      render(host);
 
       assert.strictEqual(getVisualInnerHtml(host), '1<a>234</a>567');
     });

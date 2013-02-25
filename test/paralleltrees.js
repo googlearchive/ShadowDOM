@@ -15,19 +15,16 @@ suite('Parallel Trees', function() {
 
       visual.removeAllChildNodes(div);
 
-      expectStructure(div, {});
-      expectStructure(textNode, {});
+      expectStructure(unwrap(div), {});
+      expectStructure(unwrap(textNode), {});
 
-      var wrapperDiv = logical.getWrapper(div);
-      var logicalTextNodeWrapper = logical.getWrapper(textNode);
-
-      expectStructure(wrapperDiv, {
-        firstChild: logicalTextNodeWrapper,
-        lastChild: logicalTextNodeWrapper,
+      expectStructure(div, {
+        firstChild: textNode,
+        lastChild: textNode,
       });
 
-      expectStructure(logicalTextNodeWrapper, {
-        parentNode: wrapperDiv
+      expectStructure(textNode, {
+        parentNode: div
       });
     });
 
@@ -40,107 +37,10 @@ suite('Parallel Trees', function() {
 
       visual.removeAllChildNodes(div);
 
-      expectStructure(div, {});
-      expectStructure(a, {});
-      expectStructure(b, {});
-      expectStructure(c, {});
-
-      var wrapperDiv = logical.getWrapper(div);
-      var wrapperA = logical.getWrapper(a);
-      var wrapperB = logical.getWrapper(b);
-      var wrapperC = logical.getWrapper(c);
-
-      expectStructure(wrapperDiv, {
-        firstChild: wrapperA,
-        lastChild: wrapperC
-      });
-
-      expectStructure(wrapperA, {
-        parentNode: wrapperDiv,
-        nextSibling: wrapperB
-      });
-
-      expectStructure(wrapperB, {
-        parentNode: wrapperDiv,
-        previousSibling: wrapperA,
-        nextSibling: wrapperC
-      });
-
-      expectStructure(wrapperC, {
-        parentNode: wrapperDiv,
-        previousSibling: wrapperB
-      });
-    });
-
-    test('appendChild, start with no children', function() {
-      var div = document.createElement('div');
-      var textNode = document.createTextNode('hello');
-
-      expectStructure(div, {});
-      visual.appendChild(div, textNode);
-
-      expectStructure(div, {
-        firstChild: textNode,
-        lastChild: textNode
-      });
-
-      expectStructure(textNode, {
-        parentNode: div
-      });
-
-      var wrapperDiv = logical.getWrapper(div);
-      var logicalTextNodeWrapper = logical.getWrapper(textNode);
-
-      expectStructure(wrapperDiv, {});
-      expectStructure(logicalTextNodeWrapper, {});
-    });
-
-    test('appendChild, start with one child', function() {
-      var div = document.createElement('div');
-      div.innerHTML = '<a></a>';
-      var a = div.firstChild;
-      var b = document.createElement('b');
-
-      visual.appendChild(div, b);
-
-      expectStructure(div, {
-        firstChild: a,
-        lastChild: b
-      });
-
-      expectStructure(a, {
-        parentNode: div,
-        nextSibling: b
-      });
-
-      expectStructure(b, {
-        parentNode: div,
-        previousSibling: a
-      });
-
-      var wrapperDiv = logical.getWrapper(div);
-      var wrapperA = logical.getWrapper(a);
-      var wrapperB = logical.getWrapper(b);
-
-      expectStructure(wrapperDiv, {
-        firstChild: wrapperA,
-        lastChild: wrapperA,
-      });
-
-      expectStructure(wrapperA, {
-        parentNode: wrapperDiv
-      });
-      expectStructure(wrapperB, {});
-    });
-
-    test('appendChild, start with two children', function() {
-      var div = document.createElement('div');
-      div.innerHTML = '<a></a><b></b>';
-      var a = div.firstChild;
-      var b = div.lastChild;
-      var c = document.createElement('c');
-
-      visual.appendChild(div, c);
+      expectStructure(unwrap(div), {});
+      expectStructure(unwrap(a), {});
+      expectStructure(unwrap(b), {});
+      expectStructure(unwrap(c), {});
 
       expectStructure(div, {
         firstChild: a,
@@ -162,44 +62,100 @@ suite('Parallel Trees', function() {
         parentNode: div,
         previousSibling: b
       });
-
-      var wrapperDiv = logical.getWrapper(div);
-      var wrapperA = logical.getWrapper(a);
-      var wrapperB = logical.getWrapper(b);
-      var wrapperC = logical.getWrapper(c);
-
-      expectStructure(wrapperDiv, {
-        firstChild: wrapperA,
-        lastChild: wrapperB,
-      });
-
-      expectStructure(wrapperA, {
-        parentNode: wrapperDiv,
-        nextSibling: wrapperB
-      });
-
-      expectStructure(wrapperB, {
-        parentNode: wrapperDiv,
-        previousSibling: wrapperA
-      });
-
-      expectStructure(wrapperC, {});
     });
 
-    test('appendChild with document fragment', function() {
+    test('appendChild, start with no children', function() {
       var div = document.createElement('div');
-      var df = document.createDocumentFragment();
-      var a = df.appendChild(document.createElement('a'));
-      var b = df.appendChild(document.createElement('b'));
+      var textNode = document.createTextNode('hello');
 
-      visual.appendChild(div, df);
+      expectStructure(div, {});
+      expectStructure(textNode, {});
+      unwrapAndExpectStructure(div, {});
+      unwrapAndExpectStructure(textNode, {});
 
-      expectStructure(div, {
+      visual.appendChild(div, textNode);
+
+      unwrapAndExpectStructure(div, {
+        firstChild: textNode,
+        lastChild: textNode
+      });
+
+      unwrapAndExpectStructure(textNode, {
+        parentNode: div
+      });
+
+      expectStructure(div, {});
+      expectStructure(textNode, {});
+    });
+
+    test('appendChild, start with one child', function() {
+      var div = document.createElement('div');
+      div.innerHTML = '<a></a>';
+      var a = div.firstChild;
+      var b = document.createElement('b');
+
+      visual.appendChild(div, b);
+
+      unwrapAndExpectStructure(div, {
         firstChild: a,
         lastChild: b
       });
 
-      expectStructure(df, {});
+      unwrapAndExpectStructure(a, {
+        parentNode: div,
+        nextSibling: b
+      });
+
+      unwrapAndExpectStructure(b, {
+        parentNode: div,
+        previousSibling: a
+      });
+
+      expectStructure(div, {
+        firstChild: a,
+        lastChild: a,
+      });
+
+      expectStructure(a, {
+        parentNode: div
+      });
+      expectStructure(b, {});
+    });
+
+    test('appendChild, start with two children', function() {
+      var div = document.createElement('div');
+      div.innerHTML = '<a></a><b></b>';
+      var a = div.firstChild;
+      var b = div.lastChild;
+      var c = document.createElement('c');
+
+      visual.appendChild(div, c);
+
+      unwrapAndExpectStructure(div, {
+        firstChild: a,
+        lastChild: c
+      });
+
+      unwrapAndExpectStructure(a, {
+        parentNode: div,
+        nextSibling: b
+      });
+
+      unwrapAndExpectStructure(b, {
+        parentNode: div,
+        previousSibling: a,
+        nextSibling: c
+      });
+
+      unwrapAndExpectStructure(c, {
+        parentNode: div,
+        previousSibling: b
+      });
+
+      expectStructure(div, {
+        firstChild: a,
+        lastChild: b,
+      });
 
       expectStructure(a, {
         parentNode: div,
@@ -211,26 +167,49 @@ suite('Parallel Trees', function() {
         previousSibling: a
       });
 
-      var wrapperDiv = logical.getWrapper(div);
-      var wrapperDf = logical.getWrapper(df);
-      var wrapperA = logical.getWrapper(a);
-      var wrapperB = logical.getWrapper(b);
+      expectStructure(c, {});
+    });
 
-      expectStructure(wrapperDiv, {});
+    test('appendChild with document fragment', function() {
+      var div = document.createElement('div');
+      var df = document.createDocumentFragment();
+      var a = df.appendChild(document.createElement('a'));
+      var b = df.appendChild(document.createElement('b'));
 
-      expectStructure(wrapperDf, {
-        firstChild: wrapperA,
-        lastChild: wrapperB
+      visual.appendChild(div, df);
+
+      unwrapAndExpectStructure(div, {
+        firstChild: a,
+        lastChild: b
       });
 
-      expectStructure(wrapperA, {
-        parentNode: wrapperDf,
-        nextSibling: wrapperB
+      unwrapAndExpectStructure(df, {});
+
+      unwrapAndExpectStructure(a, {
+        parentNode: div,
+        nextSibling: b
       });
 
-      expectStructure(wrapperB, {
-        parentNode: wrapperDf,
-        previousSibling: wrapperA
+      unwrapAndExpectStructure(b, {
+        parentNode: div,
+        previousSibling: a
+      });
+
+      expectStructure(div, {});
+
+      expectStructure(df, {
+        firstChild: a,
+        lastChild: b
+      });
+
+      expectStructure(a, {
+        parentNode: df,
+        nextSibling: b
+      });
+
+      expectStructure(b, {
+        parentNode: df,
+        previousSibling: a
       });
     });
 
@@ -241,19 +220,16 @@ suite('Parallel Trees', function() {
 
       visual.removeChild(div, a);
 
-      expectStructure(div, {});
-      expectStructure(a, {});
+      unwrapAndExpectStructure(div, {});
+      unwrapAndExpectStructure(a, {});
 
-      var wrapperDiv = logical.getWrapper(div);
-      var wrapperA = logical.getWrapper(a);
-
-      expectStructure(wrapperDiv, {
-        firstChild: wrapperA,
-        lastChild: wrapperA
+      expectStructure(div, {
+        firstChild: a,
+        lastChild: a
       });
 
-      expectStructure(wrapperA, {
-        parentNode: wrapperDiv
+      expectStructure(a, {
+        parentNode: div
       });
     });
 
@@ -265,34 +241,30 @@ suite('Parallel Trees', function() {
 
       visual.removeChild(div, a);
 
-      expectStructure(div, {
+      unwrapAndExpectStructure(div, {
         firstChild: b,
         lastChild: b
       });
 
-      expectStructure(a, {});
+      unwrapAndExpectStructure(a, {});
 
-      expectStructure(b, {
+      unwrapAndExpectStructure(b, {
         parentNode: div
       });
 
-      var wrapperDiv = logical.getWrapper(div);
-      var wrapperA = logical.getWrapper(a);
-      var wrapperB = logical.getWrapper(b);
-
-      expectStructure(wrapperDiv, {
-        firstChild: wrapperA,
-        lastChild: wrapperB
+      expectStructure(div, {
+        firstChild: a,
+        lastChild: b
       });
 
-      expectStructure(wrapperA, {
-        parentNode: wrapperDiv,
-        nextSibling: wrapperB
+      expectStructure(a, {
+        parentNode: div,
+        nextSibling: b
       });
 
-      expectStructure(wrapperB, {
-        parentNode: wrapperDiv,
-        previousSibling: wrapperA
+      expectStructure(b, {
+        parentNode: div,
+        previousSibling: a
       });
     });
 
@@ -304,34 +276,30 @@ suite('Parallel Trees', function() {
 
       visual.removeChild(div, b);
 
-      expectStructure(div, {
+      unwrapAndExpectStructure(div, {
         firstChild: a,
         lastChild: a
       });
 
-      expectStructure(a, {
+      unwrapAndExpectStructure(a, {
         parentNode: div
       });
 
-      expectStructure(b, {});
+      unwrapAndExpectStructure(b, {});
 
-      var wrapperDiv = logical.getWrapper(div);
-      var wrapperA = logical.getWrapper(a);
-      var wrapperB = logical.getWrapper(b);
-
-      expectStructure(wrapperDiv, {
-        firstChild: wrapperA,
-        lastChild: wrapperB
+      expectStructure(div, {
+        firstChild: a,
+        lastChild: b
       });
 
-      expectStructure(wrapperA, {
-        parentNode: wrapperDiv,
-        nextSibling: wrapperB
+      expectStructure(a, {
+        parentNode: div,
+        nextSibling: b
       });
 
-      expectStructure(wrapperB, {
-        parentNode: wrapperDiv,
-        previousSibling: wrapperA
+      expectStructure(b, {
+        parentNode: div,
+        previousSibling: a
       });
     });
 
@@ -344,6 +312,23 @@ suite('Parallel Trees', function() {
 
       visual.removeChild(div, b);
 
+      unwrapAndExpectStructure(div, {
+        firstChild: a,
+        lastChild: c
+      });
+
+      unwrapAndExpectStructure(a, {
+        parentNode: div,
+        nextSibling: c
+      });
+
+      unwrapAndExpectStructure(b, {});
+
+      unwrapAndExpectStructure(c, {
+        parentNode: div,
+        previousSibling: a
+      });
+
       expectStructure(div, {
         firstChild: a,
         lastChild: c
@@ -351,40 +336,18 @@ suite('Parallel Trees', function() {
 
       expectStructure(a, {
         parentNode: div,
+        nextSibling: b
+      });
+
+      expectStructure(b, {
+        parentNode: div,
+        previousSibling: a,
         nextSibling: c
       });
 
-      expectStructure(b, {});
-
       expectStructure(c, {
         parentNode: div,
-        previousSibling: a
-      });
-
-      var wrapperDiv = logical.getWrapper(div);
-      var wrapperA = logical.getWrapper(a);
-      var wrapperB = logical.getWrapper(b);
-      var wrapperC = logical.getWrapper(c);
-
-      expectStructure(wrapperDiv, {
-        firstChild: wrapperA,
-        lastChild: wrapperC
-      });
-
-      expectStructure(wrapperA, {
-        parentNode: wrapperDiv,
-        nextSibling: wrapperB
-      });
-
-      expectStructure(wrapperB, {
-        parentNode: wrapperDiv,
-        previousSibling: wrapperA,
-        nextSibling: wrapperC
-      });
-
-      expectStructure(wrapperC, {
-        parentNode: wrapperDiv,
-        previousSibling: wrapperB
+        previousSibling: b
       });
     });
   });
@@ -398,23 +361,18 @@ suite('Parallel Trees', function() {
         var b = a.nextSibling;
         var c = div.lastChild;
 
-        var wrapperDiv = logical.getWrapper(div);
-        var wrapperA = logical.getWrapper(a);
-        var wrapperB = logical.getWrapper(b);
-        var wrapperC = logical.getWrapper(c);
+        div.removeAllChildNodes();
 
-        wrapperDiv.removeAllChildNodes();
+        unwrapAndExpectStructure(div, {});
+        unwrapAndExpectStructure(a, {});
+        unwrapAndExpectStructure(b, {});
+        unwrapAndExpectStructure(c, {});
+
 
         expectStructure(div, {});
         expectStructure(a, {});
         expectStructure(b, {});
         expectStructure(c, {});
-
-
-        expectStructure(wrapperDiv, {});
-        expectStructure(wrapperA, {});
-        expectStructure(wrapperB, {});
-        expectStructure(wrapperC, {});
       });
 
       test('with wrappers before removal', function() {
@@ -424,22 +382,17 @@ suite('Parallel Trees', function() {
         var b = a.nextSibling;
         var c = div.lastChild;
 
-        var wrapperDiv = logical.getWrapper(div);
-        var wrapperA = logical.getWrapper(a);
-        var wrapperB = logical.getWrapper(b);
-        var wrapperC = logical.getWrapper(c);
+        div.removeAllChildNodes();
 
-        wrapperDiv.removeAllChildNodes();
+        unwrapAndExpectStructure(div, {});
+        unwrapAndExpectStructure(a, {});
+        unwrapAndExpectStructure(b, {});
+        unwrapAndExpectStructure(c, {});
 
         expectStructure(div, {});
         expectStructure(a, {});
         expectStructure(b, {});
         expectStructure(c, {});
-
-        expectStructure(wrapperDiv, {});
-        expectStructure(wrapperA, {});
-        expectStructure(wrapperB, {});
-        expectStructure(wrapperC, {});
       });
 
       test('change visual first', function() {
@@ -449,24 +402,19 @@ suite('Parallel Trees', function() {
         var b = a.nextSibling;
         var c = div.lastChild;
 
-        var wrapperDiv = logical.getWrapper(div);
-        var wrapperA = logical.getWrapper(a);
-        var wrapperB = logical.getWrapper(b);
-        var wrapperC = logical.getWrapper(c);
-
         visual.removeAllChildNodes(div);
+
+        unwrapAndExpectStructure(div, {});
+        unwrapAndExpectStructure(a, {});
+        unwrapAndExpectStructure(b, {});
+        unwrapAndExpectStructure(c, {});
+
+        div.removeAllChildNodes();
 
         expectStructure(div, {});
         expectStructure(a, {});
         expectStructure(b, {});
         expectStructure(c, {});
-
-        wrapperDiv.removeAllChildNodes();
-
-        expectStructure(wrapperDiv, {});
-        expectStructure(wrapperA, {});
-        expectStructure(wrapperB, {});
-        expectStructure(wrapperC, {});
       });
     });
 
@@ -478,12 +426,25 @@ suite('Parallel Trees', function() {
         var b = a.nextSibling;
         var c = document.createElement('c');
 
-        var wrapperDiv = logical.getWrapper(div);
-        var wrapperA = logical.getWrapper(a);
-        var wrapperB = logical.getWrapper(b);
-        var wrapperC = logical.getWrapper(c);
+        div.appendChild(c);
 
-        wrapperDiv.appendChild(wrapperC);
+        unwrapAndExpectStructure(div, {
+          firstChild: a,
+          lastChild: c
+        });
+        unwrapAndExpectStructure(a, {
+          parentNode: div,
+          nextSibling: b
+        });
+        unwrapAndExpectStructure(b, {
+          parentNode: div,
+          previousSibling: a,
+          nextSibling: c
+        });
+        unwrapAndExpectStructure(c, {
+          parentNode: div,
+          previousSibling: b
+        });
 
         expectStructure(div, {
           firstChild: a,
@@ -501,24 +462,6 @@ suite('Parallel Trees', function() {
         expectStructure(c, {
           parentNode: div,
           previousSibling: b
-        });
-
-        expectStructure(wrapperDiv, {
-          firstChild: wrapperA,
-          lastChild: wrapperC
-        });
-        expectStructure(wrapperA, {
-          parentNode: wrapperDiv,
-          nextSibling: wrapperB
-        });
-        expectStructure(wrapperB, {
-          parentNode: wrapperDiv,
-          previousSibling: wrapperA,
-          nextSibling: wrapperC
-        });
-        expectStructure(wrapperC, {
-          parentNode: wrapperDiv,
-          previousSibling: wrapperB
         });
       });
 
@@ -529,12 +472,25 @@ suite('Parallel Trees', function() {
         var b = a.nextSibling;
         var c = document.createElement('c');
 
-        var wrapperDiv = logical.getWrapper(div);
-        var wrapperA = logical.getWrapper(a);
-        var wrapperB = logical.getWrapper(b);
-        var wrapperC = logical.getWrapper(c);
+        div.appendChild(c);
 
-        wrapperDiv.appendChild(wrapperC);
+        unwrapAndExpectStructure(div, {
+          firstChild: a,
+          lastChild: c
+        });
+        unwrapAndExpectStructure(a, {
+          parentNode: div,
+          nextSibling: b
+        });
+        unwrapAndExpectStructure(b, {
+          parentNode: div,
+          previousSibling: a,
+          nextSibling: c
+        });
+        unwrapAndExpectStructure(c, {
+          parentNode: div,
+          previousSibling: b
+        });
 
         expectStructure(div, {
           firstChild: a,
@@ -552,24 +508,6 @@ suite('Parallel Trees', function() {
         expectStructure(c, {
           parentNode: div,
           previousSibling: b
-        });
-
-        expectStructure(wrapperDiv, {
-          firstChild: wrapperA,
-          lastChild: wrapperC
-        });
-        expectStructure(wrapperA, {
-          parentNode: wrapperDiv,
-          nextSibling: wrapperB
-        });
-        expectStructure(wrapperB, {
-          parentNode: wrapperDiv,
-          previousSibling: wrapperA,
-          nextSibling: wrapperC
-        });
-        expectStructure(wrapperC, {
-          parentNode: wrapperDiv,
-          previousSibling: wrapperB
         });
       });
 
@@ -582,39 +520,34 @@ suite('Parallel Trees', function() {
 
         visual.removeAllChildNodes(div);
 
-        var wrapperDiv = logical.getWrapper(div);
-        var wrapperA = logical.getWrapper(a);
-        var wrapperB = logical.getWrapper(b);
-        var wrapperC = logical.getWrapper(c);
+        div.appendChild(c);
 
-        wrapperDiv.appendChild(wrapperC);
-
-        expectStructure(div, {
+        unwrapAndExpectStructure(div, {
           firstChild: c,
           lastChild: c
         });
-        expectStructure(a, {});
-        expectStructure(b, {});
-        expectStructure(c, {
+        unwrapAndExpectStructure(a, {});
+        unwrapAndExpectStructure(b, {});
+        unwrapAndExpectStructure(c, {
           parentNode: div
         });
 
-        expectStructure(wrapperDiv, {
-          firstChild: wrapperA,
-          lastChild: wrapperC
+        expectStructure(div, {
+          firstChild: a,
+          lastChild: c
         });
-        expectStructure(wrapperA, {
-          parentNode: wrapperDiv,
-          nextSibling: wrapperB
+        expectStructure(a, {
+          parentNode: div,
+          nextSibling: b
         });
-        expectStructure(wrapperB, {
-          parentNode: wrapperDiv,
-          previousSibling: wrapperA,
-          nextSibling: wrapperC
+        expectStructure(b, {
+          parentNode: div,
+          previousSibling: a,
+          nextSibling: c
         });
-        expectStructure(wrapperC, {
-          parentNode: wrapperDiv,
-          previousSibling: wrapperB
+        expectStructure(c, {
+          parentNode: div,
+          previousSibling: b
         });
       });
     });
@@ -627,12 +560,25 @@ suite('Parallel Trees', function() {
         var c = a.nextSibling;
         var b = document.createElement('b');
 
-        var wrapperDiv = logical.getWrapper(div);
-        var wrapperA = logical.getWrapper(a);
-        var wrapperB = logical.getWrapper(b);
-        var wrapperC = logical.getWrapper(c);
+        div.insertBefore(b, c);
 
-        wrapperDiv.insertBefore(wrapperB, wrapperC);
+        unwrapAndExpectStructure(div, {
+          firstChild: a,
+          lastChild: c
+        });
+        unwrapAndExpectStructure(a, {
+          parentNode: div,
+          nextSibling: b
+        });
+        unwrapAndExpectStructure(b, {
+          parentNode: div,
+          previousSibling: a,
+          nextSibling: c
+        });
+        unwrapAndExpectStructure(c, {
+          parentNode: div,
+          previousSibling: b
+        });
 
         expectStructure(div, {
           firstChild: a,
@@ -650,24 +596,6 @@ suite('Parallel Trees', function() {
         expectStructure(c, {
           parentNode: div,
           previousSibling: b
-        });
-
-        expectStructure(wrapperDiv, {
-          firstChild: wrapperA,
-          lastChild: wrapperC
-        });
-        expectStructure(wrapperA, {
-          parentNode: wrapperDiv,
-          nextSibling: wrapperB
-        });
-        expectStructure(wrapperB, {
-          parentNode: wrapperDiv,
-          previousSibling: wrapperA,
-          nextSibling: wrapperC
-        });
-        expectStructure(wrapperC, {
-          parentNode: wrapperDiv,
-          previousSibling: wrapperB
         });
       });
 
@@ -678,12 +606,25 @@ suite('Parallel Trees', function() {
         var c = a.nextSibling;
         var b = document.createElement('b');
 
-        var wrapperDiv = logical.getWrapper(div);
-        var wrapperA = logical.getWrapper(a);
-        var wrapperB = logical.getWrapper(b);
-        var wrapperC = logical.getWrapper(c);
+        div.insertBefore(b, c);
 
-        wrapperDiv.insertBefore(wrapperB, wrapperC);
+        unwrapAndExpectStructure(div, {
+          firstChild: a,
+          lastChild: c
+        });
+        unwrapAndExpectStructure(a, {
+          parentNode: div,
+          nextSibling: b
+        });
+        unwrapAndExpectStructure(b, {
+          parentNode: div,
+          previousSibling: a,
+          nextSibling: c
+        });
+        unwrapAndExpectStructure(c, {
+          parentNode: div,
+          previousSibling: b
+        });
 
         expectStructure(div, {
           firstChild: a,
@@ -701,24 +642,6 @@ suite('Parallel Trees', function() {
         expectStructure(c, {
           parentNode: div,
           previousSibling: b
-        });
-
-        expectStructure(wrapperDiv, {
-          firstChild: wrapperA,
-          lastChild: wrapperC
-        });
-        expectStructure(wrapperA, {
-          parentNode: wrapperDiv,
-          nextSibling: wrapperB
-        });
-        expectStructure(wrapperB, {
-          parentNode: wrapperDiv,
-          previousSibling: wrapperA,
-          nextSibling: wrapperC
-        });
-        expectStructure(wrapperC, {
-          parentNode: wrapperDiv,
-          previousSibling: wrapperB
         });
       });
 
@@ -731,81 +654,71 @@ suite('Parallel Trees', function() {
 
         visual.removeAllChildNodes(div);
 
-        var wrapperDiv = logical.getWrapper(div);
-        var wrapperA = logical.getWrapper(a);
-        var wrapperB = logical.getWrapper(b);
-        var wrapperC = logical.getWrapper(c);
+        div.insertBefore(b, c);
 
-        wrapperDiv.insertBefore(wrapperB, wrapperC);
+        unwrapAndExpectStructure(div, {});
+        unwrapAndExpectStructure(a, {});
+        unwrapAndExpectStructure(b, {});
+        unwrapAndExpectStructure(c, {});
 
-        expectStructure(div, {});
-        expectStructure(a, {});
-        expectStructure(b, {});
-        expectStructure(c, {});
-
-        var wrapperDiv = logical.getWrapper(div);
-        var wrapperA = logical.getWrapper(a);
-        var wrapperB = logical.getWrapper(b);
-        var wrapperC = logical.getWrapper(c);
-
-        expectStructure(wrapperDiv, {
-          firstChild: wrapperA,
-          lastChild: wrapperC
+        expectStructure(div, {
+          firstChild: a,
+          lastChild: c
         });
-        expectStructure(wrapperA, {
-          parentNode: wrapperDiv,
-          nextSibling: wrapperB
+        expectStructure(a, {
+          parentNode: div,
+          nextSibling: b
         });
-        expectStructure(wrapperB, {
-          parentNode: wrapperDiv,
-          previousSibling: wrapperA,
-          nextSibling: wrapperC
+        expectStructure(b, {
+          parentNode: div,
+          previousSibling: a,
+          nextSibling: c
         });
-        expectStructure(wrapperC, {
-          parentNode: wrapperDiv,
-          previousSibling: wrapperB
+        expectStructure(c, {
+          parentNode: div,
+          previousSibling: b
         });
 
         // swap a and b
-        wrapperDiv.insertBefore(wrapperB, wrapperA);
+        div.insertBefore(b, a);
 
-        expectStructure(wrapperDiv, {
-          firstChild: wrapperB,
-          lastChild: wrapperC
+        expectStructure(div, {
+          firstChild: b,
+          lastChild: c
         });
-        expectStructure(wrapperB, {
-          parentNode: wrapperDiv,
-          nextSibling: wrapperA
+        expectStructure(b, {
+          parentNode: div,
+          nextSibling: a
         });
-        expectStructure(wrapperA, {
-          parentNode: wrapperDiv,
-          previousSibling: wrapperB,
-          nextSibling: wrapperC
+        expectStructure(a, {
+          parentNode: div,
+          previousSibling: b,
+          nextSibling: c
         });
-        expectStructure(wrapperC, {
-          parentNode: wrapperDiv,
-          previousSibling: wrapperA
+        expectStructure(c, {
+          parentNode: div,
+          previousSibling: a
         });
 
         // swap a and c
-        wrapperDiv.insertBefore(wrapperC, wrapperA);
+        div.insertBefore(c, a);
 
-        expectStructure(wrapperDiv, {
-          firstChild: wrapperB,
-          lastChild: wrapperA
+        expectStructure(div, {
+          firstChild: b,
+          lastChild: a
         });
-        expectStructure(wrapperB, {
-          parentNode: wrapperDiv,
-          nextSibling: wrapperC
+        expectStructure(b, {
+          parentNode: div,
+          nextSibling: c
         });
-        expectStructure(wrapperC, {
-          parentNode: wrapperDiv,
-          previousSibling: wrapperB,
-          nextSibling: wrapperA
+        expectStructure(c, {
+          parentNode: div,
+          previousSibling: b,
+          nextSibling: a
         });
-        expectStructure(wrapperA, {
-          parentNode: wrapperDiv,
-          previousSibling: wrapperC
+        expectStructure(a, {
+          parentNode: div,
+          previousSibling: c
         });
       });
     });
@@ -820,41 +733,35 @@ suite('Parallel Trees', function() {
       visual.removeAllChildNodes(div);
       visual.removeAllChildNodes(df);
 
-      var wrapperDiv = logical.getWrapper(div);
-      var wrapperDf = logical.getWrapper(df);
-      var wrapperA = logical.getWrapper(a);
-      var wrapperB = logical.getWrapper(b);
-      var wrapperC = logical.getWrapper(c);
+      div.insertBefore(df, c);
 
-      wrapperDiv.insertBefore(wrapperDf, wrapperC);
+      unwrapAndExpectStructure(div, {});
+      unwrapAndExpectStructure(df, {});
+      unwrapAndExpectStructure(a, {});
+      unwrapAndExpectStructure(b, {});
+      unwrapAndExpectStructure(c, {});
 
-      expectStructure(div, {});
+      expectStructure(div, {
+        firstChild: a,
+        lastChild: c
+      });
+
       expectStructure(df, {});
-      expectStructure(a, {});
-      expectStructure(b, {});
-      expectStructure(c, {});
 
-      expectStructure(wrapperDiv, {
-        firstChild: wrapperA,
-        lastChild: wrapperC
+      expectStructure(a, {
+        parentNode: div,
+        nextSibling: b
       });
 
-      expectStructure(wrapperDf, {});
-
-      expectStructure(wrapperA, {
-        parentNode: wrapperDiv,
-        nextSibling: wrapperB
+      expectStructure(b, {
+        parentNode: div,
+        previousSibling: a,
+        nextSibling: c
       });
 
-      expectStructure(wrapperB, {
-        parentNode: wrapperDiv,
-        previousSibling: wrapperA,
-        nextSibling: wrapperC
-      });
-
-      expectStructure(wrapperC, {
-        parentNode: wrapperDiv,
-        previousSibling: wrapperB
+      expectStructure(c, {
+        parentNode: div,
+        previousSibling: b
       });
     });
 
@@ -866,12 +773,21 @@ suite('Parallel Trees', function() {
         var c = a.nextSibling;
         var b = document.createElement('b');
 
-        var wrapperDiv = logical.getWrapper(div);
-        var wrapperA = logical.getWrapper(a);
-        var wrapperB = logical.getWrapper(b);
-        var wrapperC = logical.getWrapper(c);
+        div.replaceChild(b, c);
 
-        wrapperDiv.replaceChild(wrapperB, wrapperC);
+        unwrapAndExpectStructure(div, {
+          firstChild: a,
+          lastChild: b
+        });
+        unwrapAndExpectStructure(a, {
+          parentNode: div,
+          nextSibling: b
+        });
+        unwrapAndExpectStructure(b, {
+          parentNode: div,
+          previousSibling: a
+        });
+        unwrapAndExpectStructure(c, {});
 
         expectStructure(div, {
           firstChild: a,
@@ -886,25 +802,6 @@ suite('Parallel Trees', function() {
           previousSibling: a
         });
         expectStructure(c, {});
-
-        var wrapperDiv = logical.getWrapper(div);
-        var wrapperA = logical.getWrapper(a);
-        var wrapperB = logical.getWrapper(b);
-        var wrapperC = logical.getWrapper(c);
-
-        expectStructure(wrapperDiv, {
-          firstChild: wrapperA,
-          lastChild: wrapperB
-        });
-        expectStructure(wrapperA, {
-          parentNode: wrapperDiv,
-          nextSibling: wrapperB
-        });
-        expectStructure(wrapperB, {
-          parentNode: wrapperDiv,
-          previousSibling: wrapperA
-        });
-        expectStructure(wrapperC, {});
       });
 
       test('with wrappers before', function() {
@@ -914,12 +811,7 @@ suite('Parallel Trees', function() {
         var c = a.nextSibling;
         var b = document.createElement('b');
 
-        var wrapperDiv = logical.getWrapper(div);
-        var wrapperA = logical.getWrapper(a);
-        var wrapperB = logical.getWrapper(b);
-        var wrapperC = logical.getWrapper(c);
-
-        wrapperDiv.replaceChild(wrapperB, wrapperC);
+        div.replaceChild(b, c);
 
         expectStructure(div, {
           firstChild: a,
@@ -935,19 +827,19 @@ suite('Parallel Trees', function() {
         });
         expectStructure(c, {});
 
-        expectStructure(wrapperDiv, {
-          firstChild: wrapperA,
-          lastChild: wrapperB
+        expectStructure(div, {
+          firstChild: a,
+          lastChild: b
         });
-        expectStructure(wrapperA, {
-          parentNode: wrapperDiv,
-          nextSibling: wrapperB
+        expectStructure(a, {
+          parentNode: div,
+          nextSibling: b
         });
-        expectStructure(wrapperB, {
-          parentNode: wrapperDiv,
-          previousSibling: wrapperA
+        expectStructure(b, {
+          parentNode: div,
+          previousSibling: a
         });
-        expectStructure(wrapperC, {});
+        expectStructure(c, {});
       });
 
       test('change visual first', function() {
@@ -959,56 +851,51 @@ suite('Parallel Trees', function() {
 
         visual.removeAllChildNodes(div);
 
-        var wrapperDiv = logical.getWrapper(div);
-        var wrapperA = logical.getWrapper(a);
-        var wrapperB = logical.getWrapper(b);
-        var wrapperC = logical.getWrapper(c);
+        div.replaceChild(b, c);
 
-        wrapperDiv.replaceChild(wrapperB, wrapperC);
+        unwrapAndExpectStructure(div, {});
+        unwrapAndExpectStructure(a, {});
+        unwrapAndExpectStructure(b, {});
+        unwrapAndExpectStructure(c, {});
 
-        expectStructure(div, {});
-        expectStructure(a, {});
-        expectStructure(b, {});
+        expectStructure(div, {
+          firstChild: a,
+          lastChild: b
+        });
+        expectStructure(a, {
+          parentNode: div,
+          nextSibling: b
+        });
+        expectStructure(b, {
+          parentNode: div,
+          previousSibling: a
+        });
         expectStructure(c, {});
 
-        expectStructure(wrapperDiv, {
-          firstChild: wrapperA,
-          lastChild: wrapperB
-        });
-        expectStructure(wrapperA, {
-          parentNode: wrapperDiv,
-          nextSibling: wrapperB
-        });
-        expectStructure(wrapperB, {
-          parentNode: wrapperDiv,
-          previousSibling: wrapperA
-        });
-        expectStructure(wrapperC, {});
-
         // Remove a
-        wrapperDiv.replaceChild(wrapperB, wrapperA);
+        div.replaceChild(b, a);
 
-        expectStructure(wrapperDiv, {
-          firstChild: wrapperB,
-          lastChild: wrapperB
+        expectStructure(div, {
+          firstChild: b,
+          lastChild: b
         });
-        expectStructure(wrapperA, {});
-        expectStructure(wrapperB, {
-          parentNode: wrapperDiv
+        expectStructure(a, {});
+        expectStructure(b, {
+          parentNode: div
         });
-        expectStructure(wrapperC, {});
+        expectStructure(c, {});
 
         // Swap b with c
-        wrapperDiv.replaceChild(wrapperC, wrapperB);
+        div.replaceChild(c, b);
 
-        expectStructure(wrapperDiv, {
-          firstChild: wrapperC,
-          lastChild: wrapperC
+        expectStructure(div, {
+          firstChild: c,
+          lastChild: c
         });
-        expectStructure(wrapperA, {});
-        expectStructure(wrapperB, {});
-        expectStructure(wrapperC, {
-          parentNode: wrapperDiv
+        expectStructure(a, {});
+        expectStructure(b, {});
+        expectStructure(c, {
+          parentNode: div
         });
       });
     });

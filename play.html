@@ -5,12 +5,7 @@ Use of this source code is goverened by a BSD-style
 license that can be found in the LICENSE file.
 -->
 <meta charset="utf-8">
-<script src="map.js"></script>
-<script src="sidetable.js"></script>
-<script src="domreflectionutils.js"></script>
-<script src="domoverrides.js"></script>
-<script src="paralleltrees.js"></script>
-<script src="ShadowRoot.js"></script>
+<script src="include.js"></script>
 <style>
 
 .el,
@@ -29,7 +24,7 @@ license that can be found in the LICENSE file.
 <script>
 
 var el = document.querySelector('.test');
-var sr = new (window.WebKitShadowRoot || window.JsShadowRoot)(el);
+var sr = el.createShadowRoot();
 
 sr.innerHTML = 'Before <content></content> After';
 

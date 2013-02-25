@@ -7,7 +7,8 @@
 suite('Shadow DOM rerender', function() {
 
   function getVisualInnerHtml(el) {
-    return HTMLElement_prototype.innerHTML.get.call(el);
+    renderAllPending();
+    return unwrap(el).innerHTML;
   }
 
   test('No <content> nor <shadow>', function() {
@@ -15,36 +16,30 @@ suite('Shadow DOM rerender', function() {
     host.innerHTML = '<a></a>';
     var a = host.firstChild;
 
-    var shadowRoot = host.jsCreateShadowRoot();
+    var shadowRoot = host.createShadowRoot();
     shadowRoot.textContent = 'text';
     var textNode = shadowRoot.firstChild;
 
     function testRender() {
-      render(host);
 
       assert.strictEqual(getVisualInnerHtml(host), 'text');
 
-      var wrapperHost = logical.getWrapper(host);
-      var wrapperA = logical.getWrapper(a);
-      var wrapperShadowRoot = logical.getWrapper(shadowRoot);
-      var wrapperTextNode = logical.getWrapper(textNode);
-
-      expectStructure(wrapperHost, {
-        firstChild: wrapperA,
-        lastChild: wrapperA
+      expectStructure(host, {
+        firstChild: a,
+        lastChild: a
       });
 
-      expectStructure(wrapperA, {
-        parentNode: wrapperHost
+      expectStructure(a, {
+        parentNode: host
       });
 
-      expectStructure(wrapperShadowRoot, {
-        firstChild: wrapperTextNode,
-        lastChild: wrapperTextNode
+      expectStructure(shadowRoot, {
+        firstChild: textNode,
+        lastChild: textNode
       });
 
-      expectStructure(wrapperTextNode, {
-        parentNode: wrapperShadowRoot
+      expectStructure(textNode, {
+        parentNode: shadowRoot
       });
     }
 
@@ -57,35 +52,29 @@ test('<content>', function() {
     host.innerHTML = '<a></a>';
     var a = host.firstChild;
 
-    var shadowRoot = host.jsCreateShadowRoot();
+    var shadowRoot = host.createShadowRoot();
     shadowRoot.innerHTML = '<content></content>';
     var content = shadowRoot.firstChild;
 
     function testRender() {
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), '<a></a>');
 
-      var wrapperHost = logical.getWrapper(host);
-      var wrapperA = logical.getWrapper(a);
-      var wrapperShadowRoot = logical.getWrapper(shadowRoot);
-      var wrapperContent = logical.getWrapper(content);
-
-      expectStructure(wrapperHost, {
-        firstChild: wrapperA,
-        lastChild: wrapperA
+      expectStructure(host, {
+        firstChild: a,
+        lastChild: a
       });
 
-      expectStructure(wrapperA, {
-        parentNode: wrapperHost
+      expectStructure(a, {
+        parentNode: host
       });
 
-      expectStructure(wrapperShadowRoot, {
-        firstChild: wrapperContent,
-        lastChild: wrapperContent
+      expectStructure(shadowRoot, {
+        firstChild: content,
+        lastChild: content
       });
 
-      expectStructure(wrapperContent, {
-        parentNode: wrapperShadowRoot
+      expectStructure(content, {
+        parentNode: shadowRoot
       });
     }
 
@@ -98,43 +87,36 @@ test('<content>', function() {
     host.innerHTML = '<a></a>';
     var a = host.firstChild;
 
-    var shadowRoot = host.jsCreateShadowRoot();
+    var shadowRoot = host.createShadowRoot();
     shadowRoot.innerHTML = '<content select="b">fallback</content>';
     var content = shadowRoot.firstChild;
     var fallback = content.firstChild;
 
     function testRender() {
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), 'fallback');
 
-      var wrapperHost = logical.getWrapper(host);
-      var wrapperA = logical.getWrapper(a);
-      var wrapperShadowRoot = logical.getWrapper(shadowRoot);
-      var wrapperContent = logical.getWrapper(content);
-      var logicalFallbackWrapper = logical.getWrapper(fallback);
-
-      expectStructure(wrapperHost, {
-        firstChild: wrapperA,
-        lastChild: wrapperA
+      expectStructure(host, {
+        firstChild: a,
+        lastChild: a
       });
 
-      expectStructure(wrapperA, {
-        parentNode: wrapperHost
+      expectStructure(a, {
+        parentNode: host
       });
 
-      expectStructure(wrapperShadowRoot, {
-        firstChild: wrapperContent,
-        lastChild: wrapperContent
+      expectStructure(shadowRoot, {
+        firstChild: content,
+        lastChild: content
       });
 
-      expectStructure(wrapperContent, {
-        parentNode: wrapperShadowRoot,
-        firstChild: logicalFallbackWrapper,
-        lastChild: logicalFallbackWrapper
+      expectStructure(content, {
+        parentNode: shadowRoot,
+        firstChild: fallback,
+        lastChild: fallback
       });
 
-      expectStructure(logicalFallbackWrapper, {
-        parentNode: wrapperContent
+      expectStructure(fallback, {
+        parentNode: content
       });
     }
 
@@ -147,35 +129,29 @@ test('<shadow>', function() {
     host.innerHTML = '<a></a>';
     var a = host.firstChild;
 
-    var shadowRoot = host.jsCreateShadowRoot();
+    var shadowRoot = host.createShadowRoot();
     shadowRoot.innerHTML = '<shadow></shadow>';
     var shadow = shadowRoot.firstChild;
 
     function testRender() {
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), '');
 
-      var wrapperHost = logical.getWrapper(host);
-      var wrapperA = logical.getWrapper(a);
-      var wrapperShadowRoot = logical.getWrapper(shadowRoot);
-      var logicalShadowWrapper = logical.getWrapper(shadow);
-
-      expectStructure(wrapperHost, {
-        firstChild: wrapperA,
-        lastChild: wrapperA
+      expectStructure(host, {
+        firstChild: a,
+        lastChild: a
       });
 
-      expectStructure(wrapperA, {
-        parentNode: wrapperHost
+      expectStructure(a, {
+        parentNode: host
       });
 
-      expectStructure(wrapperShadowRoot, {
-        firstChild: logicalShadowWrapper,
-        lastChild: logicalShadowWrapper
+      expectStructure(shadowRoot, {
+        firstChild: shadow,
+        lastChild: shadow
       });
 
-      expectStructure(logicalShadowWrapper, {
-        parentNode: wrapperShadowRoot
+      expectStructure(shadow, {
+        parentNode: shadowRoot
       });
     }
 
@@ -188,43 +164,36 @@ test('<shadow>', function() {
     host.innerHTML = '<a></a>';
     var a = host.firstChild;
 
-    var shadowRoot = host.jsCreateShadowRoot();
+    var shadowRoot = host.createShadowRoot();
     shadowRoot.innerHTML = '<shadow>fallback</shadow>';
     var shadow = shadowRoot.firstChild;
     var fallback = shadow.firstChild;
 
     function testRender() {
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), 'fallback');
 
-      var wrapperHost = logical.getWrapper(host);
-      var wrapperA = logical.getWrapper(a);
-      var wrapperShadowRoot = logical.getWrapper(shadowRoot);
-      var logicalShadowWrapper = logical.getWrapper(shadow);
-      var logicalFallbackWrapper = logical.getWrapper(fallback);
-
-      expectStructure(wrapperHost, {
-        firstChild: wrapperA,
-        lastChild: wrapperA
+      expectStructure(host, {
+        firstChild: a,
+        lastChild: a
       });
 
-      expectStructure(wrapperA, {
-        parentNode: wrapperHost
+      expectStructure(a, {
+        parentNode: host
       });
 
-      expectStructure(wrapperShadowRoot, {
-        firstChild: logicalShadowWrapper,
-        lastChild: logicalShadowWrapper
+      expectStructure(shadowRoot, {
+        firstChild: shadow,
+        lastChild: shadow
       });
 
-      expectStructure(logicalShadowWrapper, {
-        parentNode: wrapperShadowRoot,
-        firstChild: logicalFallbackWrapper,
-        lastChild: logicalFallbackWrapper
+      expectStructure(shadow, {
+        parentNode: shadowRoot,
+        firstChild: fallback,
+        lastChild: fallback
       });
 
-      expectStructure(logicalFallbackWrapper, {
-        parentNode: logicalShadowWrapper
+      expectStructure(fallback, {
+        parentNode: shadow
       });
     }
 
@@ -237,51 +206,42 @@ test('<shadow>', function() {
     host.innerHTML = '<a></a>';
     var a = host.firstChild;
 
-    var oldestShadowRoot = host.jsCreateShadowRoot();
+    var oldestShadowRoot = host.createShadowRoot();
     oldestShadowRoot.textContent = 'text';
     var textNode = oldestShadowRoot.firstChild;
 
-    var youngestShadowRoot = host.jsCreateShadowRoot();
+    var youngestShadowRoot = host.createShadowRoot();
     youngestShadowRoot.innerHTML = '<shadow></shadow>';
     var shadow = youngestShadowRoot.firstChild;
 
     function testRender() {
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), 'text');
 
-      var wrapperHost = logical.getWrapper(host);
-      var wrapperA = logical.getWrapper(a);
-      var logicalOldestShadowRootWrapper = logical.getWrapper(oldestShadowRoot);
-      var wrapperTextNode = logical.getWrapper(textNode);
-      var logicalYoungestShadowRootWrapper =
-          logical.getWrapper(youngestShadowRoot);
-      var logicalShadowWrapper = logical.getWrapper(shadow);
-
-      expectStructure(wrapperHost, {
-        firstChild: wrapperA,
-        lastChild: wrapperA
+      expectStructure(host, {
+        firstChild: a,
+        lastChild: a
       });
 
-      expectStructure(wrapperA, {
-        parentNode: wrapperHost
+      expectStructure(a, {
+        parentNode: host
       });
 
-      expectStructure(logicalOldestShadowRootWrapper, {
-        firstChild: wrapperTextNode,
-        lastChild: wrapperTextNode
+      expectStructure(oldestShadowRoot, {
+        firstChild: textNode,
+        lastChild: textNode
       });
 
-      expectStructure(wrapperTextNode, {
-        parentNode: logicalOldestShadowRootWrapper
+      expectStructure(textNode, {
+        parentNode: oldestShadowRoot
       });
 
-      expectStructure(logicalYoungestShadowRootWrapper, {
-        firstChild: logicalShadowWrapper,
-        lastChild: logicalShadowWrapper
+      expectStructure(youngestShadowRoot, {
+        firstChild: shadow,
+        lastChild: shadow
       });
 
-      expectStructure(logicalShadowWrapper, {
-        parentNode: logicalYoungestShadowRootWrapper
+      expectStructure(shadow, {
+        parentNode: youngestShadowRoot
       });
     }
 
@@ -294,20 +254,16 @@ test('<shadow>', function() {
       var host = document.createElement('div');
       host.innerHTML = '<a>Hello</a>';
 
-      var shadowRoot = host.jsCreateShadowRoot();
+      var shadowRoot = host.createShadowRoot();
       shadowRoot.innerHTML = '<content>fallback</content>';
 
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), '<a>Hello</a>');
 
-      var wrapperHost = logical.getWrapper(host);
-      wrapperHost.firstChild.removeAllChildNodes();
+      host.firstChild.textContent = '';
 
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), '<a></a>');
 
-      wrapperHost.removeAllChildNodes();
-      render(host);
+      host.textContent = '';
       assert.strictEqual(getVisualInnerHtml(host), 'fallback');
     });
 
@@ -315,20 +271,16 @@ test('<shadow>', function() {
       var host = document.createElement('div');
       host.innerHTML = '<a>Hello</a>';
 
-      var shadowRoot = host.jsCreateShadowRoot();
+      var shadowRoot = host.createShadowRoot();
       shadowRoot.innerHTML = '<content></content><b>after</b>';
 
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), '<a>Hello</a><b>after</b>');
 
-      var wrapperShadowRoot = logical.getWrapper(shadowRoot);
-      wrapperShadowRoot.lastChild.removeAllChildNodes();
+      shadowRoot.lastChild.textContent = '';
 
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), '<a>Hello</a><b></b>');
 
-      wrapperShadowRoot.removeAllChildNodes();
-      render(host);
+      shadowRoot.textContent = '';
       assert.strictEqual(getVisualInnerHtml(host), '');
     });
 
@@ -336,26 +288,20 @@ test('<shadow>', function() {
       var host = document.createElement('div');
       host.innerHTML = '<a>Hello</a>';
 
-      var shadowRoot = host.jsCreateShadowRoot();
+      var shadowRoot = host.createShadowRoot();
       shadowRoot.innerHTML = '<content select="xxx"><b>fallback</b></content>';
 
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), '<b>fallback</b>');
 
-      var wrapperShadowRoot = logical.getWrapper(shadowRoot);
+      shadowRoot.firstChild.firstChild.textContent = '';
 
-      wrapperShadowRoot.firstChild.firstChild.removeAllChildNodes();
-
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), '<b></b>');
 
-      wrapperShadowRoot.firstChild.removeAllChildNodes();
+      shadowRoot.firstChild.textContent = '';
 
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), '');
 
-      wrapperShadowRoot.removeAllChildNodes();
-      render(host);
+      shadowRoot.textContent = '';
       assert.strictEqual(getVisualInnerHtml(host), '');
     });
 
@@ -363,20 +309,16 @@ test('<shadow>', function() {
       var host = document.createElement('div');
       host.innerHTML = '<a>Hello</a>';
 
-      var shadowRoot = host.jsCreateShadowRoot();
+      var shadowRoot = host.createShadowRoot();
       shadowRoot.innerHTML = '<content>fallback</content>';
 
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), '<a>Hello</a>');
 
-      var wrapperHost = logical.getWrapper(host);
-      wrapperHost.firstChild.removeChild(wrapperHost.firstChild.firstChild);
+      host.firstChild.removeChild(host.firstChild.firstChild);
 
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), '<a></a>');
 
-      wrapperHost.removeChild(wrapperHost.firstChild);
-      render(host);
+      host.removeChild(host.firstChild);
       assert.strictEqual(getVisualInnerHtml(host), 'fallback');
     });
 
@@ -384,20 +326,16 @@ test('<shadow>', function() {
       var host = document.createElement('div');
       host.innerHTML = '<a></a><b></b>';
 
-      var shadowRoot = host.jsCreateShadowRoot();
+      var shadowRoot = host.createShadowRoot();
       shadowRoot.innerHTML = '<content>fallback</content>';
 
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), '<a></a><b></b>');
 
-      var wrapperHost = logical.getWrapper(host);
-      wrapperHost.removeChild(wrapperHost.lastChild);
+      host.removeChild(host.lastChild);
 
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), '<a></a>');
 
-      wrapperHost.removeChild(wrapperHost.firstChild);
-      render(host);
+      host.removeChild(host.firstChild);
       assert.strictEqual(getVisualInnerHtml(host), 'fallback');
     });
 
@@ -405,26 +343,21 @@ test('<shadow>', function() {
       var host = document.createElement('div');
       host.innerHTML = '<a>Hello</a>';
 
-      var shadowRoot = host.jsCreateShadowRoot();
+      var shadowRoot = host.createShadowRoot();
       shadowRoot.innerHTML = '<content></content><b>after</b>';
 
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), '<a>Hello</a><b>after</b>');
 
-      var wrapperShadowRoot = logical.getWrapper(shadowRoot);
 
-      wrapperShadowRoot.lastChild.removeChild(
-          wrapperShadowRoot.lastChild.firstChild);
+      shadowRoot.lastChild.removeChild(
+          shadowRoot.lastChild.firstChild);
 
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), '<a>Hello</a><b></b>');
 
-      wrapperShadowRoot.removeChild(wrapperShadowRoot.lastChild);
-      render(host);
+      shadowRoot.removeChild(shadowRoot.lastChild);
       assert.strictEqual(getVisualInnerHtml(host), '<a>Hello</a>');
 
-      wrapperShadowRoot.removeChild(wrapperShadowRoot.firstChild);
-      render(host);
+      shadowRoot.removeChild(shadowRoot.firstChild);
       assert.strictEqual(getVisualInnerHtml(host), '');
     });
 
@@ -433,21 +366,18 @@ test('<shadow>', function() {
       var host = document.createElement('div');
       host.innerHTML = '<a>Hello</a><b>World</b>';
 
-      var shadowRoot = host.jsCreateShadowRoot();
+      var shadowRoot = host.createShadowRoot();
       shadowRoot.innerHTML = '<content select="b">fallback b</content>' +
                              '<content select="a">fallback a</content>';
 
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), '<b>World</b><a>Hello</a>');
 
-      logical.getFirstChild(shadowRoot).setAttribute('select', 'xxx');
+      shadowRoot.firstChild.setAttribute('select', 'xxx');
 
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), 'fallback b<a>Hello</a>');
 
-      logical.getFirstChild(shadowRoot).setAttribute('select', '');
+      shadowRoot.firstChild.setAttribute('select', '');
 
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), '<a>Hello</a><b>World</b>fallback a');
     });
 
@@ -455,19 +385,15 @@ test('<shadow>', function() {
       var host = document.createElement('div');
       host.innerHTML = '<a>Hello</a>';
 
-      var shadowRoot = host.jsCreateShadowRoot();
+      var shadowRoot = host.createShadowRoot();
       shadowRoot.innerHTML = '<content></content>';
 
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), '<a>Hello</a>');
 
       var b = document.createElement('b');
 
-      var wrapperHost = logical.getWrapper(host);
-      var wrapperB = logical.getWrapper(b);
-      wrapperHost.appendChild(wrapperB);
+      host.appendChild(b);
 
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), '<a>Hello</a><b></b>');
     });
 
@@ -475,19 +401,15 @@ test('<shadow>', function() {
       var host = document.createElement('div');
       host.innerHTML = '<a>Hello</a>';
 
-      var shadowRoot = host.jsCreateShadowRoot();
+      var shadowRoot = host.createShadowRoot();
       shadowRoot.innerHTML = '<content></content>';
 
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), '<a>Hello</a>');
 
       var b = document.createElement('b');
 
-      var wrapperShadowRoot = logical.getWrapper(shadowRoot);
-      var wrapperB = logical.getWrapper(b);
-      wrapperShadowRoot.appendChild(wrapperB);
+      shadowRoot.appendChild(b);
 
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), '<a>Hello</a><b></b>');
     });
 
@@ -496,21 +418,16 @@ test('<shadow>', function() {
       host.innerHTML = '<a>Hello</a>';
       var a = host.firstChild;
 
-      var shadowRoot = host.jsCreateShadowRoot();
+      var shadowRoot = host.createShadowRoot();
       shadowRoot.innerHTML = '<content></content>';
 
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), '<a>Hello</a>');
 
       var b = document.createElement('b');
 
-      var wrapperHost = logical.getWrapper(host);
-      var wrapperA = logical.getWrapper(a);
-      var wrapperB = logical.getWrapper(b);
 
-      wrapperHost.insertBefore(wrapperB, wrapperA);
+      host.insertBefore(b, a);
 
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), '<b></b><a>Hello</a>');
     });
 
@@ -518,22 +435,16 @@ test('<shadow>', function() {
       var host = document.createElement('div');
       host.innerHTML = '<a>Hello</a>';
 
-      var shadowRoot = host.jsCreateShadowRoot();
+      var shadowRoot = host.createShadowRoot();
       shadowRoot.innerHTML = '<content></content>';
       var content = shadowRoot.firstChild;
 
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), '<a>Hello</a>');
 
       var b = document.createElement('b');
 
-      var wrapperShadowRoot = logical.getWrapper(shadowRoot);
-      var wrapperB = logical.getWrapper(b);
-      var wrapperContent = logical.getWrapper(content);
+      shadowRoot.insertBefore(b, content);
 
-      wrapperShadowRoot.insertBefore(wrapperB, wrapperContent);
-
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), '<b></b><a>Hello</a>');
     });
 
@@ -542,21 +453,16 @@ test('<shadow>', function() {
       host.innerHTML = '<a>Hello</a>';
       var a = host.firstChild;
 
-      var shadowRoot = host.jsCreateShadowRoot();
+      var shadowRoot = host.createShadowRoot();
       shadowRoot.innerHTML = '<content></content>';
 
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), '<a>Hello</a>');
 
       var b = document.createElement('b');
 
-      var wrapperHost = logical.getWrapper(host);
-      var wrapperA = logical.getWrapper(a);
-      var wrapperB = logical.getWrapper(b);
 
-      wrapperHost.replaceChild(wrapperB, wrapperA);
+      host.replaceChild(b, a);
 
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), '<b></b>');
     });
 
@@ -564,22 +470,16 @@ test('<shadow>', function() {
       var host = document.createElement('div');
       host.innerHTML = '<a>Hello</a>';
 
-      var shadowRoot = host.jsCreateShadowRoot();
+      var shadowRoot = host.createShadowRoot();
       shadowRoot.innerHTML = '<content></content>';
       var content = shadowRoot.firstChild;
 
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), '<a>Hello</a>');
 
       var b = document.createElement('b');
 
-      var wrapperShadowRoot = logical.getWrapper(shadowRoot);
-      var wrapperB = logical.getWrapper(b);
-      var wrapperContent = logical.getWrapper(content);
+      shadowRoot.replaceChild(b, content);
 
-      wrapperShadowRoot.replaceChild(wrapperB, wrapperContent);
-
-      render(host);
       assert.strictEqual(getVisualInnerHtml(host), '<b></b>');
     });
 
