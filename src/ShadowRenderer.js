@@ -251,6 +251,7 @@
     renderShadowInsertionPoint: function(visualParent, tree, shadowInsertionPoint) {
       var nextOlderTree = getNextOlderTree(tree);
       if (nextOlderTree) {
+        shadowInsertionPoint.olderShadowRoot_ = nextOlderTree;
         this.remove(shadowInsertionPoint);
         var shadowDOMChildNodes = getChildNodesSnapshot(nextOlderTree);
         shadowDOMChildNodes.forEach(function(node) {
