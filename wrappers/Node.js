@@ -85,6 +85,8 @@
     appendChild: function(childWrapper) {
       assert(childWrapper instanceof WrapperNode);
 
+      this.invalidateShadowRenderer();
+
       var nodes = collectAndRemoveNodes(childWrapper);
       var oldLastChild = this.lastChild;
       this.lastChild_ = nodes[nodes.length - 1];
@@ -117,6 +119,8 @@
       assert(childWrapper instanceof WrapperNode);
       assert(refWrapper instanceof WrapperNode);
       assert(refWrapper.parentNode === this);
+
+      this.invalidateShadowRenderer();
 
       var nodes = collectAndRemoveNodes(childWrapper);
 
@@ -151,6 +155,8 @@
         throw new Error('NotFoundError');
       }
 
+      this.invalidateShadowRenderer();
+
       if (this.firstChild === childWrapper)
         this.firstChild_ = childWrapper.nextSibling;
       if (this.lastChild === childWrapper)
@@ -173,10 +179,13 @@
     replaceChild: function(newChildWrapper, oldChildWrapper) {
       assert(newChildWrapper instanceof WrapperNode);
       assert(oldChildWrapper instanceof WrapperNode);
+
       if (oldChildWrapper.parentNode !== this) {
         // TODO(arv): DOMException
         throw new Error('NotFoundError');
       }
+
+      this.invalidateShadowRenderer();
 
       if (newChildWrapper.parentNode)
         newChildWrapper.parentNode.removeChild(newChildWrapper);
@@ -275,7 +284,7 @@
         wrapper.removeAllChildNodes();
         if (textContent !== '') {
           var textNode = this.node.ownerDocument.createTextNode(textContent);
-          wrapper.appendChild(wrap(textNode));
+          wrapper.appendChild(textNode);
         }
       }
     },

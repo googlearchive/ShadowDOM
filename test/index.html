@@ -23,6 +23,13 @@ function expectStructure(nodeOrWrapper, nonNullFields) {
   assert.strictEqual(nodeOrWrapper.lastChild, nonNullFields.lastChild || null);
 }
 
+function unwrapAndExpectStructure(node, nonNullFields) {
+  for (var p in nonNullFields) {
+    nonNullFields[p] = unwrap(nonNullFields[p]);
+  }
+  expectStructure(unwrap(node), nonNullFields);
+}
+
 function assertArrayEqual(a, b, msg) {
   assert.equal(a.length, b.length, msg);
   for (var i = 0; i < a.length; i++) {

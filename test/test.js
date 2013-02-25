@@ -7,6 +7,7 @@
 suite('Shadow DOM', function() {
 
   function getVisualInnerHtml(el) {
+    renderAllPending();
     return unwrap(el).innerHTML;
   }
 
@@ -31,10 +32,6 @@ suite('Shadow DOM', function() {
 
       if (opt_beforeRender)
         opt_beforeRender(host);
-
-      // render(host);
-
-      renderAllPending();
 
       assert.strictEqual(normalizeInnerHtml(getVisualInnerHtml(host)),
           normalizeInnerHtml(expectedOuterHtml));
@@ -239,8 +236,6 @@ suite('Shadow DOM', function() {
       var aShadowRoot = a.createShadowRoot();
       aShadowRoot.innerHTML = '2<content></content>4';
 
-      render(host);
-
       assert.strictEqual(getVisualInnerHtml(host), '1<a>234</a>5');
     });
 
@@ -255,8 +250,6 @@ suite('Shadow DOM', function() {
 
       var aShadowRoot = a.createShadowRoot();
       aShadowRoot.innerHTML = '2<content></content>4';
-
-      render(host);
 
       assert.strictEqual(getVisualInnerHtml(host), '1<a>234</a>567');
     });

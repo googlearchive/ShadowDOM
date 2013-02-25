@@ -293,7 +293,6 @@ test('<shadow>', function() {
 
       assert.strictEqual(getVisualInnerHtml(host), '<b>fallback</b>');
 
-
       shadowRoot.firstChild.firstChild.textContent = '';
 
       assert.strictEqual(getVisualInnerHtml(host), '<b></b>');
@@ -444,9 +443,7 @@ test('<shadow>', function() {
 
       var b = document.createElement('b');
 
-      var wrapperContent = logical.getWrapper(content);
-
-      shadowRoot.insertBefore(b, wrapperContent);
+      shadowRoot.insertBefore(b, content);
 
       assert.strictEqual(getVisualInnerHtml(host), '<b></b><a>Hello</a>');
     });
