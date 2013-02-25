@@ -98,5 +98,6 @@ suite('Shadow DOM reprojection', function() {
 
     testRender();
     testRender();
+
   });
 });

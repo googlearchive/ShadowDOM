@@ -176,13 +176,10 @@ suite('Shadow DOM', function() {
     });
 
     suite('pseudo-class selector(s)', function() {
-      // Broken in Firefox: https://bugzilla.mozilla.org/show_bug.cgi?id=787134
-      if (!/Firefox/.test(navigator.userAgent)) {
-        testRender(':link',
-                   '<a></a><a href="#"></a>',
-                   '<content select=":link"></content>',
-                   '<a href="#"></a>');
-      }
+      testRender(':link',
+                 '<a></a><a href="#"></a>',
+                 '<content select=":link"></content>',
+                 '<a href="#"></a>');
 
       // :visited cannot be queried in JS.
 

@@ -13,6 +13,14 @@
       throw new Error('Assertion failed');
   }
 
+  function mixin(to, from) {
+    Object.getOwnPropertyNames(from).forEach(function(name) {
+      Object.defineProperty(to, name,
+                            Object.getOwnPropertyDescriptor(from, name));
+    });
+    return to;
+  };
+
   function getWrapperConstructor(node) {
 
     var constructor = node.constructor;
@@ -161,15 +169,16 @@
     return wrapper.node;
   };
 
-  var wrappers = {
+  // Used all over... we should move to a generic util file.
+  exports.mixin = mixin;
+
+  exports.wrap = wrap;
+  exports.unwrap = unwrap;
+  exports.wrappers = {
     register: register,
     registerHTMLElement: registerHTMLElement,
     registerObject: registerObject
   };
-
-  exports.wrap = wrap;
-  exports.unwrap = unwrap;
-  exports.wrappers = wrappers;
 
   // Needed to override the wrapper in ShadowRoot.
   exports.wrapperTable = wrapperTable;
