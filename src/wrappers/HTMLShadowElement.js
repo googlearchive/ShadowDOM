@@ -7,11 +7,12 @@
 
   function WrapperHTMLShadowElement(node) {
     WrapperHTMLElement.call(this, node);
+    this.olderShadowRoot_ = null;
   }
   WrapperHTMLShadowElement.prototype = Object.create(WrapperHTMLElement.prototype);
   mixin(WrapperHTMLShadowElement.prototype, {
     get olderShadowRoot() {
-      throw new Error('Not implemented');
+      return this.olderShadowRoot_;
     }
     // TODO: attribute boolean resetStyleInheritance;
   });
