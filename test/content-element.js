@@ -32,14 +32,16 @@ suite('HTMLContentElement', function() {
     var content = sr.firstChild;
 
     // TODO(arv): Make getDistributedNodes force distribution if needed.
-    render(host);
-    assertArrayEqual(content.jsGetDistributedNodes(), [a, b]);
+    renderAllPending();
+    assertArrayEqual(content.getDistributedNodes(), [a, b]);
 
     content.select = 'a';
-    assertArrayEqual(content.jsGetDistributedNodes(), [a]);
+    renderAllPending();
+    assertArrayEqual(content.getDistributedNodes(), [a]);
 
     content.select = 'b';
-    assertArrayEqual(content.jsGetDistributedNodes(), [b]);
+    renderAllPending();
+    assertArrayEqual(content.getDistributedNodes(), [b]);
 
   });
 });

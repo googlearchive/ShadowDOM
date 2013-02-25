@@ -392,7 +392,7 @@
     return true;
   };
 
-  WrapperHTMLContentElement.prototype.getDistributedChildNodes = function() {
+  WrapperHTMLContentElement.prototype.getDistributedNodes = function() {
     return getDistributedChildNodes(this);
   };
 
