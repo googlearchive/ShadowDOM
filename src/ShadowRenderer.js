@@ -371,10 +371,6 @@
     // treeToShadowInsertionPointMap.set(tree, point);
   }
 
-  function isShadowInsertionPoint(node) {
-    return node.tagName === 'SHADOW';
-  }
-
   // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#rendering-shadow-trees
   function render(host) {
     new ShadowRenderer(host).render();

@@ -10,20 +10,57 @@
       throw new Error('Assertion failed');
   }
 
-  function collectAndRemoveNodes(node) {
+
+  /**
+   * Collects nodes from a DocumentFragment or a Node for removal followed
+   * by an insertion.
+   *
+   * This updates the internal pointers for node, previousNode and nextNode.
+   */
+  function collectNodes(node, parentNode, previousNode, nextNode) {
     if (node.nodeType !== Node.DOCUMENT_FRAGMENT_NODE) {
       if (node.parentNode)
         node.parentNode.removeChild(node);
+      node.parentNode_ = parentNode;
+      node.previousSibling_ = previousNode;
+      node.nextSibling_ = nextNode;
+      if (previousNode)
+        previousNode.nextSibling_ = node;
+      if (nextNode)
+        nextNode.previousSibling_ = node;
       return [node];
     }
 
     var nodes = [];
     var firstChild;
     while (firstChild = node.firstChild) {
-      node.removeChild(node.firstChild);
+      node.removeChild(firstChild);
       nodes.push(firstChild);
+      firstChild.parentNode_ = parentNode;
     }
+
+    for (var i = 0; i < nodes.length; i++) {
+      nodes[i].previousSibling_ = nodes[i - 1] || previousNode;
+      nodes[i].nextSibling_ = nodes[i + 1] || nextNode;
+    }
+
+    if (previousNode)
+      previousNode.nextSibling_ = nodes[0];
+    if (nextNode)
+      nextNode.previousSibling_ = nodes[nodes.length - 1];
+
     return nodes;
+  }
+
+  function unwrapNodesForInsertion(nodes) {
+    if (nodes.length === 1)
+      return unwrap(nodes[0]);
+
+    var df = unwrap(document.createDocumentFragment());
+    for (var i = 0; i < nodes.length; i++) {
+      df.appendChild(unwrap(nodes[i]));
+    }
+    return df;
   }
 
   /**
@@ -87,26 +124,20 @@
 
       this.invalidateShadowRenderer();
 
-      var nodes = collectAndRemoveNodes(childWrapper);
-      var oldLastChild = this.lastChild;
+      var previousNode = this.lastChild;
+      var nextNode = null;
+      var nodes = collectNodes(childWrapper, this,
+                                        previousNode, nextNode);
+
       this.lastChild_ = nodes[nodes.length - 1];
-
-      if (oldLastChild)
-        oldLastChild.nextSibling_ = nodes[0];
-      else
+      if (!previousNode)
         this.firstChild_ = nodes[0];
-
-      for (var i = 0; i < nodes.length; i++) {
-        nodes[i].previousSibling_ = nodes[i - 1] || oldLastChild;
-        nodes[i].nextSibling_ = nodes[i + 1] || null;
-        nodes[i].parentNode_ = this;
-      }
 
       // TODO(arv): It is unclear if we need to update the visual DOM here.
       // A better aproach might be to make sure we only get here for nodes that
       // are related to a shadow host and then invalidate that and re-render
       // the host (on reflow?).
-      this.node.appendChild(unwrap(childWrapper));
+      this.node.appendChild(unwrapNodesForInsertion(nodes));
 
       return childWrapper;
     },
@@ -122,19 +153,11 @@
 
       this.invalidateShadowRenderer();
 
-      var nodes = collectAndRemoveNodes(childWrapper);
-
       var previousNode = refWrapper.previousSibling;
-      if (previousNode)
-        previousNode.nextSibling_ = nodes[0];
       var nextNode = refWrapper;
-      refWrapper.previousSibling_ = nodes[nodes.length - 1];
+      var nodes = collectNodes(childWrapper, this,
+                                        previousNode, nextNode);
 
-      for (var i = 0; i < nodes.length; i++) {
-        nodes[i].previousSibling_ = nodes[i - 1] || previousNode;
-        nodes[i].nextSibling_ = nodes[i + 1] || nextNode;
-        nodes[i].parentNode_ = this;
-      }
 
       if (this.firstChild === refWrapper)
         this.firstChild_ = nodes[0];
@@ -143,7 +166,7 @@
       var refNode = unwrap(refWrapper);
       var parentNode = refNode.parentNode;
       if (parentNode)
-        parentNode.insertBefore(unwrap(childWrapper), refNode);
+        parentNode.insertBefore(unwrapNodesForInsertion(nodes), refNode);
 
       return childWrapper;
     },
@@ -187,29 +210,26 @@
 
       this.invalidateShadowRenderer();
 
-      if (newChildWrapper.parentNode)
-        newChildWrapper.parentNode.removeChild(newChildWrapper);
+      var previousNode = oldChildWrapper.previousSibling;
+      var nextNode = oldChildWrapper.nextSibling;
+      if (nextNode === newChildWrapper)
+        nextNode = newChildWrapper.nextSibling;
+      var nodes = collectNodes(newChildWrapper, this,
+                                        previousNode, nextNode);
 
       if (this.firstChild === oldChildWrapper)
-        this.firstChild_ = newChildWrapper;
+        this.firstChild_ = nodes[0];
       if (this.lastChild === oldChildWrapper)
-        this.lastChild_ = newChildWrapper;
-      if (oldChildWrapper.previousSibling)
-        oldChildWrapper.previousSibling.nextSibling_ = newChildWrapper;
-      if (oldChildWrapper.nextSibling)
-        oldChildWrapper.nextSibling.previousSibling_ = newChildWrapper;
-      newChildWrapper.previousSibling_ = oldChildWrapper.previousSibling;
-      newChildWrapper.nextSibling_ = oldChildWrapper.nextSibling;
+        this.lastChild_ = nodes[nodes.length - 1];
 
       oldChildWrapper.previousSibling_ = null;
       oldChildWrapper.nextSibling_ = null;
       oldChildWrapper.parentNode_ = null;
-      newChildWrapper.parentNode_ = this;
 
       // replaceChild no matter what the parent is?
       var oldChildNode = unwrap(oldChildWrapper);
       if (oldChildNode.parentNode) {
-        oldChildNode.parentNode.replaceChild(unwrap(newChildWrapper),
+        oldChildNode.parentNode.replaceChild(unwrapNodesForInsertion(nodes),
                                              oldChildNode);
       }
 
