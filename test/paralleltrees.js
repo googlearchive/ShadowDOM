@@ -214,41 +214,60 @@ suite('Parallel Trees', function() {
     });
 
     test('appendChild with document fragment again', function() {
-      var body = wrap(document.body);
-      var oldLastChild = body.lastChild;
+      var div = document.createElement('div');
+      div.innerHTML = '<a></a>';
+      var a = div.lastChild;
       var df = document.createDocumentFragment();
-      df.appendChild(document.createElement('span')).textContent = 'I Live';
-      var span = df.firstChild;
-      var textNode = span.firstChild;
-      body.appendChild(df);
-
-      assert.equal(body.lastChild, span);
+      var b = df.appendChild(document.createElement('b'));
+      var c = df.appendChild(document.createElement('c'));
+      div.appendChild(df);
 
       expectStructure(df, {});
-      expectStructure(textNode, {
-        parentNode: span
+
+      expectStructure(div, {
+        firstChild: a,
+        lastChild: c
       });
 
-      expectStructure(span, {
-        firstChild: textNode,
-        lastChild: textNode,
-        parentNode: body,
-        previousSibling: oldLastChild
+      expectStructure(a, {
+        parentNode: div,
+        nextSibling: b
+      });
+
+      expectStructure(b, {
+        parentNode: div,
+        previousSibling: a,
+        nextSibling: c
+      });
+
+      expectStructure(c, {
+        parentNode: div,
+        previousSibling: b
       });
 
       unwrapAndExpectStructure(df, {});
-      unwrapAndExpectStructure(textNode, {
-        parentNode: span
+
+      unwrapAndExpectStructure(div, {
+        firstChild: a,
+        lastChild: c
       });
 
-      unwrapAndExpectStructure(span, {
-        firstChild: textNode,
-        lastChild: textNode,
-        parentNode: body,
-        previousSibling: oldLastChild
+      unwrapAndExpectStructure(a, {
+        parentNode: div,
+        nextSibling: b
       });
 
-      span.parentNode.removeChild(span);
+      unwrapAndExpectStructure(b, {
+        parentNode: div,
+        previousSibling: a,
+        nextSibling: c
+      });
+
+      unwrapAndExpectStructure(c, {
+        parentNode: div,
+        previousSibling: b
+      });
+
     });
 
     test('removeChild, start with one child', function() {
@@ -804,46 +823,75 @@ suite('Parallel Trees', function() {
     });
 
     test('insertBefore with document fragment again', function() {
-      var body = wrap(document.body);
-      var lastChild = body.lastChild;
-      var oldPreviousSibling = lastChild.previousSibling;
-      var df = document.createDocumentFragment();
-      df.appendChild(document.createElement('span')).textContent = 'I Live';
-      var span = df.firstChild;
-      var textNode = span.firstChild;
-      body.insertBefore(df, lastChild);
+      var div = document.createElement('div');
+      div.innerHTML = '<a></a><d></d>';
+      var a = div.firstChild;
+      var d = div.lastChild;
 
-      assert.equal(lastChild.previousSibling, span);
+      var df = document.createDocumentFragment();
+      var b = df.appendChild(document.createElement('b');
+      var c = df.appendChild(document.createElement('c');
+
+      div.insertBefore(df, d);
 
       expectStructure(df, {});
-      expectStructure(textNode, {
-        parentNode: span
+
+      expectStructure(div, {
+        firstChild: a,
+        lastChild: d
       });
 
-      expectStructure(span, {
-        firstChild: textNode,
-        lastChild: textNode,
-        parentNode: body,
-        previousSibling: oldPreviousSibling,
-        nextSibling: lastChild
+      expectStructure(a, {
+        parentNode: div,
+        nextSibling: b
+      });
+
+      expectStructure(b, {
+        parentNode: div,
+        previousSibling: a,
+        nextSibling: c
+      });
+
+      expectStructure(c, {
+        parentNode: div,
+        previousSibling: b,
+        nextSibling: d
+      });
+
+      expectStructure(d, {
+        parentNode: div,
+        previousSibling: c
       });
 
       unwrapAndExpectStructure(df, {});
-      unwrapAndExpectStructure(textNode, {
-        parentNode: span
+
+      unwrapAndExpectStructure(div, {
+        firstChild: a,
+        lastChild: d
       });
 
-      unwrapAndExpectStructure(span, {
-        firstChild: textNode,
-        lastChild: textNode,
-        parentNode: body,
-        previousSibling: oldPreviousSibling,
-        nextSibling: lastChild
+      unwrapAndExpectStructure(a, {
+        parentNode: div,
+        nextSibling: b
       });
 
-      span.parentNode.removeChild(span);
+      unwrapAndExpectStructure(b, {
+        parentNode: div,
+        previousSibling: a,
+        nextSibling: c
+      });
+
+      unwrapAndExpectStructure(c, {
+        parentNode: div,
+        previousSibling: b,
+        nextSibling: d
+      });
+
+      unwrapAndExpectStructure(d, {
+        parentNode: div,
+        previousSibling: c
+      });
     });
-
 
     suite('replaceChild', function() {
       test('simple', function() {
