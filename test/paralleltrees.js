@@ -213,6 +213,63 @@ suite('Parallel Trees', function() {
       });
     });
 
+    test('appendChild with document fragment again', function() {
+      var div = document.createElement('div');
+      div.innerHTML = '<a></a>';
+      var a = div.lastChild;
+      var df = document.createDocumentFragment();
+      var b = df.appendChild(document.createElement('b'));
+      var c = df.appendChild(document.createElement('c'));
+      div.appendChild(df);
+
+      expectStructure(df, {});
+
+      expectStructure(div, {
+        firstChild: a,
+        lastChild: c
+      });
+
+      expectStructure(a, {
+        parentNode: div,
+        nextSibling: b
+      });
+
+      expectStructure(b, {
+        parentNode: div,
+        previousSibling: a,
+        nextSibling: c
+      });
+
+      expectStructure(c, {
+        parentNode: div,
+        previousSibling: b
+      });
+
+      unwrapAndExpectStructure(df, {});
+
+      unwrapAndExpectStructure(div, {
+        firstChild: a,
+        lastChild: c
+      });
+
+      unwrapAndExpectStructure(a, {
+        parentNode: div,
+        nextSibling: b
+      });
+
+      unwrapAndExpectStructure(b, {
+        parentNode: div,
+        previousSibling: a,
+        nextSibling: c
+      });
+
+      unwrapAndExpectStructure(c, {
+        parentNode: div,
+        previousSibling: b
+      });
+
+    });
+
     test('removeChild, start with one child', function() {
       var div = document.createElement('div');
       div.innerHTML = '<a></a>';
@@ -765,6 +822,77 @@ suite('Parallel Trees', function() {
       });
     });
 
+    test('insertBefore with document fragment again', function() {
+      var div = document.createElement('div');
+      div.innerHTML = '<a></a><d></d>';
+      var a = div.firstChild;
+      var d = div.lastChild;
+
+      var df = document.createDocumentFragment();
+      var b = df.appendChild(document.createElement('b');
+      var c = df.appendChild(document.createElement('c');
+
+      div.insertBefore(df, d);
+
+      expectStructure(df, {});
+
+      expectStructure(div, {
+        firstChild: a,
+        lastChild: d
+      });
+
+      expectStructure(a, {
+        parentNode: div,
+        nextSibling: b
+      });
+
+      expectStructure(b, {
+        parentNode: div,
+        previousSibling: a,
+        nextSibling: c
+      });
+
+      expectStructure(c, {
+        parentNode: div,
+        previousSibling: b,
+        nextSibling: d
+      });
+
+      expectStructure(d, {
+        parentNode: div,
+        previousSibling: c
+      });
+
+      unwrapAndExpectStructure(df, {});
+
+      unwrapAndExpectStructure(div, {
+        firstChild: a,
+        lastChild: d
+      });
+
+      unwrapAndExpectStructure(a, {
+        parentNode: div,
+        nextSibling: b
+      });
+
+      unwrapAndExpectStructure(b, {
+        parentNode: div,
+        previousSibling: a,
+        nextSibling: c
+      });
+
+      unwrapAndExpectStructure(c, {
+        parentNode: div,
+        previousSibling: b,
+        nextSibling: d
+      });
+
+      unwrapAndExpectStructure(d, {
+        parentNode: div,
+        previousSibling: c
+      });
+    });
+
     suite('replaceChild', function() {
       test('simple', function() {
         var div = document.createElement('div');
@@ -898,6 +1026,82 @@ suite('Parallel Trees', function() {
           parentNode: div
         });
       });
+
+      test('replaceChild with document fragment', function() {
+        var div = document.createElement('div');
+        div.innerHTML = '<a></a><e></e><d></d>';
+        var a = div.firstChild;
+        var e = a.nextSibling;
+        var d = e.nextSibling;
+        var df = document.createDocumentFragment();
+        var b = df.appendChild(document.createElement('b'));
+        var c = df.appendChild(document.createElement('c'));
+
+        div.replaceChild(df, e);
+
+        expectStructure(df, {});
+        expectStructure(e, {});
+
+        expectStructure(div, {
+          firstChild: a,
+          lastChild: d
+        });
+
+        expectStructure(a, {
+          parentNode: div,
+          nextSibling: b
+        });
+
+        expectStructure(b, {
+          parentNode: div,
+          previousSibling: a,
+          nextSibling: c
+        });
+
+        expectStructure(c, {
+          parentNode: div,
+          previousSibling: b,
+          nextSibling: d
+        });
+
+        expectStructure(d, {
+          parentNode: div,
+          previousSibling: c
+        });
+
+        unwrapAndExpectStructure(df, {});
+        unwrapAndExpectStructure(e, {});
+
+        unwrapAndExpectStructure(div, {
+          firstChild: a,
+          lastChild: d
+        });
+
+        unwrapAndExpectStructure(a, {
+          parentNode: div,
+          nextSibling: b
+        });
+
+        unwrapAndExpectStructure(b, {
+          parentNode: div,
+          previousSibling: a,
+          nextSibling: c
+        });
+
+        unwrapAndExpectStructure(c, {
+          parentNode: div,
+          previousSibling: b,
+          nextSibling: d
+        });
+
+        unwrapAndExpectStructure(d, {
+          parentNode: div,
+          previousSibling: c
+        });
+
+      });
+
+
     });
 
   });
