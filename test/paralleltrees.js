@@ -20,7 +20,7 @@ suite('Parallel Trees', function() {
 
       expectStructure(div, {
         firstChild: textNode,
-        lastChild: textNode,
+        lastChild: textNode
       });
 
       expectStructure(textNode, {
