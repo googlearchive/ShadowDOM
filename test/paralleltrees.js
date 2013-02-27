@@ -113,7 +113,7 @@ suite('Parallel Trees', function() {
 
       expectStructure(div, {
         firstChild: a,
-        lastChild: a,
+        lastChild: a
       });
 
       expectStructure(a, {
@@ -154,7 +154,7 @@ suite('Parallel Trees', function() {
 
       expectStructure(div, {
         firstChild: a,
-        lastChild: b,
+        lastChild: b
       });
 
       expectStructure(a, {
@@ -829,8 +829,8 @@ suite('Parallel Trees', function() {
       var d = div.lastChild;
 
       var df = document.createDocumentFragment();
-      var b = df.appendChild(document.createElement('b');
-      var c = df.appendChild(document.createElement('c');
+      var b = df.appendChild(document.createElement('b'));
+      var c = df.appendChild(document.createElement('c'));
 
       div.insertBefore(df, d);
 
