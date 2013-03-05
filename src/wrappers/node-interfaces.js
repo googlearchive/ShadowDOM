@@ -19,24 +19,27 @@
     return node;
   }
 
-  var parentNodeInterface = {
+  var ParentNodeInterface = {
+    get firstElementChild() {
+      return forwardElement(this.firstChild);
+    },
+
+    get lastElementChild() {
+      return backwardsElement(this.lastChild);
+    }
+  };
+
+  var ChildNodeInterface = {
     get nextElementSibling() {
       return forwardElement(this.nextSibling);
     },
 
     get previousElementSibling() {
       return backwardsElement(this.nextSibling);
-    },
-
-    get firstElementChild() {
-      return forwardElement(this.firstChild);
-    },
-
-    get lastElementSibling() {
-      return backwardsElement(this.lastChild);
     }
   };
 
-  exports.parentNodeInterface = parentNodeInterface;
+  exports.ParentNodeInterface = ParentNodeInterface;
+  exports.ChildNodeInterface = ChildNodeInterface;
 
 })(this);

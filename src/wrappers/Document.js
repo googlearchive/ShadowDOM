@@ -8,7 +8,7 @@
   var WrapperDocument = wrappers.registerObject(
       document.implementation.createHTMLDocument(''),
       Document);
-  mixin(WrapperDocumentFragment.prototype, parentNodeInterface);
+  mixin(WrapperDocument.prototype, ParentNodeInterface);
 
   exports.WrapperDocument = WrapperDocument;
 
@@ -35,5 +35,42 @@
     wrapMethod(document, name);
   });
 
+
+  var implementationTable = new SideTable('implementation');
+
+  mixin(WrapperDocument.prototype, {
+    get implementation() {
+      var implementation = implementationTable.get(this);
+      if (implementation)
+        return implementation;
+      implementation =
+          new WrapperDOMImplementation(unwrap(this).implementation);
+      implementationTable.set(this, implementation);
+      return implementation;
+    }
+  });
+
+  function wrapImplMethod(name) {
+    return function() {
+      return wrap(this.impl[name].apply(this.impl, arguments));
+    };
+  }
+
+  function forwardImplMethod(name) {
+    return function() {
+      return this.impl[name].apply(this.impl, arguments);
+    };
+  }
+
+  function WrapperDOMImplementation(impl) {
+    this.impl = impl;
+  }
+
+  WrapperDOMImplementation.prototype = {
+    createDocumentType: wrapImplMethod('createDocumentType'),
+    createDocument: wrapImplMethod('createDocument'),
+    createHTMLDocument: wrapImplMethod('createHTMLDocument'),
+    hasFeature: forwardImplMethod('hasFeature')
+  };
 
 })(this);

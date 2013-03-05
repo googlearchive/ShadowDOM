@@ -100,4 +100,10 @@ suite('Wrapper creation', function() {
     });
   });
 
+  test('Ensure Document has ParentNodeInterface', function() {
+    var doc = wrap(document).implementation.createHTMLDocument('');
+    assert.equal(doc.firstElementChild.tagName, 'HTML');
+    assert.equal(doc.lastElementChild.tagName, 'HTML');
+  });
+
 });
