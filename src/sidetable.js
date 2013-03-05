@@ -11,15 +11,21 @@ var SideTable;
 if (typeof WeakMap !== 'undefined' && navigator.userAgent.indexOf('Firefox/') < 0) {
   SideTable = WeakMap;
 } else {
-  SideTable = function(name) {
-    this.name = '__$' + name + '$__';
-  };
-  SideTable.prototype = {
-    set: function(key, value) {
-      Object.defineProperty(key, this.name, {value: value, writable: true});
-    },
-    get: function(key) {
-      return key[this.name];
+  (function() {
+    var defineProperty = Object.defineProperty;
+    var hasOwnProperty = Object.hasOwnProperty;
+
+    SideTable = function(name) {
+      this.name = '__' + name + '__' + (Math.random() * 1e15 | 0) + '__';
+    };
+
+    SideTable.prototype = {
+      set: function(key, value) {
+        defineProperty(key, this.name, {value: value, writable: true});
+      },
+      get: function(key) {
+        return hasOwnProperty.call(key, this.name) ? key[this.name] : undefined;
+      }
     }
-  }
+  })();
 }
