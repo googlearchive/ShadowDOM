@@ -22,6 +22,7 @@
     },
 
     get shadowRoot() {
+      // TODO(arv): Move to ShadowRenderer.js
       return getYoungestTree(this) || null;
     },
 
@@ -34,7 +35,8 @@
     }
   });
 
-  mixin(WrapperElement.prototype, parentNodeInterface);
+  mixin(WrapperElement.prototype, ChildNodeInterface);
+  mixin(WrapperElement.prototype, ParentNodeInterface);
 
   wrappers.register(Element, WrapperElement);
 
