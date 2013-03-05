@@ -22,29 +22,37 @@
   };
 
   function getWrapperConstructor(node) {
-
-    var constructor = node.constructor;
-    var wrapperConstructor = constructorTable.get(constructor);
+    var nativePrototype = node.__proto__ || Object.getPrototypeOf(node);
+    var wrapperConstructor = constructorTable.get(nativePrototype);
     if (wrapperConstructor)
       return wrapperConstructor;
 
-    var proto = Object.getPrototypeOf(node);
-    var protoWrapperConstructor = getWrapperConstructor(proto);
-    constructorTable.set(constructor, protoWrapperConstructor);
-    return protoWrapperConstructor;    
+    var parentWrapperConstructor = getWrapperConstructor(nativePrototype);
+
+    var GeneratedWrapper = createWrapperConstructor(parentWrapperConstructor);
+    registerInternal(nativePrototype, GeneratedWrapper, node);
+
+    return GeneratedWrapper;
   }
 
-  function addForwardingProperties(nativeConstructor, wrapperConstructor) {
-    var nativePrototype = nativeConstructor.prototype;
-    var wrapperPrototype = wrapperConstructor.prototype;
+  function addForwardingProperties(nativePrototype, wrapperPrototype) {
     installProperty(nativePrototype, wrapperPrototype, true);
   }
 
-  function registerInstanceProperties(wrapperConstructor, instanceObject) {
-    installProperty(instanceObject, wrapperConstructor.prototype, false);
+  function registerInstanceProperties(wrapperPrototype, instanceObject) {
+    installProperty(instanceObject, wrapperPrototype, false);
   }
 
   var isFirefox = /Firefox/.test(navigator.userAgent);
+
+  // This is used as a fallback when getting the descriptor fails in
+  // installProperty.
+  var dummyDescriptor = {
+    get: function() {},
+    set: function(v) {},
+    enumerable: true,
+    writable: true,
+  };
 
   function installProperty(source, target, allowMethod) {
     Object.getOwnPropertyNames(source).forEach(function(name) {
@@ -55,7 +63,15 @@
         // Tickle Firefox's old bindings.
         source.__lookupGetter__(name);
       }
-      var descriptor = Object.getOwnPropertyDescriptor(source, name);
+      var descriptor;
+      try {
+        descriptor = Object.getOwnPropertyDescriptor(source, name);
+      } catch (ex) {
+        // JSC and V8 both use data properties instead accessors which can cause
+        // getting the property desciptor throw an exception.
+        // https://bugs.webkit.org/show_bug.cgi?id=49739
+        descriptor = dummyDescriptor;
+      }
       var getter, setter;
       if (allowMethod && typeof descriptor.value === 'function') {
         target[name] = function() {
@@ -91,16 +107,22 @@
    *     |document.createElement| is used to create an instance.
    */
   function register(nativeConstructor, wrapperConstructor, opt_instance) {
-    assert(constructorTable.get(nativeConstructor) === undefined);
-    constructorTable.set(nativeConstructor, wrapperConstructor);
-    addForwardingProperties(nativeConstructor, wrapperConstructor);
+    var nativePrototype = nativeConstructor.prototype;
+    registerInternal(nativePrototype, wrapperConstructor, opt_instance);
+  }
+
+  function registerInternal(nativePrototype, wrapperConstructor, opt_instance) {
+    var wrapperPrototype = wrapperConstructor.prototype;
+    assert(constructorTable.get(nativePrototype) === undefined);
+    constructorTable.set(nativePrototype, wrapperConstructor);
+    addForwardingProperties(nativePrototype, wrapperPrototype);
     if (opt_instance)
-      registerInstanceProperties(wrapperConstructor, opt_instance);  
+      registerInstanceProperties(wrapperPrototype, opt_instance);
   }
 
   /**
    * Creates a generic wrapper constructor based on |object| and its
-   * constsructor.
+   * constructor.
    * Sometimes the constructor does not have an associated instance
    * (CharacterData for example). In that case you can pass the constructor that
    * you want to map the object to using |opt_nativeConstructor|.
@@ -109,18 +131,22 @@
    * @return {Function} The generated constructor.
    */
   function registerObject(object, opt_nativeConstructor) {
-    var nativeConstructor = opt_nativeConstructor || object.constructor;
-    var proto = Object.getPrototypeOf(nativeConstructor.prototype);
+    var nativePrototype = opt_nativeConstructor ?
+        opt_nativeConstructor.prototype : Object.getPrototypeOf(object);
 
-    var superWrapperConstructor = getWrapperConstructor(proto);
+    var superWrapperConstructor = getWrapperConstructor(nativePrototype);
+    var GeneratedWrapper = createWrapperConstructor(superWrapperConstructor);
+    registerInternal(nativePrototype, GeneratedWrapper, object);
 
+    return GeneratedWrapper;
+  }
+
+  function createWrapperConstructor(superWrapperConstructor) {
     function GeneratedWrapper(node) {
       superWrapperConstructor.call(this, node);
     }
     GeneratedWrapper.prototype =
         Object.create(superWrapperConstructor.prototype);
-
-    register(nativeConstructor, GeneratedWrapper, object);
 
     return GeneratedWrapper;
   }
