@@ -311,8 +311,34 @@
       if (this.childNodes_)
         return this.childNodes_;
       return this.childNodes_ = new WrapperChildNodeList(this);
+    },
+
+    cloneNode: function(deep) {
+      if (!this.invalidateShadowRenderer())
+        return wrap(this.node.cloneNode(deep));
+
+      var clone = wrap(this.node.cloneNode(false));
+      if (deep) {
+        for (var child = this.firstChild; child; child = child.nextSibling) {
+          clone.appendChild(child.cloneNode(true));
+        }
+      }
+      // TODO(arv): Some HTML elements also clone other data like value.
+      return clone;
     }
   };
+
+  function addWrapGetter(wrapperConstructor, name) {
+    Object.defineProperty(wrapperConstructor.prototype, name, {
+      get: function() {
+        return wrap(this.node[name]);
+      },
+      configurable: true,
+      enumerable: true
+    });
+  }
+
+  addWrapGetter(WrapperNode, 'ownerDocument');
 
   // We use a DocumentFragment as a base and then delete the properties of
   // DocumentFragment.prototype from the WrapperNode. Since delete makes objects
