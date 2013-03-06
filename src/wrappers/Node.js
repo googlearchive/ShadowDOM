@@ -285,6 +285,14 @@
           this.previousSibling_ : wrap(this.node.previousSibling);
     },
 
+    get parentElement() {
+      var p = this.parentNode;
+      while (p && p.nodeType !== Node.ELEMENT_NODE) {
+        p = p.parentNode;
+      }
+      return p;
+    },
+
     get textContent() {
       // TODO(arv): This should fallback to this.node.textContent if there
       // are no shadow trees below or above the context node.
