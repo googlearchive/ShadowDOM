@@ -5,6 +5,8 @@
 (function(exports) {
   'use strict';
 
+  var shadowRootTable = new SideTable('shadowRoot');
+
   function WrapperElement(node) {
     WrapperNode.call(this, node);
   }
@@ -12,7 +14,7 @@
   mixin(WrapperElement.prototype, {
     createShadowRoot: function() {
       var newShadowRoot = new WrapperShadowRoot(this);
-      this.__shadowRoot__ = newShadowRoot;
+      shadowRootTable.set(this, newShadowRoot);
 
       var renderer = new ShadowRenderer(this);
 
@@ -21,8 +23,10 @@
       return newShadowRoot;
     },
 
-    // shadowRoot is defined in ShadowRender.js
-
+    get shadowRoot() {
+      return shadowRootTable.get(this) || null;
+    },
+  
     setAttribute: function(name, value) {
       this.node.setAttribute(name, value);
       // This is a bit agressive. We need to invalidate if it affects
