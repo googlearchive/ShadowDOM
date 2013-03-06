@@ -5,18 +5,11 @@
 (function(exports) {
   'use strict';
 
-  var treeToInsertionPointMap = new Map();
   var distributedChildNodesTable = new SideTable('distributedChildNodes');
   var shadowDOMRendererTable = new SideTable('shadowDOMRenderer');
   var nextOlderShadowTreeTable = new SideTable('nextOlderShadowTree');
 
-  // Is this a remnant of the past?
-  // var treeToShadowInsertionPointMap = new Map();
-
-
   function distributeChildToInsertionPoint(child, insertionPoint) {
-    // console.log('Distributing', child, 'to', insertionPoint);
-    treeToInsertionPointMap.set(child, insertionPoint);
     getDistributedChildNodes(insertionPoint).push(child);
   }
 
