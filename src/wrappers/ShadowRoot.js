@@ -11,7 +11,7 @@
 
     // createDocumentFragment associates the node with a WrapperDocumentFragment
     // instance. Override that.
-    wrapperTable.set(node, this);
+    rewrap(node, this);
 
     var oldShadowRoot = hostWrapper.__shadowRoot__;
     this.__nextOlderShadowTree__ = oldShadowRoot;
