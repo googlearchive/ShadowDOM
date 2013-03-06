@@ -15,7 +15,7 @@ suite('Custom Element', function() {
     var div = document.createElement('div');
     // strip wrapper (TODO(sjmiles): should we make api for this?)
     div = unwrap(div);
-    wrapperTable.set(div, undefined);
+    rewrap(div);
     // implement custom API
     if (Object.__proto__) {
       // for browsers that support __proto__

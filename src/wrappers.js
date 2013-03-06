@@ -178,7 +178,7 @@
       wrapperTable.set(node, wrapper);
     }
     return wrapper;
-  };
+  }
 
   /**
    * Unwraps a wrapper and returns the node it is wrapping.
@@ -190,20 +190,32 @@
       return null;
     assert(wrapper instanceof WrapperNode);
     return wrapper.node;
-  };
+  }
+
+  /**
+   * Overrides the current wrapper (if any) for node.
+   * @param {Node} node
+   * @param {WrapperNode=} wrapper If left out the wrapper will be created as
+   *     needed next time someone wraps the node.
+   */
+  function rewrap(node, wrapper) {
+    if (wrapper === null)
+      return;
+    assert(node instanceof Node);
+    assert(wrapper === undefined || wrapper instanceof WrapperNode);
+    wrapperTable.set(node, wrapper);
+  }
 
   // Used all over... we should move to a generic util file.
   exports.mixin = mixin;
 
   exports.wrap = wrap;
   exports.unwrap = unwrap;
+  exports.rewrap = rewrap;
   exports.wrappers = {
     register: register,
     registerHTMLElement: registerHTMLElement,
     registerObject: registerObject
   };
-
-  // Needed to override the wrapper in ShadowRoot.
-  exports.wrapperTable = wrapperTable;
 
 })(this);
