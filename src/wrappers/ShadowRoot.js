@@ -5,7 +5,7 @@
 (function(exports) {
   'use strict';
 
-  var shadowHostTable = new SideTable('shadowHost');
+  var shadowHostTable = new SideTable();
 
   function WrapperShadowRoot(hostWrapper) {
     var node = unwrap(hostWrapper.node.ownerDocument.createDocumentFragment());
