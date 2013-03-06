@@ -5,8 +5,8 @@
 (function(exports) {
   'use strict';
 
-  var wrapperTable = new SideTable('wrapper');
-  var constructorTable = new SideTable('constructor');
+  var wrapperTable = new SideTable();
+  var constructorTable = new SideTable();
 
   function assert(b) {
     if (!b)

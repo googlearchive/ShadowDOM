@@ -5,7 +5,7 @@
 (function(exports) {
   'use strict';
 
-  var shadowRootTable = new SideTable('shadowRoot');
+  var shadowRootTable = new SideTable();
 
   function WrapperElement(node) {
     WrapperNode.call(this, node);

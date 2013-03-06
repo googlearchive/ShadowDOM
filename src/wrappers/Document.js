@@ -5,7 +5,7 @@
 (function(exports) {
   'use strict';
 
-  var implementationTable = new SideTable('implementation');
+  var implementationTable = new SideTable();
 
   function WrapperDocument(node) {
     WrapperNode.call(this, node);
