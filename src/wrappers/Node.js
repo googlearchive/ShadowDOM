@@ -328,16 +328,6 @@
     }
   };
 
-  function addWrapGetter(wrapperConstructor, name) {
-    Object.defineProperty(wrapperConstructor.prototype, name, {
-      get: function() {
-        return wrap(this.node[name]);
-      },
-      configurable: true,
-      enumerable: true
-    });
-  }
-
   addWrapGetter(WrapperNode, 'ownerDocument');
 
   // We use a DocumentFragment as a base and then delete the properties of

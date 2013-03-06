@@ -12,6 +12,13 @@
   }
   WrapperDocument.prototype = Object.create(WrapperNode.prototype);
 
+  addWrapGetter(WrapperDocument, 'documentElement');
+
+  // Conceptually both body and head can be in a shadow but suporting that seems
+  // overkill at this point.
+  addWrapGetter(WrapperDocument, 'body');
+  addWrapGetter(WrapperDocument, 'head');
+
   mixin(WrapperDocument.prototype, ParentNodeInterface);
 
   mixin(WrapperDocument.prototype, {

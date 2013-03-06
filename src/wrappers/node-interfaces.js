@@ -39,7 +39,18 @@
     }
   };
 
+  function addWrapGetter(wrapperConstructor, name) {
+    Object.defineProperty(wrapperConstructor.prototype, name, {
+      get: function() {
+        return wrap(this.node[name]);
+      },
+      configurable: true,
+      enumerable: true
+    });
+  }
+
   exports.ParentNodeInterface = ParentNodeInterface;
   exports.ChildNodeInterface = ChildNodeInterface;
+  exports.addWrapGetter = addWrapGetter;
 
 })(this);
