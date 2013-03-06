@@ -5,10 +5,29 @@
 (function(exports) {
   'use strict';
 
-  var WrapperDocument = wrappers.registerObject(
-      document.implementation.createHTMLDocument(''),
-      Document);
+  var implementationTable = new SideTable('implementation');
+
+  function WrapperDocument(node) {
+    WrapperNode.call(this, node);
+  }
+  WrapperDocument.prototype = Object.create(WrapperNode.prototype);
+
   mixin(WrapperDocument.prototype, ParentNodeInterface);
+
+  mixin(WrapperDocument.prototype, {
+    get implementation() {
+      var implementation = implementationTable.get(this);
+      if (implementation)
+        return implementation;
+      implementation =
+          new WrapperDOMImplementation(unwrap(this).implementation);
+      implementationTable.set(this, implementation);
+      return implementation;
+    }
+  });
+
+  wrappers.register(Document, WrapperDocument,
+      document.implementation.createHTMLDocument(''));
 
   exports.WrapperDocument = WrapperDocument;
 
@@ -33,21 +52,6 @@
     'createDocumentFragment'
   ].forEach(function(name) {
     wrapMethod(document, name);
-  });
-
-
-  var implementationTable = new SideTable('implementation');
-
-  mixin(WrapperDocument.prototype, {
-    get implementation() {
-      var implementation = implementationTable.get(this);
-      if (implementation)
-        return implementation;
-      implementation =
-          new WrapperDOMImplementation(unwrap(this).implementation);
-      implementationTable.set(this, implementation);
-      return implementation;
-    }
   });
 
   function wrapImplMethod(name) {
