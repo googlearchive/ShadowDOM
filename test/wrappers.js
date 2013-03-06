@@ -106,4 +106,39 @@ suite('Wrapper creation', function() {
     assert.equal(doc.lastElementChild.tagName, 'HTML');
   });
 
+  test('cloneNode(false)', function() {
+    var doc = wrap(document);
+    var a = document.createElement('a');
+    a.href = 'http://domain.com/';
+    a.textContent = 'text';
+    var textNode = a.firstChild;
+
+    var aClone = a.cloneNode(false);
+
+    assert.equal(aClone.tagName, 'A');
+    assert.equal(aClone.href, 'http://domain.com/');
+    expectStructure(aClone, {});
+  });
+
+  test('cloneNode(true)', function() {
+    var doc = wrap(document);
+    var a = document.createElement('a');
+    a.href = 'http://domain.com/';
+    a.textContent = 'text';
+    var textNode = a.firstChild;
+
+    var aClone = a.cloneNode(true);
+    var textNodeClone = aClone.firstChild;
+
+    assert.equal(aClone.tagName, 'A');
+    assert.equal(aClone.href, 'http://domain.com/');
+    expectStructure(aClone, {
+      firstChild: textNodeClone,
+      lastChild: textNodeClone
+    });
+    expectStructure(textNodeClone, {
+      parentNode: aClone
+    });
+  });
+
 });
