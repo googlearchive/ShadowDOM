@@ -5,19 +5,12 @@
 (function(exports) {
   'use strict';
 
-  var treeToInsertionPointMap = new Map();
   var distributedChildNodesTable = new SideTable('distributedChildNodes');
   // TODO(arv): Use side table for __shadowHost__, __shadowRoot__ and 
   // __nextOlderShadowTree__.
   var shadowDOMRendererTable = new SideTable('shadowDOMRenderer');
 
-  // Is this a remnant of the past?
-  // var treeToShadowInsertionPointMap = new Map();
-
-
   function distributeChildToInsertionPoint(child, insertionPoint) {
-    // console.log('Distributing', child, 'to', insertionPoint);
-    treeToInsertionPointMap.set(child, insertionPoint);
     getDistributedChildNodes(insertionPoint).push(child);
   }
 

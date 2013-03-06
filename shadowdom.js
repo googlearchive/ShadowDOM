@@ -14,7 +14,6 @@
   base += 'src/';
 
   [
-    'map.js',
     'sidetable.js',
     'wrappers.js',
     'parallel-trees.js',
