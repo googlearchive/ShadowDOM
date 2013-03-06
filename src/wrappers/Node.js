@@ -117,8 +117,6 @@
   }
 
   WrapperNode.prototype = {
-    // TODO(arv): Implement these
-
     appendChild: function(childWrapper) {
       assert(childWrapper instanceof WrapperNode);
 

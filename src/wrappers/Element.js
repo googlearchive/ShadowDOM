@@ -21,10 +21,7 @@
       return newShadowRoot;
     },
 
-    get shadowRoot() {
-      // TODO(arv): Move to ShadowRenderer.js
-      return getYoungestTree(this) || null;
-    },
+    // shadowRoot is defined in ShadowRender.js
 
     setAttribute: function(name, value) {
       this.node.setAttribute(name, value);

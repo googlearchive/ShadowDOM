@@ -24,9 +24,6 @@
   mixin(WrapperShadowRoot.prototype, {
     get innerHTML() {
       return getInnerHTML(this);
-      // // TODO: Precompute.
-      // return Object.getOwnPropertyDescriptor(
-      //     WrapperHTMLElement.prototype, 'innerHTML').get.call(this);
     },
     set innerHTML(value) {
       this.removeAllChildNodes();

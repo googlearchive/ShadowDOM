@@ -79,26 +79,6 @@
     return s;
   }
 
-  // // TODO(arv): JsShadowDom should have this getter.
-  // Object.defineProperty(DocumentFragment.prototype, 'innerHTML', {
-  //   get: function() {
-  //     return getInnerHTML(this);
-  //   },
-  //   set: function(value) {
-  //     this.textContent = '';
-  //     var tmp = this.ownerDocument.createElement('div');
-  //     tmp.innerHTML = value;
-  //     var child;
-  //     while (child = tmp.firstChild) {
-  //       this.appendChild(child);
-  //     }
-  //     ;
-  //   },
-  //   enumerable: true,
-  //   configurable: true
-  // });
-
-
   function WrapperHTMLElement(node) {
     WrapperElement.call(this, node);
   }
