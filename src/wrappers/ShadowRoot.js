@@ -5,6 +5,8 @@
 (function(exports) {
   'use strict';
 
+  var shadowHostTable = new SideTable('shadowHost');
+
   function WrapperShadowRoot(hostWrapper) {
     var node = unwrap(hostWrapper.node.ownerDocument.createDocumentFragment());
     WrapperDocumentFragment.call(this, node);
@@ -13,9 +15,10 @@
     // instance. Override that.
     rewrap(node, this);
 
-    var oldShadowRoot = hostWrapper.__shadowRoot__;
-    this.__nextOlderShadowTree__ = oldShadowRoot;
-    this.__shadowHost__ = hostWrapper;
+    var oldShadowRoot = hostWrapper.shadowRoot;
+    nextOlderShadowTreeTable.set(this, oldShadowRoot);
+
+    shadowHostTable.set(this, hostWrapper);
 
     // TODO: are we invalidating on both sides?
     hostWrapper.invalidateShadowRenderer();
@@ -38,7 +41,7 @@
     },
 
     invalidateShadowRenderer: function() {
-      return this.__shadowHost__.invalidateShadowRenderer();
+      return shadowHostTable.get(this).invalidateShadowRenderer();
     }
   });
 

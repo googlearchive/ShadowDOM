@@ -7,9 +7,8 @@
 
   var treeToInsertionPointMap = new Map();
   var distributedChildNodesTable = new SideTable('distributedChildNodes');
-  // TODO(arv): Use side table for __shadowHost__, __shadowRoot__ and 
-  // __nextOlderShadowTree__.
   var shadowDOMRendererTable = new SideTable('shadowDOMRenderer');
+  var nextOlderShadowTreeTable = new SideTable('nextOlderShadowTree');
 
   // Is this a remnant of the past?
   // var treeToShadowInsertionPointMap = new Map();
@@ -177,7 +176,7 @@
 
       var host = this.host;
       this.treeComposition();
-      var shadowDOM = getYoungestTree(host);
+      var shadowDOM = host.shadowRoot;
       if (!shadowDOM)
         return;
 
@@ -216,7 +215,6 @@
     },
 
     renderAsAnyDomTree: function(visualParent, tree, child, isNested) {
-      // console.log('render', child);
       this.appendChild(visualParent, child);
 
       if (isShadowHost(child)) {
@@ -231,7 +229,6 @@
     },
 
     renderInsertionPoint: function(visualParent, tree, insertionPoint, isNested) {
-      // console.log('renderInsertionPoint');
       var distributedChildNodes = getDistributedChildNodes(insertionPoint);
       if (distributedChildNodes.length) {
         this.removeAllChildNodes(insertionPoint);
@@ -265,7 +262,6 @@
     renderFallbackContent: function (visualParent, fallbackHost) {
       var logicalChildNodes = getChildNodesSnapshot(fallbackHost);
       logicalChildNodes.forEach(function(node) {
-        // console.log('renderFallbackContent', node);
         this.appendChild(visualParent, node);
       }, this);
     },
@@ -273,7 +269,7 @@
     // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#dfn-tree-composition
     treeComposition: function () {
       var shadowHost = this.host;
-      var tree = getYoungestTree(shadowHost);
+      var tree = shadowHost.shadowRoot;
       var pool = [];
       var shadowHostChildNodes = getChildNodesSnapshot(shadowHost);
       shadowHostChildNodes.forEach(function(child) {
@@ -354,15 +350,14 @@
   }
 
   function isShadowHost(shadowHost) {
-    return !!shadowHost.__shadowRoot__;
+    return !!shadowHost.shadowRoot;
   }
 
-  function getYoungestTree(shadowHost) {
-    return shadowHost.__shadowRoot__;
-  }
-
+  /**
+   * @param {WrapperShadowRoot} tree
+   */
   function getNextOlderTree(tree) {
-    return tree.__nextOlderShadowTree__;
+    return nextOlderShadowTreeTable.get(tree);
   }
 
   function assignShadowTreeToShadowInsertionPoint(tree, point) {
@@ -393,14 +388,10 @@
     return getDistributedChildNodes(this);
   };
 
-  mixin(WrapperElement.prototype, {
-    get shadowRoot() {
-      return getYoungestTree(this) || null;
-    }
-  });
-
   exports.ShadowRenderer = ShadowRenderer;
   exports.render = render;
   exports.renderAllPending = renderAllPending;
+
+  exports.nextOlderShadowTreeTable = nextOlderShadowTreeTable;
 
 })(this);
