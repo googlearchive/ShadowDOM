@@ -18,6 +18,8 @@
     }
   });
 
+  mixin(WrapperCharacterData.prototype, ChildNodeInterface);
+
   wrappers.register(CharacterData, WrapperCharacterData,
                     document.createTextNode(''));
 
