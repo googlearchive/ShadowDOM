@@ -5,9 +5,9 @@
 (function(exports) {
   'use strict';
 
-  var distributedChildNodesTable = new SideTable('distributedChildNodes');
-  var shadowDOMRendererTable = new SideTable('shadowDOMRenderer');
-  var nextOlderShadowTreeTable = new SideTable('nextOlderShadowTree');
+  var distributedChildNodesTable = new SideTable();
+  var shadowDOMRendererTable = new SideTable();
+  var nextOlderShadowTreeTable = new SideTable();
 
   function distributeChildToInsertionPoint(child, insertionPoint) {
     getDistributedChildNodes(insertionPoint).push(child);

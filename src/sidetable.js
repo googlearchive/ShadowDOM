@@ -14,9 +14,11 @@ if (typeof WeakMap !== 'undefined' && navigator.userAgent.indexOf('Firefox/') < 
   (function() {
     var defineProperty = Object.defineProperty;
     var hasOwnProperty = Object.hasOwnProperty;
+    var counter = new Date().getTime() % 1e9;
 
-    SideTable = function(name) {
-      this.name = '__' + name + '__' + (Math.random() * 1e15 | 0) + '__';
+
+    SideTable = function() {
+      this.name = '__st' + (Math.random() * 1e9 >>> 0) + (counter++ + '__');
     };
 
     SideTable.prototype = {
