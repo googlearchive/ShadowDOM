@@ -50,8 +50,8 @@
   var dummyDescriptor = {
     get: function() {},
     set: function(v) {},
-    enumerable: true,
-    writable: true,
+    configurable: true,
+    enumerable: true
   };
 
   function installProperty(source, target, allowMethod) {
