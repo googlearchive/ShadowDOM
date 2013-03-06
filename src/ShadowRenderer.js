@@ -393,9 +393,14 @@
     return getDistributedChildNodes(this);
   };
 
+  mixin(WrapperElement.prototype, {
+    get shadowRoot() {
+      return getYoungestTree(this) || null;
+    }
+  });
+
   exports.ShadowRenderer = ShadowRenderer;
   exports.render = render;
-  exports.getYoungestTree = getYoungestTree;
   exports.renderAllPending = renderAllPending;
 
 })(this);
