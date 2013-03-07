@@ -63,21 +63,6 @@
     return df;
   }
 
-  function removeAllChildNodes(wrapper) {
-    var childWrapper = wrapper.firstChild;
-    while (childWrapper) {
-      assert(childWrapper.parentNode === wrapper);
-      var nextSibling = childWrapper.nextSibling;
-      var childNode = unwrap(childWrapper);
-      childWrapper.previousSibling_ = childWrapper.nextSibling_ = childWrapper.parentNode_ = null;
-      var parentNode = childNode.parentNode;
-      if (parentNode)
-        parentNode.removeChild(childNode);
-      childWrapper = nextSibling;
-    }
-    wrapper.firstChild_ = wrapper.lastChild_ = null;
-  }
-
   /**
    * This represents a logical DOM node.
    * @param {!Node} original The original DOM node, aka, the visual DOM node.
@@ -249,6 +234,22 @@
       return oldChildWrapper;
     },
 
+    // TODO(arv): Remove this
+    removeAllChildNodes: function() {
+      var childWrapper = this.firstChild;
+      while (childWrapper) {
+        assert(childWrapper.parentNode === this);
+        var nextSibling = childWrapper.nextSibling;
+        var childNode = unwrap(childWrapper);
+        childWrapper.previousSibling_ = childWrapper.nextSibling_ = childWrapper.parentNode_ = null;
+        var parentNode = childNode.parentNode;
+        if (parentNode)
+          parentNode.removeChild(childNode);
+        childWrapper = nextSibling;
+      }
+      this.firstChild_ = this.lastChild_ = null;
+    },
+
     hasChildNodes: function() {
       return this.firstChild === null;
     },
@@ -305,10 +306,11 @@
       if (!this.invalidateShadowRenderer()) {
         this.node.textContent = textContent;
       } else {
-        removeAllChildNodes(this);
+        var wrapper = this;
+        wrapper.removeAllChildNodes();
         if (textContent !== '') {
           var textNode = this.node.ownerDocument.createTextNode(textContent);
-          this.appendChild(textNode);
+          wrapper.appendChild(textNode);
         }
       }
     },
