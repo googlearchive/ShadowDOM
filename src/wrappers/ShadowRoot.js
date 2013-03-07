@@ -29,7 +29,7 @@
       return getInnerHTML(this);
     },
     set innerHTML(value) {
-      this.removeAllChildNodes();
+      this.textContent = '';
       var tempElement = unwrap(this.node.ownerDocument.createElement('div'));
       tempElement.innerHTML = value;
       var firstChild;
