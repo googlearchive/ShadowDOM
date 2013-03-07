@@ -93,13 +93,14 @@
       if (!this.invalidateShadowRenderer()) {
         this.node.innerHTML = value;
       } else {
-        this.textContent = '';
+        var wrapper = this;
+        wrapper.removeAllChildNodes();
         var tempElement =
             unwrap(this.node.ownerDocument.createElement(this.tagName));
         tempElement.innerHTML = value;
         var firstChild;
         while (firstChild = tempElement.firstChild) {
-          this.appendChild(wrap(firstChild));
+          wrapper.appendChild(wrap(firstChild));
         }
       }
     },
