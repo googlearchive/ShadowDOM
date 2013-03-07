@@ -167,6 +167,12 @@ suite('Wrapper creation', function() {
     var textNode = a.firstChild;
     assert.equal(textNode.parentElement, a);
     assert.isNull(a.parentElement);
+
+    var doc = wrap(document);
+    var body = doc.body;
+    var documentElement = doc.documentElement;
+    assert.equal(body.parentElement, documentElement);
+    assert.isNull(documentElement.parentElement);
   });
 
 });
