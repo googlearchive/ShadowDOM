@@ -418,7 +418,7 @@ suite('Parallel Trees', function() {
         var b = a.nextSibling;
         var c = div.lastChild;
 
-        div.removeAllChildNodes();
+        div.textContent = '';
 
         unwrapAndExpectStructure(div, {});
         unwrapAndExpectStructure(a, {});
@@ -439,7 +439,7 @@ suite('Parallel Trees', function() {
         var b = a.nextSibling;
         var c = div.lastChild;
 
-        div.removeAllChildNodes();
+        div.textContent = '';
 
         unwrapAndExpectStructure(div, {});
         unwrapAndExpectStructure(a, {});
@@ -466,7 +466,7 @@ suite('Parallel Trees', function() {
         unwrapAndExpectStructure(b, {});
         unwrapAndExpectStructure(c, {});
 
-        div.removeAllChildNodes();
+        div.textContent = '';
 
         expectStructure(div, {});
         expectStructure(a, {});
@@ -1101,8 +1101,20 @@ suite('Parallel Trees', function() {
 
       });
 
-
     });
 
   });
+
+  test('innerHTML', function() {
+    var doc = wrap(document);
+    var div = doc.createElement('div');
+    div.innerHTML = '<a></a>';
+    visual.removeAllChildNodes(div);
+    var a = div.firstChild;
+
+    div.innerHTML = '<b></b>';
+
+    assert.equal(div.firstChild.tagName, 'B');
+  });
+
 });

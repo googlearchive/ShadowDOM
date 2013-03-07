@@ -90,18 +90,13 @@
       return getInnerHTML(this);
     },
     set innerHTML(value) {
-      if (!this.invalidateShadowRenderer()) {
-        this.node.innerHTML = value;
-      } else {
-        var wrapper = this;
-        wrapper.removeAllChildNodes();
-        var tempElement =
-            unwrap(this.node.ownerDocument.createElement(this.tagName));
-        tempElement.innerHTML = value;
-        var firstChild;
-        while (firstChild = tempElement.firstChild) {
-          wrapper.appendChild(wrap(firstChild));
-        }
+      this.textContent = '';
+      var tempElement =
+          unwrap(this.node.ownerDocument.createElement(this.tagName));
+      tempElement.innerHTML = value;
+      var firstChild;
+      while (firstChild = tempElement.firstChild) {
+        this.appendChild(wrap(firstChild));
       }
     },
   
