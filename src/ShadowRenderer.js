@@ -489,6 +489,9 @@
   };
 
   WrapperHTMLContentElement.prototype.getDistributedNodes = function() {
+    // TODO(arv): We should associate the element with the shadow root so we
+    // only have to rerender this ShadowRenderer.
+    renderAllPending();
     return getDistributedChildNodes(this);
   };
 

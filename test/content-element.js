@@ -31,17 +31,13 @@ suite('HTMLContentElement', function() {
     sr.innerHTML = '<content></content>';
     var content = sr.firstChild;
 
-    // TODO(arv): Make getDistributedNodes force distribution if needed.
-    renderAllPending();
     assertArrayEqual(content.getDistributedNodes(), [a, b]);
 
     content.select = 'a';
-    renderAllPending();
     assertArrayEqual(content.getDistributedNodes(), [a]);
 
     content.select = 'b';
-    renderAllPending();
     assertArrayEqual(content.getDistributedNodes(), [b]);
-
   });
+
 });
