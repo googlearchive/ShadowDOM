@@ -8,9 +8,11 @@
   var distributedChildNodesTable = new SideTable();
   var shadowDOMRendererTable = new SideTable();
   var nextOlderShadowTreeTable = new SideTable();
+  var insertionPointParentTable = new SideTable();
 
   function distributeChildToInsertionPoint(child, insertionPoint) {
     getDistributedChildNodes(insertionPoint).push(child);
+    insertionPointParentTable.set(child, insertionPoint);
   }
 
   function resetDistributedChildNodes(insertionPoint) {
@@ -52,20 +54,33 @@
 
   // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#dfn-distribution-algorithm
   function distribute(tree, pool) {
+    var anyRemoved = false;
+
     visit(tree, isActiveInsertionPoint,
         function(insertionPoint) {
           resetDistributedChildNodes(insertionPoint);
           for (var i = 0; i < pool.length; i++) {  // 1.2
             var node = pool[i];  // 1.2.1
+            if (node === undefined)
+              continue;
             if (matchesCriteria(node, insertionPoint)) {  // 1.2.2
               distributeChildToInsertionPoint(node, insertionPoint);  // 1.2.2.1
-              // TODO(arv): splice is O(n)
-              pool.splice(i--, 1);  // 1.2.2.2
+              pool[i] = undefined;  // 1.2.2.2
+              anyRemoved = true;
             }
           }
         });
-  }
 
+    if (!anyRemoved)
+      return pool;
+
+    var newPool = [];
+    for (var i = 0; i < pool.length; i++) {
+      if (pool[i] !== undefined)
+        newPool.push(pool[i]);
+    }
+    return newPool;
+  }
 
   // Matching Insertion Points
   // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#matching-insertion-points
@@ -285,7 +300,7 @@
           return false;
         });
         point = shadowInsertionPoint;
-        distribute(tree, pool);
+        pool = distribute(tree, pool);
         if (point) {
           var nextOlderTree = getNextOlderTree(tree);
           if (!nextOlderTree) {
@@ -380,6 +395,12 @@
   WrapperHTMLContentElement.prototype.getDistributedNodes = function() {
     return getDistributedChildNodes(this);
   };
+
+  mixin(WrapperNode.prototype, {
+    get insertionPointParent() {
+      return insertionPointParentTable.get(this) || null;
+    }
+  });
 
   exports.ShadowRenderer = ShadowRenderer;
   exports.render = render;
