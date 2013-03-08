@@ -7,7 +7,7 @@
 suite('Shadow DOM rerender', function() {
 
   function getVisualInnerHtml(el) {
-    renderAllPending();
+    el.offsetWidth;
     return unwrap(el).innerHTML;
   }
 

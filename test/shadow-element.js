@@ -14,7 +14,7 @@ suite('HTMLShadowElement', function() {
     sr.innerHTML = 'a<shadow>b</shadow>c';
     var shadow = sr.firstElementChild;
 
-    renderAllPending();
+    host.offsetWidth;
     assert.isTrue(shadow instanceof WrapperHTMLShadowElement);
     assert.isNull(shadow.olderShadowRoot);
 
@@ -22,7 +22,7 @@ suite('HTMLShadowElement', function() {
     sr2.innerHTML = 'd<shadow>e</shadow>f';
     var shadow2 = sr2.firstElementChild;
 
-    renderAllPending();
+    host.offsetWidth;
     assert.isTrue(shadow instanceof WrapperHTMLShadowElement);
     assert.isNull(shadow.olderShadowRoot);
 
