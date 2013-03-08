@@ -256,4 +256,50 @@ suite('Shadow DOM', function() {
 
   });
 
+  suite('insertionPointParent', function() {
+
+    test('none', function() {
+      var div = document.createElement('div');
+      assert.isNull(div.insertionPointParent);
+    })
+
+    test('content', function() {
+      var host = document.createElement('div');
+      host.innerHTML = '<a>3</a>';
+      var a = host.firstChild;
+      var tn3 = a.firstChild;
+
+      assert.isNull(host.insertionPointParent);
+      assert.isNull(a.insertionPointParent);
+      assert.isNull(tn3.insertionPointParent);
+
+      var hostShadowRoot = host.createShadowRoot();
+      hostShadowRoot.innerHTML = '1<content></content>5';
+      var tn1 = hostShadowRoot.firstChild;
+      var content1 = hostShadowRoot.firstElementChild;
+      var tn5 = hostShadowRoot.lastChild;
+
+      renderAllPending();
+      assert.equal(a.insertionPointParent, content1);
+      assert.isNull(tn1.insertionPointParent);
+      assert.isNull(tn3.insertionPointParent);
+      assert.isNull(tn5.insertionPointParent);
+
+      var aShadowRoot = a.createShadowRoot();
+      aShadowRoot.innerHTML = '2<content></content>4';
+      var tn2 = aShadowRoot.firstChild;
+      var content2 = aShadowRoot.firstElementChild;
+      var tn4 = aShadowRoot.firstChild;
+
+      renderAllPending();
+      assert.equal(a.insertionPointParent, content1);
+      assert.isNull(tn1.insertionPointParent);
+      assert.isNull(tn2.insertionPointParent);
+      assert.equal(tn3.insertionPointParent, content2);
+      assert.isNull(tn4.insertionPointParent);
+      assert.isNull(tn5.insertionPointParent);
+    });
+
+  });
+
 });
