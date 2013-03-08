@@ -16,7 +16,6 @@
   [
     'sidetable.js',
     'wrappers.js',
-    'parallel-trees.js',
     'wrappers/node-interfaces.js',
     'wrappers/Node.js',
     'wrappers/CharacterData.js',

@@ -32,7 +32,7 @@ suite('Shadow DOM reprojection', function() {
     var contentB = pShadowRoot.childNodes[3];
 
     function testRender() {
-      render(host);
+      renderAllPending();
       assert.strictEqual(getVisualInnerHtml(host),
                          '<p>a: <a></a>b: <b></b></p>');
 
