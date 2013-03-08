@@ -114,6 +114,49 @@
     }
   });
 
+  function getterRequiresRendering(name) {
+    Object.defineProperty(WrapperHTMLElement.prototype, name, {
+      get: function() {
+        renderAllPending();
+        return this.node[name];
+      },
+      configurable: true,
+      enumerable: true
+    });
+  }
+
+  [
+    'clientHeight',
+    'clientLeft',
+    'clientTop',
+    'clientWidth',
+    'offsetHeight',
+    'offsetLeft',
+    'offsetTop',
+    'offsetWidth',
+    'scrollHeight',
+    'scrollLeft',
+    'scrollTop',
+    'scrollWidth',
+  ].forEach(getterRequiresRendering);
+
+  function methodRequiresRendering(name) {
+    Object.defineProperty(WrapperHTMLElement.prototype, name, {
+      value: function() {
+        renderAllPending();
+        return this.node[name].apply(this.node, arguments);
+      },
+      configurable: true,
+      enumerable: true
+    });
+  }
+
+  [
+    'getBoundingClientRect',
+    'getClientRects',
+    'scrollIntoView'
+  ].forEach(methodRequiresRendering);
+
   // HTMLElement is abstract so we use a subclass that has no members.
   wrappers.register(HTMLElement, WrapperHTMLElement,
                     document.createElement('span'));

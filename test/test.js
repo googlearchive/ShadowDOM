@@ -7,7 +7,7 @@
 suite('Shadow DOM', function() {
 
   function getVisualInnerHtml(el) {
-    renderAllPending();
+    el.offsetWidth;
     return unwrap(el).innerHTML;
   }
 
@@ -279,7 +279,7 @@ suite('Shadow DOM', function() {
       var content1 = hostShadowRoot.firstElementChild;
       var tn5 = hostShadowRoot.lastChild;
 
-      renderAllPending();
+      host.offsetWidth;
       assert.equal(a.insertionPointParent, content1);
       assert.isNull(tn1.insertionPointParent);
       assert.isNull(tn3.insertionPointParent);
@@ -291,7 +291,7 @@ suite('Shadow DOM', function() {
       var content2 = aShadowRoot.firstElementChild;
       var tn4 = aShadowRoot.firstChild;
 
-      renderAllPending();
+      host.offsetWidth;
       assert.equal(a.insertionPointParent, content1);
       assert.isNull(tn1.insertionPointParent);
       assert.isNull(tn2.insertionPointParent);

@@ -7,7 +7,7 @@
 suite('Shadow DOM reprojection', function() {
 
   function getVisualInnerHtml(el) {
-    renderAllPending();
+    el.offsetWidth;
     return unwrap(el).innerHTML;
   }
 
@@ -32,7 +32,7 @@ suite('Shadow DOM reprojection', function() {
     var contentB = pShadowRoot.childNodes[3];
 
     function testRender() {
-      renderAllPending();
+      host.offsetWidth;
       assert.strictEqual(getVisualInnerHtml(host),
                          '<p>a: <a></a>b: <b></b></p>');
 
