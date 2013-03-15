@@ -175,4 +175,20 @@ suite('Wrapper creation', function() {
     assert.isNull(documentElement.parentElement);
   });
 
+  test('contains', function() {
+    var div = document.createElement('div');
+    assert.isTrue(div.contains(div));
+
+    div.textContent = 'a';
+    var textNode = div.firstChild;
+    assert.isTrue(textNode.contains(textNode));
+    assert.isTrue(div.contains(textNode));
+    assert.isFalse(textNode.contains(div));
+
+    var doc = div.ownerDocument;
+    assert.isTrue(doc.contains(doc));
+    assert.isFalse(doc.contains(div));
+    assert.isFalse(doc.contains(textNode));
+  });
+
 });

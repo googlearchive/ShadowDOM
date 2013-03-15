@@ -328,9 +328,19 @@
       }
       // TODO(arv): Some HTML elements also clone other data like value.
       return clone;
-    }
+    },
 
     // insertionPointParent is added in ShadowRender.js
+
+    contains: function(child) {
+      // TODO(arv): Optimize using ownerDocument etc.
+      if (child === this)
+        return true;
+      var parentNode = child.parentNode;
+      if (!parentNode)
+        return false;
+      return this.contains(parentNode);
+    }
   };
 
   addWrapGetter(WrapperNode, 'ownerDocument');
