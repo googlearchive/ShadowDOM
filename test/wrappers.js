@@ -175,4 +175,14 @@ suite('Wrapper creation', function() {
     assert.isNull(documentElement.parentElement);
   });
 
+  test('childElementCount', function() {
+    var div = document.createElement('div');
+    div.innerHTML = 'a<b></b>c';
+    assert.equal(div.childElementCount, 1);
+    div.appendChild(document.createElement('d'));
+    assert.equal(div.childElementCount, 2);
+    div.appendChild(document.createTextNode('e'));
+    assert.equal(div.childElementCount, 2);
+  });
+
 });

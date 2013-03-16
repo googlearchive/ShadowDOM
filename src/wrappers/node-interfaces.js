@@ -26,6 +26,20 @@
 
     get lastElementChild() {
       return backwardsElement(this.lastChild);
+    },
+
+    get childElementCount() {
+      // TODO(arv): Cache
+      var i = 0;
+      for (var child = this.firstElementChild; child; child = child.nextElementSibling) {
+        i++;
+      }
+      return i;
+    },
+
+    get children() {
+      // TODO(arv): Implement
+      throw new Error('Not impelemnted');
     }
   };
 
