@@ -11,6 +11,8 @@
         return new WrapperHTMLContentElement(node);
       case 'SHADOW':
         return new WrapperHTMLShadowElement(node);
+      case 'TEMPLATE':
+        return new WrapperHTMLTemplateElement(node);
     }
     WrapperHTMLElement.call(this, node);
   }
