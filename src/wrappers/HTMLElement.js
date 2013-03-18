@@ -79,6 +79,17 @@
     return s;
   }
 
+  function setInnerHTML(node, value, opt_tagName) {
+    var tagName = opt_tagName || 'div';
+    node.textContent = '';
+    var tempElement =unwrap(node.ownerDocument.createElement(tagName));
+    tempElement.innerHTML = value;
+    var firstChild;
+    while (firstChild = tempElement.firstChild) {
+      node.appendChild(wrap(firstChild));
+    }
+  }
+
   function WrapperHTMLElement(node) {
     WrapperElement.call(this, node);
   }
@@ -90,14 +101,7 @@
       return getInnerHTML(this);
     },
     set innerHTML(value) {
-      this.textContent = '';
-      var tempElement =
-          unwrap(this.node.ownerDocument.createElement(this.tagName));
-      tempElement.innerHTML = value;
-      var firstChild;
-      while (firstChild = tempElement.firstChild) {
-        this.appendChild(wrap(firstChild));
-      }
+      setInnerHTML(this, value, this.tagName);
     },
   
     get outerHTML() {
@@ -165,4 +169,5 @@
 
   // TODO: Find a better way to share these two with WrapperShadowRoot.
   exports.getInnerHTML = getInnerHTML;
+  exports.setInnerHTML = setInnerHTML
 })(this);

@@ -29,14 +29,7 @@
       return getInnerHTML(this);
     },
     set innerHTML(value) {
-      this.textContent = '';
-      var tempElement = unwrap(this.node.ownerDocument.createElement('div'));
-      tempElement.innerHTML = value;
-      var firstChild;
-      while (firstChild = tempElement.firstChild) {
-        this.appendChild(wrap(firstChild));
-      }
-
+      setInnerHTML(this, value);
       this.invalidateShadowRenderer();
     },
 
