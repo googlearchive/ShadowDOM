@@ -82,14 +82,12 @@
    * This represents a logical DOM node.
    * @param {!Node} original The original DOM node, aka, the visual DOM node.
    * @constructor
+   * @extends {WrapperEventTarget}
    */
   function WrapperNode(original) {
     assert(original instanceof Node);
 
-    /**
-     * @type {!Node}
-     */
-    this.node = original;
+    WrapperEventTarget.call(this, original);
 
     // These properties are used to override the visual references with the
     // logical ones. If the value is undefined it means that the logical is the
@@ -131,7 +129,8 @@
     this.childNodes_ = null;
   }
 
-  WrapperNode.prototype = {
+  WrapperNode.prototype = Object.create(WrapperEventTarget.prototype);
+  mixin(WrapperNode.prototype, {
     appendChild: function(childWrapper) {
       assert(childWrapper instanceof WrapperNode);
 
@@ -341,7 +340,7 @@
         return false;
       return this.contains(parentNode);
     }
-  };
+  });
 
   addWrapGetter(WrapperNode, 'ownerDocument');
 
@@ -351,7 +350,8 @@
   wrappers.register(Node, WrapperNode, document.createDocumentFragment());
   delete WrapperNode.prototype.querySelector;
   delete WrapperNode.prototype.querySelectorAll;
-  WrapperNode.prototype = mixin({}, WrapperNode.prototype);
+  WrapperNode.prototype =
+      mixin(Object.create(WrapperEventTarget.prototype), WrapperNode.prototype);
 
   exports.WrapperNode = WrapperNode;
 
