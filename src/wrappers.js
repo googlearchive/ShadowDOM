@@ -170,7 +170,7 @@
     if (node === null)
       return null;
 
-    assert(node instanceof Node);
+    assert(node instanceof Node || node instanceof Event);
     var wrapper = wrapperTable.get(node);
     if (!wrapper) {
       var wrapperConstructor = getWrapperConstructor(node);
@@ -188,7 +188,7 @@
   function unwrap(wrapper) {
     if (wrapper === null)
       return null;
-    assert(wrapper instanceof WrapperNode);
+    assert(wrapper instanceof WrapperEventTarget || wrapper instanceof WrapperEvent);
     return wrapper.node;
   }
 
@@ -201,7 +201,7 @@
   function rewrap(node, wrapper) {
     if (wrapper === null)
       return;
-    assert(node instanceof Node);
+    assert(node instanceof Node || node instanceof Event);
     assert(wrapper === undefined || wrapper instanceof WrapperNode);
     wrapperTable.set(node, wrapper);
   }

@@ -55,33 +55,34 @@
     'getElementById',
     'querySelector',
     'createElement',
+    'createElementNS',
     'createTextNode',
-    'createDocumentFragment'
+    'createDocumentFragment',
+    'createEvent',
+    'createEventNS',
   ].forEach(function(name) {
     wrapMethod(document, name);
   });
 
-  function wrapImplMethod(name) {
-    return function() {
-      return wrap(this.impl[name].apply(this.impl, arguments));
+  function wrapImplMethod(constructor, name) {
+    constructor.prototype[name] = function() {
+      return wrap(this.node[name].apply(this.node, arguments));
     };
   }
 
-  function forwardImplMethod(name) {
-    return function() {
-      return this.impl[name].apply(this.impl, arguments);
+  function forwardImplMethod(constructor, name) {
+    constructor.prototype[name] = function() {
+      return this.node[name].apply(this.node, arguments);
     };
   }
 
-  function WrapperDOMImplementation(impl) {
-    this.impl = impl;
+  function WrapperDOMImplementation(node) {
+    this.node = node;
   }
 
-  WrapperDOMImplementation.prototype = {
-    createDocumentType: wrapImplMethod('createDocumentType'),
-    createDocument: wrapImplMethod('createDocument'),
-    createHTMLDocument: wrapImplMethod('createHTMLDocument'),
-    hasFeature: forwardImplMethod('hasFeature')
-  };
+  wrapImplMethod(WrapperDOMImplementation, 'createDocumentType');
+  wrapImplMethod(WrapperDOMImplementation, 'createDocument');
+  wrapImplMethod(WrapperDOMImplementation, 'createHTMLDocument');
+  forwardImplMethod(WrapperDOMImplementation, 'hasFeature');
 
 })(this);
