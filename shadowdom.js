@@ -29,6 +29,7 @@
     'wrappers/HTMLUnknownElement.js',
     'wrappers/HTMLContentElement.js',
     'wrappers/HTMLShadowElement.js',
+    'wrappers/HTMLTemplateElement.js',
     'wrappers/generic.js',
     'wrappers/ShadowRoot.js',
     'ShadowRenderer.js',
