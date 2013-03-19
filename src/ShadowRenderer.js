@@ -352,6 +352,8 @@
     renderShadowInsertionPoint: function(visualParent, tree, shadowInsertionPoint) {
       var nextOlderTree = getNextOlderTree(tree);
       if (nextOlderTree) {
+        // This makes ShadowRoot have its insertionPointParent be the <shadow>.
+        insertionPointParentTable.set(nextOlderTree, shadowInsertionPoint);
         shadowInsertionPoint.olderShadowRoot_ = nextOlderTree;
         this.remove(shadowInsertionPoint);
         var shadowDOMChildNodes = getChildNodesSnapshot(nextOlderTree);
@@ -464,6 +466,17 @@
     return nextOlderShadowTreeTable.get(tree);
   }
 
+  function getShadowTrees(host) {
+    var trees = [];
+
+    for (var tree = host.shadowRoot;
+         tree;
+         tree = nextOlderShadowTreeTable.get(tree)) {
+      trees.push(tree);
+    }
+    return trees;
+  }
+
   function assignShadowTreeToShadowInsertionPoint(tree, point) {
     // TODO: No one is reading the map below.
     // console.log('Assign %o to %o', tree, point);
@@ -505,6 +518,7 @@
   exports.renderAllPending = renderAllPending;
 
   exports.nextOlderShadowTreeTable = nextOlderShadowTreeTable;
+  exports.getShadowTrees = getShadowTrees;
 
   // Exposed for testing
   exports.visual = {
