@@ -46,4 +46,7 @@
   });
 
   exports.WrapperShadowRoot = WrapperShadowRoot;
+  exports.getHostForShadowRoot = function(node) {
+    return shadowHostTable.get(node);
+  };
 })(this);
