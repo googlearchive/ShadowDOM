@@ -8,6 +8,7 @@
   var WrapperDocumentFragment =
       wrappers.registerObject(document.createDocumentFragment());
   mixin(WrapperDocumentFragment.prototype, ParentNodeInterface);
+  mixin(WrapperDocumentFragment.prototype, SelectorsInterface);
 
   wrappers.registerObject(document.createTextNode(''));
   wrappers.registerObject(document.createComment(''));

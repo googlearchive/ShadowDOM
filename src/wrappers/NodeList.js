@@ -5,14 +5,31 @@
 (function(exports) {
   'use strict';
 
-  function WrapperNodeList() {}
+  function nonEnum(obj, prop) {
+    Object.defineProperty(obj, prop, {enumerable: false});
+  }
+
+  function WrapperNodeList() {
+    this.length = 0;
+    nonEnum(this, 'length');
+  }
   WrapperNodeList.prototype = {
     item: function(index) {
       return this[index];
     }
   };
-  Object.defineProperty(WrapperNodeList.prototype, 'item', {enumerable: false});
+  nonEnum(WrapperNodeList.prototype, 'item');
 
+  function wrapNodeList(list) {
+    var wrapperList = new WrapperNodeList();
+    for (var i = 0, length = list.length; i < length; i++) {
+      wrapperList[i] = wrap(list[i]);
+    }
+    wrapperList.length = length;
+    return wrapperList;
+  }
+
+  exports.wrapNodeList = wrapNodeList;
   exports.WrapperNodeList = WrapperNodeList;
 
 })(this);
