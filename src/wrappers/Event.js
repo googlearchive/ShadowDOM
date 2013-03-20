@@ -17,8 +17,12 @@
     this.node = original;
   }
 
-  addWrapGetter(WrapperEvent, 'target');
-  addWrapGetter(WrapperEvent, 'currentTarget');
+  WrapperEvent.prototype = {
+    // These are overridden in EventTarget.js
+    get target() {},
+    get currentTarget() {},
+    get eventPhase() {}
+  };
 
   wrappers.register(Event, WrapperEvent, document.createEvent('Event'));
 
