@@ -43,13 +43,19 @@
   if (typeof HTMLDocument !== 'undefined')
     wrappers.register(HTMLDocument, WrapperDocument);
 
-  function wrapMethod(object, name) {
-    var proto = Object.getPrototypeOf(object);
+  function wrapMethod(name) {
+    var proto = Object.getPrototypeOf(document);
     var original = proto[name];
     proto[name] = function() {
       return wrap(original.apply(this, arguments));
     };
+    WrapperDocument.prototype[name] = function() {
+      return wrap(original.apply(this.node, arguments));
+    };
   }
+
+  // document cannot be overridden so we override a bunch of its methods
+  // directly on the instance
 
   [
     'getElementById',
@@ -60,9 +66,25 @@
     'createDocumentFragment',
     'createEvent',
     'createEventNS',
-  ].forEach(function(name) {
-    wrapMethod(document, name);
-  });
+  ].forEach(wrapMethod);
+
+  function wrapNodeListMethod(name) {
+    var proto = Object.getPrototypeOf(document);
+    var original = proto[name];
+    proto[name] = function() {
+      return wrapNodeList(original.apply(this, arguments));
+    };
+    WrapperDocument.prototype[name] = function() {
+      return wrapNodeList(original.apply(this.node, arguments));
+    };
+  }
+
+  [
+    'getElementsByTagName',
+    'getElementsByTagNameNS',
+    'getElementsByClassName',
+    'querySelectorAll'
+  ].forEach(wrapNodeListMethod);
 
   function wrapImplMethod(constructor, name) {
     constructor.prototype[name] = function() {

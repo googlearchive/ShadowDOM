@@ -23,7 +23,6 @@
     'wrappers/Node.js',
     'wrappers/CharacterData.js',
     'wrappers/NodeList.js',
-    'wrappers/ChildNodeList.js',
     'wrappers/Element.js',
     'wrappers/HTMLElement.js',
     'wrappers/HTMLUnknownElement.js',

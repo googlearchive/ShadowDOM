@@ -122,11 +122,6 @@
      * @private
      */
     this.previousSibling_ = undefined;
-
-    /**
-     * @type {WrapperNodeList}
-     */
-    this.childNodes_ = null;
   }
 
   WrapperNode.prototype = Object.create(WrapperEventTarget.prototype);
@@ -310,9 +305,13 @@
     },
 
     get childNodes() {
-      if (this.childNodes_)
-        return this.childNodes_;
-      return this.childNodes_ = new WrapperChildNodeList(this);
+      var wrapperList = new WrapperNodeList();
+      var i = 0;
+      for (var child = this.firstChild; child; child = child.nextSibling) {
+        wrapperList[i++] = child;
+      }
+      wrapperList.length = i;
+      return wrapperList;
     },
 
     cloneNode: function(deep) {

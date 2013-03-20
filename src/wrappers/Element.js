@@ -38,6 +38,15 @@
 
   mixin(WrapperElement.prototype, ChildNodeInterface);
   mixin(WrapperElement.prototype, ParentNodeInterface);
+  mixin(WrapperElement.prototype, SelectorsInterface);
+
+  [
+    'getElementsByTagName',
+    'getElementsByTagNameNS',
+    'getElementsByClassName'
+  ].forEach(function(name) {
+    addWrapNodeListMethod(WrapperElement, name);
+  });
 
   wrappers.register(Element, WrapperElement);
 

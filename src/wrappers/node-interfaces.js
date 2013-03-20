@@ -26,6 +26,28 @@
 
     get lastElementChild() {
       return backwardsElement(this.lastChild);
+    },
+
+    get childElementCount() {
+      var count = 0;
+      for (var child = this.firstElementChild;
+           child;
+           child = child.nextElementSibling) {
+        count++;
+      }
+      return count;
+    },
+
+    get children() {
+      var wrapperList = new WrapperNodeList();
+      var i = 0;
+      for (var child = this.firstElementChild;
+           child;
+           child = child.nextElementSibling) {
+        wrapperList[i++] = child;
+      }
+      wrapperList.length = i;
+      return wrapperList;
     }
   };
 
@@ -39,6 +61,15 @@
     }
   };
 
+  var SelectorsInterface = {
+    querySelector: function(s) {
+      return wrap(this.node.querySelector(s));
+    },
+    querySelectorAll: function(s) {
+      return wrapNodeList(this.node.querySelectorAll(s));
+    }
+  };
+
   function addWrapGetter(wrapperConstructor, name) {
     Object.defineProperty(wrapperConstructor.prototype, name, {
       get: function() {
@@ -49,8 +80,17 @@
     });
   }
 
-  exports.ParentNodeInterface = ParentNodeInterface;
-  exports.ChildNodeInterface = ChildNodeInterface;
+  function addWrapNodeListMethod(wrapperConstructor, name) {
+    wrapperConstructor.prototype[name] = function() {
+      return wrapNodeList(this.node[name].apply(this.node, arguments));
+    };
+  }
+
   exports.addWrapGetter = addWrapGetter;
+  exports.addWrapNodeListMethod = addWrapNodeListMethod;
+
+  exports.ChildNodeInterface = ChildNodeInterface;
+  exports.ParentNodeInterface = ParentNodeInterface;
+  exports.SelectorsInterface = SelectorsInterface;
 
 })(this);

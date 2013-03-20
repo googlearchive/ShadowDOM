@@ -100,12 +100,6 @@ suite('Wrapper creation', function() {
     });
   });
 
-  test('Ensure Document has ParentNodeInterface', function() {
-    var doc = wrap(document).implementation.createHTMLDocument('');
-    assert.equal(doc.firstElementChild.tagName, 'HTML');
-    assert.equal(doc.lastElementChild.tagName, 'HTML');
-  });
-
   test('cloneNode(false)', function() {
     var doc = wrap(document);
     var a = document.createElement('a');
@@ -139,26 +133,6 @@ suite('Wrapper creation', function() {
     expectStructure(textNodeClone, {
       parentNode: aClone
     });
-  });
-
-  test('document.documentElement', function() {
-    var doc = wrap(document);
-    assert.equal(doc.documentElement.ownerDocument, doc);
-    assert.equal(doc.documentElement.tagName, 'HTML');
-  });
-
-  test('document.body', function() {
-    var doc = wrap(document);
-    assert.equal(doc.body.ownerDocument, doc);
-    assert.equal(doc.body.tagName, 'BODY');
-    assert.equal(doc.body.parentNode, doc.documentElement);
-  });
-
-  test('document.head', function() {
-    var doc = wrap(document);
-    assert.equal(doc.head.ownerDocument, doc);
-    assert.equal(doc.head.tagName, 'HEAD');
-    assert.equal(doc.head.parentNode, doc.documentElement);
   });
 
   test('parentElement', function() {
