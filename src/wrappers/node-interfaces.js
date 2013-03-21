@@ -63,17 +63,17 @@
 
   var SelectorsInterface = {
     querySelector: function(s) {
-      return wrap(this.node.querySelector(s));
+      return wrap(this.impl.querySelector(s));
     },
     querySelectorAll: function(s) {
-      return wrapNodeList(this.node.querySelectorAll(s));
+      return wrapNodeList(this.impl.querySelectorAll(s));
     }
   };
 
   function addWrapGetter(wrapperConstructor, name) {
     Object.defineProperty(wrapperConstructor.prototype, name, {
       get: function() {
-        return wrap(this.node[name]);
+        return wrap(this.impl[name]);
       },
       configurable: true,
       enumerable: true
@@ -82,7 +82,7 @@
 
   function addWrapNodeListMethod(wrapperConstructor, name) {
     wrapperConstructor.prototype[name] = function() {
-      return wrapNodeList(this.node[name].apply(this.node, arguments));
+      return wrapNodeList(this.impl[name].apply(this.impl, arguments));
     };
   }
 

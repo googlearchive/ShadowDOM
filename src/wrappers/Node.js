@@ -144,7 +144,7 @@
       // A better aproach might be to make sure we only get here for nodes that
       // are related to a shadow host and then invalidate that and re-render
       // the host (on reflow?).
-      this.node.appendChild(unwrapNodesForInsertion(nodes));
+      this.impl.appendChild(unwrapNodesForInsertion(nodes));
 
       return childWrapper;
     },
@@ -251,31 +251,31 @@
     get parentNode() {
       // If the parentNode has not been overridden, use the original parentNode.
       return this.parentNode_ !== undefined ?
-          this.parentNode_ : wrap(this.node.parentNode);
+          this.parentNode_ : wrap(this.impl.parentNode);
     },
 
     /** @type {WrapperNode} */
     get firstChild() {
       return this.firstChild_ !== undefined ?
-          this.firstChild_ : wrap(this.node.firstChild);
+          this.firstChild_ : wrap(this.impl.firstChild);
     },
 
     /** @type {WrapperNode} */
     get lastChild() {
       return this.lastChild_ !== undefined ?
-          this.lastChild_ : wrap(this.node.lastChild);
+          this.lastChild_ : wrap(this.impl.lastChild);
     },
 
     /** @type {WrapperNode} */
     get nextSibling() {
       return this.nextSibling_ !== undefined ?
-          this.nextSibling_ : wrap(this.node.nextSibling);
+          this.nextSibling_ : wrap(this.impl.nextSibling);
     },
 
     /** @type {WrapperNode} */
     get previousSibling() {
       return this.previousSibling_ !== undefined ?
-          this.previousSibling_ : wrap(this.node.previousSibling);
+          this.previousSibling_ : wrap(this.impl.previousSibling);
     },
 
     get parentElement() {
@@ -287,7 +287,7 @@
     },
 
     get textContent() {
-      // TODO(arv): This should fallback to this.node.textContent if there
+      // TODO(arv): This should fallback to this.impl.textContent if there
       // are no shadow trees below or above the context node.
       var s = '';
       for (var child = this.firstChild; child; child = child.nextSibling) {
@@ -299,7 +299,7 @@
       removeAllChildNodes(this);
       this.invalidateShadowRenderer();
       if (textContent !== '') {
-        var textNode = this.node.ownerDocument.createTextNode(textContent);
+        var textNode = this.impl.ownerDocument.createTextNode(textContent);
         this.appendChild(textNode);
       }
     },
@@ -316,9 +316,9 @@
 
     cloneNode: function(deep) {
       if (!this.invalidateShadowRenderer())
-        return wrap(this.node.cloneNode(deep));
+        return wrap(this.impl.cloneNode(deep));
 
-      var clone = wrap(this.node.cloneNode(false));
+      var clone = wrap(this.impl.cloneNode(false));
       if (deep) {
         for (var child = this.firstChild; child; child = child.nextSibling) {
           clone.appendChild(child.cloneNode(true));
