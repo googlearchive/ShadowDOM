@@ -270,7 +270,7 @@
     /**
      * @type {!Event}
      */
-    this.node = original;
+    this.impl = original;
   }
 
   WrapperEvent.prototype = {
