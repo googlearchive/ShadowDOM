@@ -45,7 +45,7 @@
   mixin(WrapperHTMLTemplateElement.prototype, {
     get content() {
       if (hasNative)
-        return wrap(this.node.content);
+        return wrap(this.impl.content);
 
       // TODO(arv): This should be done in createCallback. I initially tried to
       // do this in the constructor but the wrapper is not yet created at that

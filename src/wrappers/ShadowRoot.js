@@ -8,7 +8,7 @@
   var shadowHostTable = new SideTable();
 
   function WrapperShadowRoot(hostWrapper) {
-    var node = unwrap(hostWrapper.node.ownerDocument.createDocumentFragment());
+    var node = unwrap(hostWrapper.impl.ownerDocument.createDocumentFragment());
     WrapperDocumentFragment.call(this, node);
 
     // createDocumentFragment associates the node with a WrapperDocumentFragment
