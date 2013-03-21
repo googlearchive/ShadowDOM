@@ -263,8 +263,7 @@ suite('Events', function() {
     var p = sr.firstChild;
     var content = p.firstChild;
 
-    // trigger recalc
-    div.offsetWidth;
+    div.offsetWidth;  // trigger recalc
 
     var calls = 0;
 
@@ -289,8 +288,7 @@ suite('Events', function() {
     var q = sr2.firstChild;
     var shadow = q.firstChild;
 
-    // trigger recalc
-    div.offsetWidth;
+    div.offsetWidth;  // trigger recalc
 
     addListener(b, div);
     addListener(b, sr2);
@@ -304,6 +302,28 @@ suite('Events', function() {
 
     b.click();
     assert.equal(calls, 0);
+  });
+
+  test('adjustRelatedTarget', function() {
+    var div = document.createElement('div');
+    div.innerHTML = '<a></a><b><c></c><d></d></b>';
+    var a = div.firstChild;
+    var b = div.lastChild;
+    var c = b.firstChild;
+    var d = b.lastChild;
+
+    assert.equal(adjustRelatedTarget(c, d), d);
+
+    var sr = b.createShadowRoot();
+    sr.innerHTML = '<e></e><content></content><f></f>';
+    var e = sr.firstChild;
+    var content = e.nextSibling;
+    var f = sr.lastChild;
+
+    div.offsetWidth;  // trigger recalc
+
+    assert.equal(adjustRelatedTarget(a, e), b);
+    assert.equal(adjustRelatedTarget(e, f), f);
   });
 
 });
