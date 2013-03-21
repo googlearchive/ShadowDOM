@@ -6,6 +6,11 @@
   'use strict';
 
   var wrappedFuns = new SideTable();
+  var listenersTable = new SideTable();
+  var handledEventsTable = new SideTable();
+  var targetTable = new SideTable();
+  var currentTargetTable = new SideTable();
+  var eventPhaseTable = new SideTable();
 
   function isShadowRoot(node) {
     return node instanceof WrapperShadowRoot;
@@ -78,6 +83,115 @@
     return null;
   }
 
+  function dispatchOriginalEvent(originalEvent) {
+    // Make sure this event is only dispatched once.
+    if (handledEventsTable.get(originalEvent))
+      return;
+    handledEventsTable.set(originalEvent, true);
+
+    var target = wrap(originalEvent.target);
+    var event = wrap(originalEvent);
+    return dispatchEvent(event, target);
+  }
+
+  function dispatchEvent(event, originalWrapperTarget) {
+    var type = event.type;
+    var bubbles = event.bubbles;
+    var ancestorChain = retarget(originalWrapperTarget);
+    var i = ancestorChain.length - 1;
+
+    var phase = Event.CAPTURING_PHASE;
+    eventPhaseTable.set(event, phase);
+
+    while (true) {
+      var currentTarget = ancestorChain[i].ancestor;
+      var target = ancestorChain[i].target;
+      if (!deliverEvent(target, currentTarget, event, type, phase))
+        break;
+      if (i === 0)
+        break;
+      i--;
+    }
+
+    phase = Event.BUBBLING_PHASE;
+    eventPhaseTable.set(event, phase);
+
+    for (; i < ancestorChain.length; i++) {
+      // Non bubbling event should only dispatch on target
+      if (!bubbles && i > 0)
+        break;
+      var currentTarget = ancestorChain[i].ancestor;
+      var target = ancestorChain[i].target;
+      if (!deliverEvent(target, currentTarget, event, type, phase))
+        break;
+    }
+
+    return event.defaultPrevented;
+  }
+
+  function deliverEvent(target, currentTarget, event, type, phase) {
+    var listeners = listenersTable.get(currentTarget);
+    if (!listeners)
+      return;
+
+    var anyDeleted = false;
+    for (var i = 0; i < listeners.length; i++) {
+      var listener = listeners[i];
+      if (listener.deleted) {
+        anyDeleted = true;
+        continue;
+      }
+
+      if (listener.type === type && listener.phase === phase) {
+        targetTable.set(event, target);
+        currentTargetTable.set(event, currentTarget);
+
+        try {
+          listener.handler.call(currentTarget, event);
+
+          // TODO(arv): stopImmediatePropagation
+
+        } catch (ex) {
+          // Don't let exceptions in event handler escape.
+          console.error(ex);
+        }
+      }
+    }
+
+    if (anyDeleted) {
+      var copy = listeners.slice();
+      listeners.length = 0;
+      for (var i = 0; i < copy.length; i++) {
+        if (!copy[i].deleted)
+          listeners.push(copy[i]);
+      }
+    }
+
+    // TODO(arv): stopPropagation
+    return true;
+  }
+
+  function Listener(type, handler, capture) {
+    this.type = type;
+    this.handler = handler;
+    this.capture = capture;
+  }
+  Listener.prototype = {
+    get phase() {
+      return this.capture ? Event.CAPTURING_PHASE : Event.BUBBLING_PHASE;
+    },
+    equals: function(that) {
+      return this.type === that.type && this.handler === that.handler &&
+          this.capture === that.capture;
+    },
+    get deleted() {
+      return this.handler === null;
+    },
+    delete: function() {
+      this.handler = null;
+    }
+  };
+
   /**
    * This represents a logical DOM node.
    * @param {!Node} original The original DOM node, aka, the visual DOM node.
@@ -92,28 +206,54 @@
 
   WrapperEventTarget.prototype = {
     addEventListener: function(type, fun, capture) {
-      var wrappedFun = wrappedFuns.get(fun);
-      if (!wrappedFun) {
-        wrappedFun = function(e) {
-          return fun.call(wrap(this), wrap(e));
-        };
-        wrappedFuns.set(fun, wrappedFun);
+      var listener = new Listener(type, fun, capture);
+      var listeners = listenersTable.get(this);
+      if (!listeners) {
+        listeners = [];
+        listenersTable.set(this, listeners);
+      } else {
+        // Might have a duplicate.
+        for (var i = 0; i < listeners.length; i++) {
+          if (listener.equals(listeners[i]))
+            return;
+        }
       }
-      
-      this.node.addEventListener(type, wrappedFun, capture);
+
+      listeners.push(listener);
+
+      unwrap(this).addEventListener(type, dispatchOriginalEvent, true);
     },
     removeEventListener: function(type, fun, capture) {
-      var wrappedFun = wrappedFuns.get(fun);
-      if (wrappedFun)
-        this.node.removeEventListener(type, wrappedFun, capture);
+      var listeners = listenersTable.get(this);
+      if (!listeners)
+        return;
+      var listener = new Listener(type, fun, capture);
+      for (var i = 0; listeners.length; i++) {
+        if (listener.equals(listeners[i])) {
+          listeners[i].delete();
+          return;
+        }
+      }
     },
     dispatchEvent: function(event) {
-      return this.node.dispatchEvent(unwrap(event));
+      return dispatchEvent(event, this);
     }
   };
 
   if (typeof EventTarget !== 'undefined')
     wrappers.register(EventTarget, WrapperEventTarget);
+
+  mixin(WrapperEvent.prototype, {
+    get target() {
+      return targetTable.get(this);
+    },
+    get currentTarget() {
+      return currentTargetTable.get(this);
+    },
+    get eventPhase() {
+      return eventPhaseTable.get(this);
+    }
+  });
 
   exports.WrapperEventTarget = WrapperEventTarget;
   exports.retarget = retarget;

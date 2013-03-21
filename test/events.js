@@ -120,4 +120,77 @@ suite('Events', function() {
                      [b, a, content, p, sr, shadow, q, sr2, div]);
   });
 
+  test('click with shadow', function() {
+    function addListener(target, currentTarget) {
+      calls += 2;
+      currentTarget.addEventListener('click', function f(e) {
+        calls--;
+        assert.equal(e.eventPhase, Event.CAPTURING_PHASE);
+        assert.equal(e.target, target);
+        assert.equal(e.currentTarget, currentTarget);
+        assert.equal(e.currentTarget, this);
+        currentTarget.removeEventListener('click', f, true);
+      }, true);
+      currentTarget.addEventListener('click', function f(e) {
+        calls--;
+        assert.equal(e.eventPhase, Event.BUBBLING_PHASE);
+        assert.equal(e.target, target);
+        assert.equal(e.currentTarget, currentTarget);
+        assert.equal(e.currentTarget, this);
+        currentTarget.removeEventListener('click', f, false);
+      }, false);
+    }
+
+    var div = document.createElement('div');
+    div.innerHTML = '<a><b></b></a>';
+    var a = div.firstChild;
+    var b = a.firstChild;
+    var sr = div.createShadowRoot();
+    sr.innerHTML = '<p><content></content></p>';
+    var p = sr.firstChild;
+    var content = p.firstChild;
+
+    // trigger recalc
+    div.offsetWidth;
+
+    var calls = 0;
+
+    addListener(b, div);
+    addListener(b, sr);
+    addListener(b, p);
+    addListener(b, content);
+    addListener(b, a);
+    addListener(b, b);
+    b.click();
+    assert.equal(calls, 0);
+
+    addListener(div, div);
+    addListener(content, sr);
+    addListener(content, p);
+    addListener(content, content);
+    content.click();
+    assert.equal(calls, 0);
+
+    var sr2 = div.createShadowRoot();
+    sr2.innerHTML = '<q><shadow></shadow></q>';
+    var q = sr2.firstChild;
+    var shadow = q.firstChild;
+
+    // trigger recalc
+    div.offsetWidth;
+
+    addListener(b, div);
+    addListener(b, sr2);
+    addListener(b, q);
+    addListener(b, shadow);
+    addListener(b, sr);
+    addListener(b, p);
+    addListener(b, content);
+    addListener(b, a);
+    addListener(b, b);
+
+    b.click();
+    assert.equal(calls, 0);
+  });
+
 });
