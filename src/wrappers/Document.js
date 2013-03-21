@@ -50,7 +50,7 @@
       return wrap(original.apply(this, arguments));
     };
     WrapperDocument.prototype[name] = function() {
-      return wrap(original.apply(this.node, arguments));
+      return wrap(original.apply(this.impl, arguments));
     };
   }
 
@@ -75,7 +75,7 @@
       return wrapNodeList(original.apply(this, arguments));
     };
     WrapperDocument.prototype[name] = function() {
-      return wrapNodeList(original.apply(this.node, arguments));
+      return wrapNodeList(original.apply(this.impl, arguments));
     };
   }
 
@@ -88,18 +88,18 @@
 
   function wrapImplMethod(constructor, name) {
     constructor.prototype[name] = function() {
-      return wrap(this.node[name].apply(this.node, arguments));
+      return wrap(this.impl[name].apply(this.impl, arguments));
     };
   }
 
   function forwardImplMethod(constructor, name) {
     constructor.prototype[name] = function() {
-      return this.node[name].apply(this.node, arguments);
+      return this.impl[name].apply(this.impl, arguments);
     };
   }
 
   function WrapperDOMImplementation(node) {
-    this.node = node;
+    this.impl = node;
   }
 
   wrapImplMethod(WrapperDOMImplementation, 'createDocumentType');

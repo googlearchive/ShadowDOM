@@ -96,7 +96,7 @@
   WrapperHTMLElement.prototype = Object.create(WrapperElement.prototype);
   mixin(WrapperHTMLElement.prototype, {
     get innerHTML() {
-      // TODO(arv): This should fallback to this.node.innerHTML if there
+      // TODO(arv): This should fallback to this.impl.innerHTML if there
       // are no shadow trees below or above the context node.
       return getInnerHTML(this);
     },
@@ -111,7 +111,7 @@
     },
     set outerHTML(value) {
       if (!this.invalidateShadowRenderer()) {
-        this.node.outerHTML = value;
+        this.impl.outerHTML = value;
       } else {
         throw new Error('not implemented');
       }
@@ -122,7 +122,7 @@
     Object.defineProperty(WrapperHTMLElement.prototype, name, {
       get: function() {
         renderAllPending();
-        return this.node[name];
+        return this.impl[name];
       },
       configurable: true,
       enumerable: true
@@ -148,7 +148,7 @@
     Object.defineProperty(WrapperHTMLElement.prototype, name, {
       value: function() {
         renderAllPending();
-        return this.node[name].apply(this.node, arguments);
+        return this.impl[name].apply(this.impl, arguments);
       },
       configurable: true,
       enumerable: true

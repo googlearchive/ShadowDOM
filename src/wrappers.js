@@ -75,18 +75,18 @@
       var getter, setter;
       if (allowMethod && typeof descriptor.value === 'function') {
         target[name] = function() {
-          return this.node[name].apply(this.node, arguments);
+          return this.impl[name].apply(this.impl, arguments);
         };
         return;
       }
 
       getter = function() {
-        return this.node[name];
+        return this.impl[name];
       };
 
       if (descriptor.writable || descriptor.set) {
         setter = function(value) {
-          this.node[name] = value;
+          this.impl[name] = value;
         };
       }
 
@@ -189,7 +189,7 @@
     if (wrapper === null)
       return null;
     assert(wrapper instanceof WrapperEventTarget || wrapper instanceof WrapperEvent);
-    return wrapper.node;
+    return wrapper.impl;
   }
 
   /**
