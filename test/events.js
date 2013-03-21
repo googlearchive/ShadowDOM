@@ -72,73 +72,186 @@ suite('Events', function() {
     assert.isTrue(called);
   });
 
-  test('retarget', function() {
-    var div = document.createElement('div');
-    div.innerHTML = '<a><b></b></a>';
-    var a = div.firstChild;
+  test('stopPropagation', function() {
+    var a = document.createElement('a');
+    a.innerHTML = '<b><c>d</c></b>';
     var b = a.firstChild;
-    var sr = div.createShadowRoot();
-    sr.innerHTML = '<p><content></content></p>';
-    var p = sr.firstChild;
-    var content = p.firstChild;
+    var c = b.firstChild;
 
-    // trigger recalc
-    div.offsetWidth;
+    var log = [];
+    a.addEventListener('click', function(e) {
+      log.push(e.currentTarget, e.eventPhase);
+    }, true);
 
-    var tuples = retarget(b);
+    a.addEventListener('click', function(e) {
+      log.push(e.currentTarget, e.eventPhase);
+    }, false);
 
-    function targets(tuples) {
-      return tuples.map(function(tuple) {
-        return tuple.target;
-      });
-    }
+    b.addEventListener('click', function(e) {
+      log.push(e.currentTarget, e.eventPhase);
+      e.stopPropagation();
+    }, true);
 
-    function ancestors(tuples) {
-      return tuples.map(function(tuple) {
-        return tuple.ancestor;
-      });
-    }
+    b.addEventListener('click', function(e) {
+      log.push(e.currentTarget, e.eventPhase);
+    }, false);
 
-    assertArrayEqual(targets(tuples), [b, b, b, b, b, b]);
-    assertArrayEqual(ancestors(tuples), [b, a, content, p, sr, div]);
+    c.addEventListener('click', function(e) {
+      log.push(e.currentTarget, e.eventPhase);
+    }, true);
 
-    tuples = retarget(content);
-    assertArrayEqual(targets(tuples), [content, content, content, div]);
-    assertArrayEqual(ancestors(tuples), [content, p, sr, div]);
+    c.addEventListener('click', function(e) {
+      log.push(e.currentTarget, e.eventPhase);
+    }, false);
 
-    var sr2 = div.createShadowRoot();
-    sr2.innerHTML = '<q><shadow></shadow></q>';
-    var q = sr2.firstChild;
-    var shadow = q.firstChild;
+    c.click();
+    assertArrayEqual(log, [a, Event.CAPTURING_PHASE, b, Event.CAPTURING_PHASE]);
+  });
 
-    // trigger recalc
-    div.offsetWidth;
+  test('stopPropagation during bubble', function() {
+    var a = document.createElement('a');
+    a.innerHTML = '<b><c>d</c></b>';
+    var b = a.firstChild;
+    var c = b.firstChild;
 
-    tuples = retarget(b);
-    assertArrayEqual(targets(tuples), [b, b, b, b, b, b, b, b, b]);
-    assertArrayEqual(ancestors(tuples),
-                     [b, a, content, p, sr, shadow, q, sr2, div]);
+    var log = [];
+    a.addEventListener('click', function(e) {
+      log.push(e.currentTarget, e.eventPhase);
+    }, true);
+
+    a.addEventListener('click', function(e) {
+      log.push(e.currentTarget, e.eventPhase);
+    }, false);
+
+    b.addEventListener('click', function(e) {
+      log.push(e.currentTarget, e.eventPhase);
+    }, true);
+
+    b.addEventListener('click', function(e) {
+      log.push(e.currentTarget, e.eventPhase);
+      e.stopPropagation();
+    }, false);
+
+    c.addEventListener('click', function(e) {
+      log.push(e.currentTarget, e.eventPhase);
+    }, true);
+
+    c.addEventListener('click', function(e) {
+      log.push(e.currentTarget, e.eventPhase);
+    }, false);
+
+    c.click();
+    assertArrayEqual(log, [
+      a, Event.CAPTURING_PHASE,
+      b, Event.CAPTURING_PHASE,
+      c, Event.AT_TARGET,
+      c, Event.AT_TARGET,
+      b, Event.BUBBLING_PHASE
+    ]);
+  });
+
+  test('stopPropagation at target', function() {
+    var a = document.createElement('a');
+    a.innerHTML = '<b><c>d</c></b>';
+    var b = a.firstChild;
+    var c = b.firstChild;
+
+    var log = [];
+    a.addEventListener('click', function(e) {
+      log.push(e.currentTarget, e.eventPhase);
+    }, true);
+
+    a.addEventListener('click', function(e) {
+      log.push(e.currentTarget, e.eventPhase);
+    }, false);
+
+    b.addEventListener('click', function(e) {
+      log.push(e.currentTarget, e.eventPhase);
+    }, true);
+
+    b.addEventListener('click', function(e) {
+      log.push(e.currentTarget, e.eventPhase);
+    }, false);
+
+    c.addEventListener('click', function(e) {
+      log.push(e.currentTarget, e.eventPhase);
+      e.stopPropagation();
+    }, true);
+
+    c.addEventListener('click', function(e) {
+      log.push(e.currentTarget, e.eventPhase);
+    }, false);
+
+    c.click();
+    assertArrayEqual(log, [
+      a, Event.CAPTURING_PHASE,
+      b, Event.CAPTURING_PHASE,
+      c, Event.AT_TARGET,
+      c, Event.AT_TARGET
+    ]);
+  });
+
+  test('stopImmediatePropagation', function() {
+    var a = document.createElement('a');
+    a.innerHTML = '<b><c>d</c></b>';
+    var b = a.firstChild;
+    var c = b.firstChild;
+
+    var log = [];
+    a.addEventListener('click', function(e) {
+      log.push(e.currentTarget, e.eventPhase);
+    }, true);
+
+    a.addEventListener('click', function(e) {
+      log.push(e.currentTarget, e.eventPhase);
+    }, false);
+
+    b.addEventListener('click', function(e) {
+      log.push(e.currentTarget, e.eventPhase);
+      e.stopImmediatePropagation();
+    }, true);
+
+    b.addEventListener('click', function(e) {
+      log.push('FAIL', e.currentTarget, e.eventPhase);
+    }, true);
+
+    b.addEventListener('click', function(e) {
+      log.push(e.currentTarget, e.eventPhase);
+    }, false);
+
+    c.addEventListener('click', function(e) {
+      log.push(e.currentTarget, e.eventPhase);
+    }, true);
+
+    c.addEventListener('click', function(e) {
+      log.push(e.currentTarget, e.eventPhase);
+    }, false);
+
+    c.click();
+    assertArrayEqual(log, [a, Event.CAPTURING_PHASE, b, Event.CAPTURING_PHASE]);
   });
 
   test('click with shadow', function() {
-    function addListener(target, currentTarget) {
-      calls += 2;
-      currentTarget.addEventListener('click', function f(e) {
-        calls--;
-        assert.equal(e.eventPhase, Event.CAPTURING_PHASE);
-        assert.equal(e.target, target);
-        assert.equal(e.currentTarget, currentTarget);
-        assert.equal(e.currentTarget, this);
-        currentTarget.removeEventListener('click', f, true);
-      }, true);
-      currentTarget.addEventListener('click', function f(e) {
-        calls--;
-        assert.equal(e.eventPhase, Event.BUBBLING_PHASE);
-        assert.equal(e.target, target);
-        assert.equal(e.currentTarget, currentTarget);
-        assert.equal(e.currentTarget, this);
-        currentTarget.removeEventListener('click', f, false);
-      }, false);
+    function addListener(target, currentTarget, opt_phase) {
+      var phases;
+      if (opt_phase === Event.AT_TARGET)
+        phases = [opt_phase];
+      else
+        phases = [Event.CAPTURING_PHASE, Event.BUBBLING_PHASE];
+
+      calls += phases.length;
+
+      phases.forEach(function(phase) {
+        var capture = phase === Event.CAPTURING_PHASE;
+        currentTarget.addEventListener('click', function f(e) {
+          calls--;
+          assert.equal(e.eventPhase, phase);
+          assert.equal(e.target, target);
+          assert.equal(e.currentTarget, currentTarget);
+          assert.equal(e.currentTarget, this);
+          currentTarget.removeEventListener('click', f, capture);
+        }, capture);
+      });
     }
 
     var div = document.createElement('div');
@@ -160,14 +273,14 @@ suite('Events', function() {
     addListener(b, p);
     addListener(b, content);
     addListener(b, a);
-    addListener(b, b);
+    addListener(b, b, Event.AT_TARGET);
     b.click();
     assert.equal(calls, 0);
 
     addListener(div, div);
     addListener(content, sr);
     addListener(content, p);
-    addListener(content, content);
+    addListener(content, content, Event.AT_TARGET);
     content.click();
     assert.equal(calls, 0);
 
@@ -187,7 +300,7 @@ suite('Events', function() {
     addListener(b, p);
     addListener(b, content);
     addListener(b, a);
-    addListener(b, b);
+    addListener(b, b, Event.AT_TARGET);
 
     b.click();
     assert.equal(calls, 0);

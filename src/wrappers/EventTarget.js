@@ -11,6 +11,8 @@
   var targetTable = new SideTable();
   var currentTargetTable = new SideTable();
   var eventPhaseTable = new SideTable();
+  var stopPropagationTable = new SideTable();
+  var stopImmediatePropagationTable = new SideTable();
 
   function isShadowRoot(node) {
     return node instanceof WrapperShadowRoot;
@@ -103,72 +105,88 @@
     var phase = Event.CAPTURING_PHASE;
     eventPhaseTable.set(event, phase);
 
-    while (true) {
-      var currentTarget = ancestorChain[i].ancestor;
-      var target = ancestorChain[i].target;
-      if (!deliverEvent(target, currentTarget, event, type, phase))
-        break;
-      if (i === 0)
-        break;
-      i--;
+    var propagationStopped = false;
+
+    for (; !propagationStopped && i > 0; i--) {
+      propagationStopped = invoke(ancestorChain[i], event, type, phase);
     }
 
-    phase = Event.BUBBLING_PHASE;
+    phase = Event.AT_TARGET;
     eventPhaseTable.set(event, phase);
 
-    for (; i < ancestorChain.length; i++) {
-      // Non bubbling event should only dispatch on target
-      if (!bubbles && i > 0)
-        break;
-      var currentTarget = ancestorChain[i].ancestor;
-      var target = ancestorChain[i].target;
-      if (!deliverEvent(target, currentTarget, event, type, phase))
-        break;
+    if (!propagationStopped) {
+      propagationStopped = invoke(ancestorChain[0], event, type, phase);
+      i++;
     }
+
+    if (bubbles) {
+      phase = Event.BUBBLING_PHASE;
+      eventPhaseTable.set(event, phase);
+
+      for (; !propagationStopped && i < ancestorChain.length; i++) {
+        propagationStopped = invoke(ancestorChain[i], event, type, phase);
+      }
+    }
+
+    phase = Event.NONE;
+    eventPhaseTable.set(event, phase);
+    currentTargetTable.set(event, null);
 
     return event.defaultPrevented;
   }
 
-  function deliverEvent(target, currentTarget, event, type, phase) {
+  function invoke(tuple, event, type, phase) {
+    var target = tuple.target;
+    var currentTarget = tuple.ancestor;
+
     var listeners = listenersTable.get(currentTarget);
     if (!listeners)
       return;
 
-    var anyDeleted = false;
+    var anyRemoved = false;
+    targetTable.set(event, target);
+    currentTargetTable.set(event, currentTarget);
+
     for (var i = 0; i < listeners.length; i++) {
       var listener = listeners[i];
-      if (listener.deleted) {
-        anyDeleted = true;
+      if (listener.removed) {
+        anyRemoved = true;
         continue;
       }
 
-      if (listener.type === type && listener.phase === phase) {
-        targetTable.set(event, target);
-        currentTargetTable.set(event, currentTarget);
+      if (listener.type !== type ||
+          !listener.capture && phase === Event.CAPTURING_PHASE ||
+          listener.capture && phase === Event.BUBBLING_PHASE) {
+        continue;
+      }
 
-        try {
+      try {
+        if (typeof listener.handler === 'function')
           listener.handler.call(currentTarget, event);
+        else
+          listener.handler.handleEvent(event);
 
-          // TODO(arv): stopImmediatePropagation
+        if (stopImmediatePropagationTable.get(event))
+          return true;
 
-        } catch (ex) {
-          // Don't let exceptions in event handler escape.
+      } catch (ex) {
+        if (window.onerror)
+          window.onerror(ex.message);
+        else
           console.error(ex);
-        }
       }
     }
 
-    if (anyDeleted) {
+    if (anyRemoved) {
       var copy = listeners.slice();
       listeners.length = 0;
       for (var i = 0; i < copy.length; i++) {
-        if (!copy[i].deleted)
+        if (!copy[i].removed)
           listeners.push(copy[i]);
       }
     }
 
-    // TODO(arv): stopPropagation
-    return true;
+    return stopPropagationTable.get(event);
   }
 
   function Listener(type, handler, capture) {
@@ -177,20 +195,51 @@
     this.capture = capture;
   }
   Listener.prototype = {
-    get phase() {
-      return this.capture ? Event.CAPTURING_PHASE : Event.BUBBLING_PHASE;
-    },
     equals: function(that) {
       return this.type === that.type && this.handler === that.handler &&
           this.capture === that.capture;
     },
-    get deleted() {
+    get removed() {
       return this.handler === null;
     },
-    delete: function() {
+    remove: function() {
       this.handler = null;
     }
   };
+
+
+  /**
+   * This represents a logical DOM node.
+   * @param {!Node} original The original DOM node, aka, the visual DOM node.
+   * @constructor
+   */
+  function WrapperEvent(original) {
+    /**
+     * @type {!Event}
+     */
+    this.node = original;
+  }
+
+  WrapperEvent.prototype = {
+    get target() {
+      return targetTable.get(this);
+    },
+    get currentTarget() {
+      return currentTargetTable.get(this);
+    },
+    get eventPhase() {
+      return eventPhaseTable.get(this);
+    },
+    stopPropagation: function() {
+      stopPropagationTable.set(this, true);
+    },
+    stopImmediatePropagation: function() {
+      stopPropagationTable.set(this, true);
+      stopImmediatePropagationTable.set(this, true);
+    }
+  };
+
+  wrappers.register(Event, WrapperEvent, document.createEvent('Event'));
 
   /**
    * This represents a logical DOM node.
@@ -230,7 +279,7 @@
       var listener = new Listener(type, fun, capture);
       for (var i = 0; listeners.length; i++) {
         if (listener.equals(listeners[i])) {
-          listeners[i].delete();
+          listeners[i].remove();
           return;
         }
       }
@@ -243,19 +292,7 @@
   if (typeof EventTarget !== 'undefined')
     wrappers.register(EventTarget, WrapperEventTarget);
 
-  mixin(WrapperEvent.prototype, {
-    get target() {
-      return targetTable.get(this);
-    },
-    get currentTarget() {
-      return currentTargetTable.get(this);
-    },
-    get eventPhase() {
-      return eventPhaseTable.get(this);
-    }
-  });
-
+  exports.WrapperEvent = WrapperEvent;
   exports.WrapperEventTarget = WrapperEventTarget;
-  exports.retarget = retarget;
 
 })(this);
