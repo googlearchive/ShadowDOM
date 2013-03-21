@@ -85,6 +85,59 @@
     return null;
   }
 
+  // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#dfn-adjusted-related-target
+  function adjustRelatedTarget(target, related) {
+    while (target) {  // 3.
+      var stack = [];  // 3.1.
+      var ancestor = related;  // 3.2.
+      var last = undefined;  // 3.3. Needs to be reset every iteration.
+      while (ancestor) {
+        var context = null;
+        if (!stack.length) {
+          stack.push(ancestor);
+        } else {
+          if (isInsertionPoint(ancestor)) {  // 3.4.3.
+            context = topMostNotInsertionPoint(stack);
+            // isDistributed is more general than checking whether last is
+            // assigned into ancestor.
+            if (isDistributed(last)) {  // 3.4.3.2.
+              var head = stack[stack.length - 1];
+              stack.push(head);
+            }
+          }
+        }
+
+        if (inSameTree(ancestor, target))  // 3.4.4.
+          return stack[stack.length - 1];
+
+        if (isShadowRoot(ancestor))  // 3.4.5.
+          stack.pop();
+
+        last = ancestor;  // 3.4.6.
+        ancestor = calculateParent(ancestor, context);  // 3.4.7.
+      }
+      if (isShadowRoot(target))  // 3.5.
+        target = getHostForShadowRoot(target);
+      else
+        target = target.parentNode;  // 3.6.
+    }
+  }
+
+  function isDistributed(node) {
+    return node.insertionPointParent;
+  }
+
+  function inSameTree(a, b) {
+    while (true) {
+      if (a === b)
+        return a !== null;
+      if (a)
+        a = a.parentNode;
+      if (b)
+        b = b.parentNode;
+    }
+  }
+
   function dispatchOriginalEvent(originalEvent) {
     // Make sure this event is only dispatched once.
     if (handledEventsTable.get(originalEvent))
@@ -295,4 +348,5 @@
   exports.WrapperEvent = WrapperEvent;
   exports.WrapperEventTarget = WrapperEventTarget;
 
+  exports.adjustRelatedTarget = adjustRelatedTarget;
 })(this);
