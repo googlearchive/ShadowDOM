@@ -245,11 +245,11 @@
   function Listener(type, handler, capture) {
     this.type = type;
     this.handler = handler;
-    this.capture = capture;
+    this.capture = Boolean(capture);
   }
   Listener.prototype = {
     equals: function(that) {
-      return this.type === that.type && this.handler === that.handler &&
+      return this.handler === that.handler && this.type === that.type &&
           this.capture === that.capture;
     },
     get removed() {
