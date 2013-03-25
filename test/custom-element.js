@@ -6,6 +6,10 @@
 
 suite('Custom Element', function() {
 
+  var rewrap = ShadowDOMPolyfill.rewrap;
+  var unwrap = ShadowDOMPolyfill.unwrap;
+  var wrap = ShadowDOMPolyfill.wrap;
+
   test('Correct Wrapper for Custom Element', function() {
 
     function MyElement() {};

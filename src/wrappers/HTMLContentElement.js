@@ -2,8 +2,12 @@
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
 
-(function(exports) {
+(function(scope) {
   'use strict';
+
+  var WrapperHTMLElement = scope.WrapperHTMLElement;
+  var mixin = scope.mixin;
+  var wrappers = scope.wrappers;
 
   function WrapperHTMLContentElement(node) {
     WrapperHTMLElement.call(this, node);
@@ -26,5 +30,5 @@
   if (typeof HTMLContentElement !== 'undefined')
     wrappers.register(HTMLContentElement, WrapperHTMLContentElement);
 
-  exports.WrapperHTMLContentElement = WrapperHTMLContentElement;
-})(this);
+  scope.WrapperHTMLContentElement = WrapperHTMLContentElement;
+})(this.ShadowDOMPolyfill);

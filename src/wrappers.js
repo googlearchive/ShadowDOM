@@ -2,7 +2,9 @@
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
 
-(function(exports) {
+var ShadowDOMPolyfill = {};
+
+(function(scope) {
   'use strict';
 
   var wrapperTable = new SideTable();
@@ -11,7 +13,7 @@
   function assert(b) {
     if (!b)
       throw new Error('Assertion failed');
-  }
+  };
 
   function mixin(to, from) {
     Object.getOwnPropertyNames(from).forEach(function(name) {
@@ -188,7 +190,8 @@
   function unwrap(wrapper) {
     if (wrapper === null)
       return null;
-    assert(wrapper instanceof WrapperEventTarget || wrapper instanceof WrapperEvent);
+    assert(wrapper instanceof scope.WrapperEventTarget ||
+           wrapper instanceof scope.WrapperEvent);
     return wrapper.impl;
   }
 
@@ -201,21 +204,31 @@
   function rewrap(node, wrapper) {
     if (wrapper === null)
       return;
-    assert(node instanceof Node || node instanceof Event);
-    assert(wrapper === undefined || wrapper instanceof WrapperNode);
+    assert(node instanceof Node || node instanceof scope.Event);
+    assert(wrapper === undefined || wrapper instanceof scope.WrapperNode);
     wrapperTable.set(node, wrapper);
   }
 
-  // Used all over... we should move to a generic util file.
-  exports.mixin = mixin;
+  function addWrapGetter(wrapperConstructor, name) {
+    Object.defineProperty(wrapperConstructor.prototype, name, {
+      get: function() {
+        return wrap(this.impl[name]);
+      },
+      configurable: true,
+      enumerable: true
+    });
+  }
 
-  exports.wrap = wrap;
-  exports.unwrap = unwrap;
-  exports.rewrap = rewrap;
-  exports.wrappers = {
+  scope.mixin = mixin;
+  scope.addWrapGetter = addWrapGetter;
+  scope.assert = assert;
+  scope.wrap = wrap;
+  scope.unwrap = unwrap;
+  scope.rewrap = rewrap;
+  scope.wrappers = {
     register: register,
     registerHTMLElement: registerHTMLElement,
     registerObject: registerObject
   };
 
-})(this);
+})(this.ShadowDOMPolyfill);

@@ -6,6 +6,10 @@
 
 suite('Document', function() {
 
+  var WrapperHTMLElement = ShadowDOMPolyfill.WrapperHTMLElement;
+  var WrapperNodeList = ShadowDOMPolyfill.WrapperNodeList;
+  var wrap = ShadowDOMPolyfill.wrap;
+
   test('Ensure Document has ParentNodeInterface', function() {
     var doc = wrap(document).implementation.createHTMLDocument('');
     assert.equal(doc.firstElementChild.tagName, 'HTML');

@@ -2,8 +2,13 @@
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
 
-(function(exports) {
+(function(scope) {
   'use strict';
+
+  var WrapperNodeList = scope.WrapperNodeList;
+  var mixin = scope.mixin;
+  var wrap = scope.wrap;
+  var wrapNodeList = scope.wrapNodeList;
 
   function forwardElement(node) {
     while (node && node.nodeType !== Node.ELEMENT_NODE) {
@@ -70,27 +75,8 @@
     }
   };
 
-  function addWrapGetter(wrapperConstructor, name) {
-    Object.defineProperty(wrapperConstructor.prototype, name, {
-      get: function() {
-        return wrap(this.impl[name]);
-      },
-      configurable: true,
-      enumerable: true
-    });
-  }
+  scope.ChildNodeInterface = ChildNodeInterface;
+  scope.ParentNodeInterface = ParentNodeInterface;
+  scope.SelectorsInterface = SelectorsInterface;
 
-  function addWrapNodeListMethod(wrapperConstructor, name) {
-    wrapperConstructor.prototype[name] = function() {
-      return wrapNodeList(this.impl[name].apply(this.impl, arguments));
-    };
-  }
-
-  exports.addWrapGetter = addWrapGetter;
-  exports.addWrapNodeListMethod = addWrapNodeListMethod;
-
-  exports.ChildNodeInterface = ChildNodeInterface;
-  exports.ParentNodeInterface = ParentNodeInterface;
-  exports.SelectorsInterface = SelectorsInterface;
-
-})(this);
+})(this.ShadowDOMPolyfill);

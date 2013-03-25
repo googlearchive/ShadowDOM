@@ -6,6 +6,8 @@
 
 suite('Shadow DOM rerender', function() {
 
+  var unwrap = ShadowDOMPolyfill.unwrap;
+
   function getVisualInnerHtml(el) {
     el.offsetWidth;
     return unwrap(el).innerHTML;

@@ -2,8 +2,10 @@
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
 
-(function(exports) {
+(function(scope) {
   'use strict';
+
+  var wrap = scope.wrap;
 
   function nonEnum(obj, prop) {
     Object.defineProperty(obj, prop, {enumerable: false});
@@ -29,7 +31,14 @@
     return wrapperList;
   }
 
-  exports.wrapNodeList = wrapNodeList;
-  exports.WrapperNodeList = WrapperNodeList;
+  function addWrapNodeListMethod(wrapperConstructor, name) {
+    wrapperConstructor.prototype[name] = function() {
+      return wrapNodeList(this.impl[name].apply(this.impl, arguments));
+    };
+  }
 
-})(this);
+  scope.WrapperNodeList = WrapperNodeList;
+  scope.addWrapNodeListMethod = addWrapNodeListMethod;
+  scope.wrapNodeList = wrapNodeList;
+
+})(this.ShadowDOMPolyfill);

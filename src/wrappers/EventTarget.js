@@ -2,8 +2,12 @@
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
 
-(function(exports) {
+(function(scope) {
   'use strict';
+
+  var unwrap = scope.unwrap;
+  var wrap = scope.wrap;
+  var wrappers = scope.wrappers;
 
   var wrappedFuns = new SideTable();
   var listenersTable = new SideTable();
@@ -15,7 +19,7 @@
   var stopImmediatePropagationTable = new SideTable();
 
   function isShadowRoot(node) {
-    return node instanceof WrapperShadowRoot;
+    return node instanceof scope.WrapperShadowRoot;
   }
 
   function isInsertionPoint(node) {
@@ -31,7 +35,7 @@
   function calculateParent(node, context) {
     // 1.
     if (isShadowRoot(node))
-      return node.insertionPointParent || getHostForShadowRoot(node)
+      return node.insertionPointParent || scope.getHostForShadowRoot(node)
 
     // 2.
     var p = node.insertionPointParent;
@@ -345,8 +349,8 @@
   if (typeof EventTarget !== 'undefined')
     wrappers.register(EventTarget, WrapperEventTarget);
 
-  exports.WrapperEvent = WrapperEvent;
-  exports.WrapperEventTarget = WrapperEventTarget;
+  scope.WrapperEvent = WrapperEvent;
+  scope.WrapperEventTarget = WrapperEventTarget;
+  scope.adjustRelatedTarget = adjustRelatedTarget;
 
-  exports.adjustRelatedTarget = adjustRelatedTarget;
-})(this);
+})(this.ShadowDOMPolyfill);

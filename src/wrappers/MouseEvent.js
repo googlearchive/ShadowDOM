@@ -2,14 +2,13 @@
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
 
-(function(exports) {
+(function(scope) {
   'use strict';
 
-  /**
-   * This represents a logical DOM node.
-   * @param {!Node} original The original DOM node, aka, the visual DOM node.
-   * @constructor
-   */
+  var WrapperEvent = scope.WrapperEvent;
+  var addWrapGetter = scope.addWrapGetter;
+  var wrappers = scope.wrappers;
+
   function WrapperMouseEvent(original) {
     WrapperEvent.call(this, original);
   }
@@ -21,6 +20,6 @@
   wrappers.register(MouseEvent, WrapperMouseEvent,
                     document.createEvent('MouseEvent'));
 
-  exports.WrapperMouseEvent = WrapperMouseEvent;
+  scope.WrapperMouseEvent = WrapperMouseEvent;
 
-})(this);
+})(this.ShadowDOMPolyfill);

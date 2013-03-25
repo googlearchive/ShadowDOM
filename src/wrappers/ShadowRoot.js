@@ -2,8 +2,15 @@
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
 
-(function(exports) {
+(function(scope) {
   'use strict';
+
+  var WrapperDocumentFragment = scope.WrapperDocumentFragment;
+  var getInnerHTML = scope.getInnerHTML;
+  var mixin = scope.mixin;
+  var rewrap = scope.rewrap;
+  var setInnerHTML = scope.setInnerHTML;
+  var unwrap = scope.unwrap;
 
   var shadowHostTable = new SideTable();
 
@@ -16,7 +23,7 @@
     rewrap(node, this);
 
     var oldShadowRoot = hostWrapper.shadowRoot;
-    nextOlderShadowTreeTable.set(this, oldShadowRoot);
+    scope.nextOlderShadowTreeTable.set(this, oldShadowRoot);
 
     shadowHostTable.set(this, hostWrapper);
 
@@ -38,8 +45,8 @@
     }
   });
 
-  exports.WrapperShadowRoot = WrapperShadowRoot;
-  exports.getHostForShadowRoot = function(node) {
+  scope.WrapperShadowRoot = WrapperShadowRoot;
+  scope.getHostForShadowRoot = function(node) {
     return shadowHostTable.get(node);
   };
-})(this);
+})(this.ShadowDOMPolyfill);

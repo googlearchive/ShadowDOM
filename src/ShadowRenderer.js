@@ -2,13 +2,15 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-(function(exports) {
+(function(scope) {
   'use strict';
 
-  function assert(b) {
-    if (!b)
-      throw new Error('Assertion failed');
-  }
+  var WrapperHTMLContentElement = scope.WrapperHTMLContentElement;
+  var WrapperNode = scope.WrapperNode;
+  var assert = scope.assert;
+  var mixin = scope.mixin;
+  var unwrap = scope.unwrap;
+  var wrap = scope.wrap;
 
   /**
    * Updates the fields of a wrapper to a snapshot of the logical DOM as needed.
@@ -514,17 +516,17 @@
     }
   });
 
-  exports.ShadowRenderer = ShadowRenderer;
-  exports.renderAllPending = renderAllPending;
+  scope.ShadowRenderer = ShadowRenderer;
+  scope.renderAllPending = renderAllPending;
 
-  exports.nextOlderShadowTreeTable = nextOlderShadowTreeTable;
-  exports.getShadowTrees = getShadowTrees;
+  scope.nextOlderShadowTreeTable = nextOlderShadowTreeTable;
+  scope.getShadowTrees = getShadowTrees;
 
   // Exposed for testing
-  exports.visual = {
+  scope.visual = {
     removeAllChildNodes: removeAllChildNodes,
     appendChild: appendChild,
     removeChild: removeChild
   };
 
-})(this);
+})(this.ShadowDOMPolyfill);
