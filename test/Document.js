@@ -65,4 +65,29 @@ suite('Document', function() {
     assert.isTrue(elements2[0] instanceof WrapperHTMLElement);
     assert.equal(doc.body, elements2[0]);
   });
+
+  test('addEventListener', function() {
+    var calls = 0;
+    var doc = wrap(document);
+    document.addEventListener('click', function f(e) {
+      calls++;
+      assert.equal(this, doc);
+      assert.equal(e.target, doc.body);
+      assert.equal(e.currentTarget, this);
+      document.removeEventListener('click', f);
+    });
+    doc.addEventListener('click', function f(e) {
+      calls++;
+      assert.equal(this, doc);
+      assert.equal(e.target, doc.body);
+      assert.equal(e.currentTarget, this);
+      doc.removeEventListener('click', f);
+    });
+
+    document.body.click();
+    assert.equal(2, calls);
+
+    document.body.click();
+    assert.equal(2, calls);
+  });
 });

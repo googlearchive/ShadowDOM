@@ -306,6 +306,10 @@
     this.impl = original;
   }
 
+  var originalAddEventListener = Node.prototype.addEventListener;
+  var originalRemoveEventListener = Node.prototype.removeEventListener;
+  var originalDispatchEvent = Node.prototype.dispatchEvent;
+
   WrapperEventTarget.prototype = {
     addEventListener: function(type, fun, capture) {
       var listener = new Listener(type, fun, capture);
@@ -323,22 +327,32 @@
 
       listeners.push(listener);
 
-      unwrap(this).addEventListener(type, dispatchOriginalEvent, true);
+      originalAddEventListener.call(unwrap(this), type, dispatchOriginalEvent,
+                                    true);
     },
     removeEventListener: function(type, fun, capture) {
+      capture = Boolean(capture);
       var listeners = listenersTable.get(this);
       if (!listeners)
         return;
-      var listener = new Listener(type, fun, capture);
-      for (var i = 0; listeners.length; i++) {
-        if (listener.equals(listeners[i])) {
-          listeners[i].remove();
-          return;
+      var count = 0, found = false;
+      for (var i = 0; i < listeners.length; i++) {
+        if (listeners[i].type === type && listeners[i].capture === capture) {
+          count++;
+          if (listeners[i].handler === fun) {
+            found = true;
+            listeners[i].remove();
+          }
         }
+      }
+
+      if (found && count === 1) {
+        originalRemoveEventListener.call(unwrap(this), type,
+                                         dispatchOriginalEvent, true);
       }
     },
     dispatchEvent: function(event) {
-      return dispatchEvent(event, this);
+      return originalDispatchEvent.call(unwrap(this), unwrap(event));
     }
   };
 
