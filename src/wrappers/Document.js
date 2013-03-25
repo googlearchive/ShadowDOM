@@ -86,6 +86,23 @@
     'querySelectorAll'
   ].forEach(wrapNodeListMethod);
 
+  // For the EventTarget methods, the methods already call the original
+  // function object (instead of doing this.impl.foo so we can just redirect to
+  // the wrapper).
+  function wrapEventTargetMethod(name) {
+    var proto = Object.getPrototypeOf(document);
+    proto[name] = function() {
+      var wrapper = wrap(this);
+      return wrapper[name].apply(wrapper, arguments);
+    };
+  }
+
+  [
+    'addEventListener',
+    'removeEventListener',
+    'dispatchEvent'
+  ].forEach(wrapEventTargetMethod);
+
   function wrapImplMethod(constructor, name) {
     constructor.prototype[name] = function() {
       return wrap(this.impl[name].apply(this.impl, arguments));

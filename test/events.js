@@ -9,9 +9,9 @@ suite('Events', function() {
   test('addEventListener', function() {
     var div1 = document.createElement('div');
     var div2 = document.createElement('div');
-    var called = 0;
+    var calls = 0;
     function f(e) {
-      called++;
+      calls++;
     }
 
     div1.addEventListener('click', f, true);
@@ -19,27 +19,67 @@ suite('Events', function() {
 
     div1.click();
     div2.click();
-    assert.equal(called, 2);
+    assert.equal(calls, 2);
 
     div1.removeEventListener('click', f, true);
 
     div1.click();
     div2.click();
-    assert.equal(called, 3);
+    assert.equal(calls, 3);
 
     div2.removeEventListener('click', f, true);
 
     div1.click();
     div2.click();
-    assert.equal(called, 3);
+    assert.equal(calls, 3);
+  });
+
+  test('removeEventListener', function() {
+    var div = document.createElement('div');
+    var calls = 0;
+    function f(e) {
+      calls++;
+    }
+    function g(e) {
+      calls++;
+    }
+
+    div.addEventListener('click', f, true);
+    div.addEventListener('click', g, true);
+
+    div.click();
+    assert.equal(calls, 2);
+
+    div.removeEventListener('click', f, true);
+
+    var event = document.createEvent('MouseEvent');
+    var unwrappedEvent = unwrap(event);
+    unwrappedEvent.initMouseEvent(
+        'click',  // type
+        true,  // canBubble
+        true,  // cancelable
+        window,  // view
+        0,  // detail
+        0,  // screenX
+        0,  // screenY
+        0,  // clientX
+        0,  // clientY
+        false,  // ctrlKey
+        false,  // altKey
+        false,  // shiftKey
+        false,  // metaKey
+        0,  // button
+        null);  // relatedTarget
+    unwrap(div).dispatchEvent(unwrappedEvent);
+    assert.equal(calls, 3);
   });
 
   test('event', function() {
     var div = document.createElement('div');
-    var called = 0;
+    var calls = 0;
     var f;
     div.addEventListener('x', f = function(e) {
-      called++;
+      calls++;
       assert.equal(this, div);
       assert.equal(e.target, div);
       assert.equal(e.currentTarget, div);
@@ -48,13 +88,13 @@ suite('Events', function() {
     var e = document.createEvent('Event');
     e.initEvent('x', true, true);
     div.dispatchEvent(e);
-    assert.equal(called, 1);
+    assert.equal(calls, 1);
 
     div.removeEventListener('x', f, false);
     var e2 = document.createEvent('Event');
     e2.initEvent('x', true, true);
     div.dispatchEvent(e2);
-    assert.equal(called, 1);
+    assert.equal(calls, 1);
   });
 
   test('mouse event', function() {
