@@ -6,6 +6,9 @@
 
 suite('HTMLShadowElement', function() {
 
+  var WrapperHTMLShadowElement = ShadowDOMPolyfill.WrapperHTMLShadowElement;
+  var unwrap = ShadowDOMPolyfill.unwrap;
+
   test('olderShadowRoot', function() {
     var host = document.createElement('div');
     host.innerHTML = '<a>a</a><b>b</b>';

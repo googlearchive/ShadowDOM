@@ -2,14 +2,17 @@
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
 
-(function(exports) {
+(function(scope) {
   'use strict';
 
-  function assert(b) {
-    if (!b)
-      throw new Error('Assertion failed');
-  }
-
+  var WrapperEventTarget = scope.WrapperEventTarget;
+  var WrapperNodeList = scope.WrapperNodeList;
+  var addWrapGetter = scope.addWrapGetter;
+  var assert = scope.assert;
+  var mixin = scope.mixin;
+  var unwrap = scope.unwrap;
+  var wrap = scope.wrap;
+  var wrappers = scope.wrappers;
 
   /**
    * Collects nodes from a DocumentFragment or a Node for removal followed
@@ -382,7 +385,7 @@
   WrapperNode.prototype =
       mixin(Object.create(WrapperEventTarget.prototype), WrapperNode.prototype);
 
-  exports.WrapperNode = WrapperNode;
+  scope.WrapperNode = WrapperNode;
+  scope.resetNodePointers = resetNodePointers;
 
-  exports.resetNodePointers = resetNodePointers;
-})(this);
+})(this.ShadowDOMPolyfill);

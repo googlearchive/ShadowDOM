@@ -6,6 +6,11 @@
 
 suite('Wrapper creation', function() {
 
+  var wrap = ShadowDOMPolyfill.wrap;
+  var unwrap = ShadowDOMPolyfill.unwrap;
+  var rewrap = ShadowDOMPolyfill.rewrap;
+  var resetNodePointers = ShadowDOMPolyfill.resetNodePointers;
+
   test('Br element wrapper', function() {
     var br = document.createElement('br');
     assert.isTrue('clear' in br);

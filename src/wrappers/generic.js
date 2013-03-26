@@ -2,8 +2,13 @@
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
 
-(function(exports) {
+(function(scope) {
   'use strict';
+
+  var ParentNodeInterface = scope.ParentNodeInterface;
+  var SelectorsInterface = scope.SelectorsInterface;
+  var mixin = scope.mixin;
+  var wrappers = scope.wrappers;
 
   var WrapperDocumentFragment =
       wrappers.registerObject(document.createDocumentFragment());
@@ -13,6 +18,6 @@
   wrappers.registerObject(document.createTextNode(''));
   wrappers.registerObject(document.createComment(''));
 
-  exports.WrapperDocumentFragment = WrapperDocumentFragment;
+  scope.WrapperDocumentFragment = WrapperDocumentFragment;
 
-})(this);
+})(this.ShadowDOMPolyfill);

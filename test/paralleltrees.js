@@ -6,6 +6,10 @@
 
 suite('Parallel Trees', function() {
 
+  var wrap = ShadowDOMPolyfill.wrap;
+  var unwrap = ShadowDOMPolyfill.unwrap;
+  var visual = ShadowDOMPolyfill.visual;
+
   suite('Visual', function() {
 
     test('removeAllChildNodes wrapper', function() {
