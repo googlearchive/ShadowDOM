@@ -82,36 +82,6 @@
   }
 
   /**
-   * Resets the internal node pointers (`parentNode`, `firstChild`, `lastChild`,
-   * `previousSibling` and `nextSibling`) to point to the new wrapper node
-   * instead of the old wrapper node.
-   * This also clears all internal properties of the `oldWrapper`.
-   * @param {WrapperNode} oldWrapper
-   * @param {WrapperNode} newWrapper
-   */
-  function resetNodePointers(oldWrapper, newWrapper) {
-    var w, p;
-    if (w = oldWrapper.previousSibling)
-      w.nextSibling_ = newWrapper;
-    if (w = oldWrapper.nextSibling)
-      w.previousSibling_ = newWrapper;
-    if (p = oldWrapper.parentNode) {
-      if (p.firstChild === oldWrapper)
-        p.firstChild_ = newWrapper;
-      if (p.lastChild === oldWrapper)
-        p.lastChild_ = newWrapper;
-    }
-    newWrapper.parentNode_ = p;
-    newWrapper.nextSibling_ = oldWrapper.nextSibling;
-    newWrapper.previousSibling_ = oldWrapper.previousSibling;
-    newWrapper.firstChild_ = oldWrapper.firstChild;
-    newWrapper.lastChild_ = oldWrapper.lastChild;
-
-    oldWrapper.node = oldWrapper.nextSibling_ = oldWrapper.previousSibling_ =
-        oldWrapper.firstChild_ = oldWrapper.lastChild_ = undefined;
-  }
-
-  /**
    * This represents a logical DOM node.
    * @param {!Node} original The original DOM node, aka, the visual DOM node.
    * @constructor
@@ -386,6 +356,5 @@
       mixin(Object.create(WrapperEventTarget.prototype), WrapperNode.prototype);
 
   scope.WrapperNode = WrapperNode;
-  scope.resetNodePointers = resetNodePointers;
 
 })(this.ShadowDOMPolyfill);
