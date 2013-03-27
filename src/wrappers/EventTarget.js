@@ -5,6 +5,7 @@
 (function(scope) {
   'use strict';
 
+  var mixin = scope.mixin;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
   var wrappers = scope.wrappers;
@@ -14,6 +15,7 @@
   var handledEventsTable = new SideTable();
   var targetTable = new SideTable();
   var currentTargetTable = new SideTable();
+  var relatedTargetTable = new SideTable();
   var eventPhaseTable = new SideTable();
   var stopPropagationTable = new SideTable();
   var stopImmediatePropagationTable = new SideTable();
@@ -121,7 +123,7 @@
         ancestor = calculateParent(ancestor, context);  // 3.4.7.
       }
       if (isShadowRoot(target))  // 3.5.
-        target = getHostForShadowRoot(target);
+        target = scope.getHostForShadowRoot(target);
       else
         target = target.parentNode;  // 3.6.
     }
@@ -154,51 +156,79 @@
   }
 
   function dispatchEvent(event, originalWrapperTarget) {
-    var type = event.type;
-    var bubbles = event.bubbles;
-    var ancestorChain = retarget(originalWrapperTarget);
-    var i = ancestorChain.length - 1;
+    var eventPath = retarget(originalWrapperTarget);
 
-    var phase = Event.CAPTURING_PHASE;
-    eventPhaseTable.set(event, phase);
-
-    var propagationStopped = false;
-
-    for (; !propagationStopped && i > 0; i--) {
-      propagationStopped = invoke(ancestorChain[i], event, type, phase);
-    }
-
-    phase = Event.AT_TARGET;
-    eventPhaseTable.set(event, phase);
-
-    if (!propagationStopped) {
-      propagationStopped = invoke(ancestorChain[0], event, type, phase);
-      i++;
-    }
-
-    if (bubbles) {
-      phase = Event.BUBBLING_PHASE;
-      eventPhaseTable.set(event, phase);
-
-      for (; !propagationStopped && i < ancestorChain.length; i++) {
-        propagationStopped = invoke(ancestorChain[i], event, type, phase);
+    if (dispatchCapturing(event, eventPath)) {
+      if (dispatchAtTarget(event, eventPath)) {
+        dispatchBubbling(event, eventPath);
       }
     }
 
-    phase = Event.NONE;
-    eventPhaseTable.set(event, phase);
+    eventPhaseTable.set(event, Event.NONE);
     currentTargetTable.set(event, null);
 
     return event.defaultPrevented;
   }
 
-  function invoke(tuple, event, type, phase) {
+  function dispatchCapturing(event, eventPath) {
+    var phase;
+
+    for (var i = eventPath.length - 1; i > 0; i--) {
+      var target = eventPath[i].target;
+      var currentTarget = eventPath[i].ancestor;
+      if (target === currentTarget)
+        phase = Event.AT_TARGET;
+      else
+        phase = Event.CAPTURING_PHASE;
+      if (!invoke(eventPath[i], event, phase))
+        return false;
+    }
+
+    return true;
+  }
+
+  function dispatchAtTarget(event, eventPath) {
+    var phase = Event.AT_TARGET;
+    return invoke(eventPath[0], event, phase);
+  }
+
+  function dispatchBubbling(event, eventPath) {
+    if (event.bubbles) {
+      var phase = Event.BUBBLING_PHASE;
+
+      for (var i = 1; i < eventPath.length; i++) {
+        var target = eventPath[i].target;
+        var currentTarget = eventPath[i].ancestor;
+        if (target === currentTarget)
+          continue
+        if (!invoke(eventPath[i], event, phase))
+          return false;
+      }
+    }
+    return true;
+  }
+
+  function invoke(tuple, event, phase) {
     var target = tuple.target;
     var currentTarget = tuple.ancestor;
 
     var listeners = listenersTable.get(currentTarget);
     if (!listeners)
-      return;
+      return true;
+
+    if ('relatedTarget' in event) {
+      var originalEvent = unwrap(event);
+      var relatedTarget = wrap(originalEvent.relatedTarget);
+
+      var adjusted = adjustRelatedTarget(currentTarget, relatedTarget);
+      if (adjusted === target)
+        return false;
+
+      relatedTargetTable.set(event, adjusted);
+    }
+
+    eventPhaseTable.set(event, phase);
+    var type = event.type;
 
     var anyRemoved = false;
     targetTable.set(event, target);
@@ -224,7 +254,7 @@
           listener.handler.handleEvent(event);
 
         if (stopImmediatePropagationTable.get(event))
-          return true;
+          return false;
 
       } catch (ex) {
         if (window.onerror)
@@ -243,7 +273,7 @@
       }
     }
 
-    return stopPropagationTable.get(event);
+    return !stopPropagationTable.get(event);
   }
 
   function Listener(type, handler, capture) {
@@ -263,7 +293,6 @@
       this.handler = null;
     }
   };
-
 
   /**
    * This represents a logical DOM node.
@@ -298,6 +327,39 @@
 
   wrappers.register(Event, WrapperEvent, document.createEvent('Event'));
 
+  function WrapperUIEvent(original) {
+    WrapperEvent.call(this, original);
+  }
+  WrapperUIEvent.prototype = Object.create(WrapperEvent.prototype);
+  wrappers.register(UIEvent, WrapperUIEvent,
+                    document.createEvent('UIEvent'));
+
+  function WrapperMouseEvent(original) {
+    WrapperEvent.call(this, original);
+  }
+  WrapperMouseEvent.prototype = Object.create(WrapperUIEvent.prototype);
+  mixin(WrapperMouseEvent.prototype, {
+    get relatedTarget() {
+      return relatedTargetTable.get(this);
+    }
+  });
+  wrappers.register(MouseEvent, WrapperMouseEvent,
+                    document.createEvent('MouseEvent'));
+
+  function WrapperFocusEvent(original) {
+    WrapperEvent.call(this, original);
+  }
+  WrapperFocusEvent.prototype = Object.create(WrapperUIEvent.prototype);
+  mixin(WrapperFocusEvent.prototype, {
+    get relatedTarget() {
+      return relatedTargetTable.get(this);
+    }
+  });
+  if (typeof FocusEvent !== 'undefined') {
+    wrappers.register(FocusEvent, WrapperFocusEvent,
+                      document.createEvent('FocusEvent'));
+  }
+
   /**
    * This represents a logical DOM node.
    * @param {!Node} original The original DOM node, aka, the visual DOM node.
@@ -313,6 +375,12 @@
   var originalAddEventListener = Node.prototype.addEventListener;
   var originalRemoveEventListener = Node.prototype.removeEventListener;
   var originalDispatchEvent = Node.prototype.dispatchEvent;
+
+  function getTargetToListenAt(wrapper) {
+    if (wrapper instanceof scope.WrapperShadowRoot)
+      wrapper = scope.getHostForShadowRoot(wrapper);
+    return unwrap(wrapper);
+  }
 
   WrapperEventTarget.prototype = {
     addEventListener: function(type, fun, capture) {
@@ -331,8 +399,8 @@
 
       listeners.push(listener);
 
-      originalAddEventListener.call(unwrap(this), type, dispatchOriginalEvent,
-                                    true);
+      originalAddEventListener.call(getTargetToListenAt(this), type,
+                                    dispatchOriginalEvent, true);
     },
     removeEventListener: function(type, fun, capture) {
       capture = Boolean(capture);
@@ -351,12 +419,13 @@
       }
 
       if (found && count === 1) {
-        originalRemoveEventListener.call(unwrap(this), type,
-                                         dispatchOriginalEvent, true);
+        originalRemoveEventListener.call(getTargetToListenAt(this),
+                                         type, dispatchOriginalEvent, true);
       }
     },
     dispatchEvent: function(event) {
-      return originalDispatchEvent.call(unwrap(this), unwrap(event));
+      return originalDispatchEvent.call(getTargetToListenAt(this),
+                                        unwrap(event));
     }
   };
 
@@ -365,6 +434,7 @@
 
   scope.WrapperEvent = WrapperEvent;
   scope.WrapperEventTarget = WrapperEventTarget;
+  scope.WrapperMouseEvent = WrapperMouseEvent;
   scope.adjustRelatedTarget = adjustRelatedTarget;
 
 })(this.ShadowDOMPolyfill);
