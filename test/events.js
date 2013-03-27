@@ -511,4 +511,10 @@ suite('Events', function() {
     assert.equal(2, calls);
   });
 
+  test('Handle invalid event listener', function() {
+    var div = document.createElement('div');
+    div.addEventListener('click', undefined);
+    div.click();
+  });
+
 });

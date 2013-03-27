@@ -360,6 +360,12 @@
                       document.createEvent('FocusEvent'));
   }
 
+  function isValidListener(fun) {
+    if (typeof fun === 'function')
+      return true;
+    return fun && fun.handleEvent;
+  }
+
   /**
    * This represents a logical DOM node.
    * @param {!Node} original The original DOM node, aka, the visual DOM node.
@@ -384,6 +390,9 @@
 
   WrapperEventTarget.prototype = {
     addEventListener: function(type, fun, capture) {
+      if (!isValidListener(fun))
+        return;
+
       var listener = new Listener(type, fun, capture);
       var listeners = listenersTable.get(this);
       if (!listeners) {
