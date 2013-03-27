@@ -170,4 +170,11 @@ suite('Wrapper creation', function() {
     assert.isFalse(doc.contains(textNode));
   });
 
+  test('instanceof', function() {
+    var div = document.createElement('div');
+    assert.instanceOf(div, HTMLElement);
+    assert.instanceOf(div, Element);
+    assert.instanceOf(div, EventTarget);
+  });
+
 });

@@ -11,10 +11,10 @@
     Object.defineProperty(obj, prop, {enumerable: false});
   }
 
-  function WrapperNodeList() {
+  var WrapperNodeList = function NodeList() {
     this.length = 0;
     nonEnum(this, 'length');
-  }
+  };
   WrapperNodeList.prototype = {
     item: function(index) {
       return this[index];

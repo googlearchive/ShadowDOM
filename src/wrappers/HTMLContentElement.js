@@ -7,11 +7,11 @@
 
   var WrapperHTMLElement = scope.WrapperHTMLElement;
   var mixin = scope.mixin;
-  var wrappers = scope.wrappers;
+  var registerWrapper = scope.registerWrapper;
 
-  function WrapperHTMLContentElement(node) {
+  var WrapperHTMLContentElement = function HTMLContentElement(node) {
     WrapperHTMLElement.call(this, node);
-  }
+  };
   WrapperHTMLContentElement.prototype = Object.create(WrapperHTMLElement.prototype);
   mixin(WrapperHTMLContentElement.prototype, {
     get select() {
@@ -28,7 +28,7 @@
   });
 
   if (typeof HTMLContentElement !== 'undefined')
-    wrappers.register(HTMLContentElement, WrapperHTMLContentElement);
+    registerWrapper(HTMLContentElement, WrapperHTMLContentElement);
 
   scope.WrapperHTMLContentElement = WrapperHTMLContentElement;
 })(this.ShadowDOMPolyfill);

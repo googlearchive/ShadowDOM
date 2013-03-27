@@ -8,15 +8,15 @@
   var ParentNodeInterface = scope.ParentNodeInterface;
   var SelectorsInterface = scope.SelectorsInterface;
   var mixin = scope.mixin;
-  var wrappers = scope.wrappers;
+  var registerObject = scope.registerObject;
 
   var WrapperDocumentFragment =
-      wrappers.registerObject(document.createDocumentFragment());
+      registerObject(document.createDocumentFragment());
   mixin(WrapperDocumentFragment.prototype, ParentNodeInterface);
   mixin(WrapperDocumentFragment.prototype, SelectorsInterface);
 
-  wrappers.registerObject(document.createTextNode(''));
-  wrappers.registerObject(document.createComment(''));
+  registerObject(document.createTextNode(''));
+  registerObject(document.createComment(''));
 
   scope.WrapperDocumentFragment = WrapperDocumentFragment;
 

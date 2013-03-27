@@ -65,8 +65,10 @@ suite('Events', function() {
   });
 
   test('addEventListener', function() {
-    var div1 = document.createElement('div');
-    var div2 = document.createElement('div');
+    div = document.createElement('div');
+    wrap(document).body.appendChild(div);
+    var div1 = div.appendChild(document.createElement('div'));
+    var div2 = div.appendChild(document.createElement('div'));
     var calls = 0;
     function f(e) {
       calls++;
@@ -93,7 +95,8 @@ suite('Events', function() {
   });
 
   test('removeEventListener', function() {
-    var div = document.createElement('div');
+    div = document.createElement('div');
+    wrap(document).body.appendChild(div);
     var calls = 0;
     function f(e) {
       calls++;
@@ -156,7 +159,8 @@ suite('Events', function() {
   });
 
   test('mouse event', function() {
-    var div = document.createElement('div');
+    div = document.createElement('div');
+    wrap(document).body.appendChild(div);
     var called = false;
     div.addEventListener('click', function(e) {
       called = true;

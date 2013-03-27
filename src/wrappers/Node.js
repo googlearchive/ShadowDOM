@@ -10,6 +10,7 @@
   var addWrapGetter = scope.addWrapGetter;
   var assert = scope.assert;
   var mixin = scope.mixin;
+  var registerWrapper = scope.registerWrapper;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
   var wrappers = scope.wrappers;
@@ -81,14 +82,16 @@
     wrapper.firstChild_ = wrapper.lastChild_ = null;
   }
 
+  var originalNode = Node;
+
   /**
    * This represents a logical DOM node.
    * @param {!Node} original The original DOM node, aka, the visual DOM node.
    * @constructor
    * @extends {WrapperEventTarget}
    */
-  function WrapperNode(original) {
-    assert(original instanceof Node);
+  var WrapperNode = function Node(original) {
+    assert(original instanceof originalNode);
 
     WrapperEventTarget.call(this, original);
 
@@ -125,7 +128,7 @@
      * @private
      */
     this.previousSibling_ = undefined;
-  }
+  };
 
   WrapperNode.prototype = Object.create(WrapperEventTarget.prototype);
   mixin(WrapperNode.prototype, {
@@ -349,7 +352,7 @@
   // We use a DocumentFragment as a base and then delete the properties of
   // DocumentFragment.prototype from the WrapperNode. Since delete makes objects
   // slow in some JS engines we recreate the prototype object.
-  wrappers.register(Node, WrapperNode, document.createDocumentFragment());
+  registerWrapper(Node, WrapperNode, document.createDocumentFragment());
   delete WrapperNode.prototype.querySelector;
   delete WrapperNode.prototype.querySelectorAll;
   WrapperNode.prototype =

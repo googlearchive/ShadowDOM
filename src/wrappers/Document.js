@@ -12,13 +12,13 @@
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
   var wrapNodeList = scope.wrapNodeList;
-  var wrappers = scope.wrappers;
+  var registerWrapper = scope.registerWrapper;
 
   var implementationTable = new SideTable();
 
-  function WrapperDocument(node) {
+  var WrapperDocument = function Document(node) {
     WrapperNode.call(this, node);
-  }
+  };
   WrapperDocument.prototype = Object.create(WrapperNode.prototype);
 
   addWrapGetter(WrapperDocument, 'documentElement');
@@ -42,13 +42,13 @@
     }
   });
 
-  wrappers.register(Document, WrapperDocument,
+  registerWrapper(Document, WrapperDocument,
       document.implementation.createHTMLDocument(''));
 
   // Both WebKit and Gecko uses HTMLDocument for document. HTML5/DOM only has
   // one Document interface and IE implements the standard correctly.
   if (typeof HTMLDocument !== 'undefined')
-    wrappers.register(HTMLDocument, WrapperDocument);
+    registerWrapper(HTMLDocument, WrapperDocument);
 
   function wrapMethod(name) {
     var proto = Object.getPrototypeOf(document);
@@ -122,9 +122,9 @@
     };
   }
 
-  function WrapperDOMImplementation(node) {
+  var WrapperDOMImplementation = function DOMImplementation(node) {
     this.impl = node;
-  }
+  };
 
   wrapImplMethod(WrapperDOMImplementation, 'createDocumentType');
   wrapImplMethod(WrapperDOMImplementation, 'createDocument');

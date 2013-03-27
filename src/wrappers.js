@@ -23,6 +23,22 @@ var ShadowDOMPolyfill = {};
     return to;
   };
 
+  function mixinStatics(to, from) {
+    Object.getOwnPropertyNames(from).forEach(function(name) {
+      switch (name) {
+        case 'arguments':
+        case 'caller':
+        case 'length':
+        case 'name':
+        case 'prototype':
+          return;
+      }
+      Object.defineProperty(to, name,
+                            Object.getOwnPropertyDescriptor(from, name));
+    });
+    return to;
+  };
+
   function getWrapperConstructor(node) {
     var nativePrototype = node.__proto__ || Object.getPrototypeOf(node);
     var wrapperConstructor = constructorTable.get(nativePrototype);
@@ -111,6 +127,7 @@ var ShadowDOMPolyfill = {};
   function register(nativeConstructor, wrapperConstructor, opt_instance) {
     var nativePrototype = nativeConstructor.prototype;
     registerInternal(nativePrototype, wrapperConstructor, opt_instance);
+    mixinStatics(wrapperConstructor, nativeConstructor);
   }
 
   function registerInternal(nativePrototype, wrapperConstructor, opt_instance) {
@@ -120,6 +137,11 @@ var ShadowDOMPolyfill = {};
     addForwardingProperties(nativePrototype, wrapperPrototype);
     if (opt_instance)
       registerInstanceProperties(wrapperPrototype, opt_instance);
+  }
+
+  function isWrapperFor(wrapperConstructor, nativeConstructor) {
+    return constructorTable.get(nativeConstructor.prototype) ===
+        wrapperConstructor;
   }
 
   /**
@@ -153,14 +175,8 @@ var ShadowDOMPolyfill = {};
     return GeneratedWrapper;
   }
 
-  function registerHTMLElement(tagName) {
-    var element = document.createElement(tagName);
-    if (element.constructor === HTMLElement ||
-        element instanceof HTMLUnknownElement) {
-      return;
-    }
-    registerObject(element);
-  }
+  var originalNode = Node;
+  var originalEvent = Event;
 
   /**
    * Wraps a node in a WrapperNode. If there already exists a wrapper for the
@@ -172,7 +188,8 @@ var ShadowDOMPolyfill = {};
     if (node === null)
       return null;
 
-    assert(node instanceof Node || node instanceof Event);
+    assert(node instanceof originalNode ||
+           node instanceof originalEvent);
     var wrapper = wrapperTable.get(node);
     if (!wrapper) {
       var wrapperConstructor = getWrapperConstructor(node);
@@ -204,7 +221,8 @@ var ShadowDOMPolyfill = {};
   function rewrap(node, wrapper) {
     if (wrapper === null)
       return;
-    assert(node instanceof Node || node instanceof scope.Event);
+    assert(node instanceof originalNode ||
+           node instanceof originalEvent);
     assert(wrapper === undefined || wrapper instanceof scope.WrapperNode);
     wrapperTable.set(node, wrapper);
   }
@@ -219,16 +237,14 @@ var ShadowDOMPolyfill = {};
     });
   }
 
-  scope.mixin = mixin;
   scope.addWrapGetter = addWrapGetter;
   scope.assert = assert;
-  scope.wrap = wrap;
-  scope.unwrap = unwrap;
+  scope.mixin = mixin;
+  scope.registerObject = registerObject;
+  scope.registerWrapper = register;
   scope.rewrap = rewrap;
-  scope.wrappers = {
-    register: register,
-    registerHTMLElement: registerHTMLElement,
-    registerObject: registerObject
-  };
+  scope.unwrap = unwrap;
+  scope.wrap = wrap;
+  scope.isWrapperFor = isWrapperFor;
 
 })(this.ShadowDOMPolyfill);

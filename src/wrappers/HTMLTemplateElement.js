@@ -10,7 +10,7 @@
   var mixin = scope.mixin;
   var setInnerHTML = scope.setInnerHTML;
   var wrap = scope.wrap;
-  var wrappers = scope.wrappers;
+  var registerWrapper = scope.registerWrapper;
 
   var hasNative = typeof HTMLTemplateElement !== 'undefined';
   var contentTable = new SideTable();
@@ -44,9 +44,9 @@
     return df;
   }
 
-  function WrapperHTMLTemplateElement(node) {
+  var WrapperHTMLTemplateElement = function HTMLTemplateElement(node) {
     WrapperHTMLElement.call(this, node);
-  }
+  };
   WrapperHTMLTemplateElement.prototype = Object.create(WrapperHTMLElement.prototype);
 
   mixin(WrapperHTMLTemplateElement.prototype, {
@@ -78,7 +78,7 @@
   });
 
   if (hasNative)
-    wrappers.register(HTMLTemplateElement, WrapperHTMLTemplateElement);
+    registerWrapper(HTMLTemplateElement, WrapperHTMLTemplateElement);
 
   scope.WrapperHTMLTemplateElement = WrapperHTMLTemplateElement;
 })(this.ShadowDOMPolyfill);

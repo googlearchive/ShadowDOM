@@ -10,9 +10,9 @@
   var WrapperHTMLShadowElement = scope.WrapperHTMLShadowElement;
   var WrapperHTMLTemplateElement = scope.WrapperHTMLTemplateElement;
   var mixin = scope.mixin;
-  var wrappers = scope.wrappers;
+  var registerWrapper = scope.registerWrapper;
 
-  function WrapperHTMLUnknownElement(node) {
+  var WrapperHTMLUnknownElement = function HTMLUnknownElement(node) {
     switch (node.localName) {
       case 'content':
         return new WrapperHTMLContentElement(node);
@@ -22,8 +22,8 @@
         return new WrapperHTMLTemplateElement(node);
     }
     WrapperHTMLElement.call(this, node);
-  }
+  };
   WrapperHTMLUnknownElement.prototype = Object.create(WrapperHTMLElement.prototype);
-  wrappers.register(HTMLUnknownElement, WrapperHTMLUnknownElement);
+  registerWrapper(HTMLUnknownElement, WrapperHTMLUnknownElement);
   scope.WrapperHTMLUnknownElement = WrapperHTMLUnknownElement;
 })(this.ShadowDOMPolyfill);
