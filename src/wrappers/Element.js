@@ -2,8 +2,16 @@
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
 
-(function(exports) {
+(function(scope) {
   'use strict';
+
+  var ChildNodeInterface = scope.ChildNodeInterface;
+  var ParentNodeInterface = scope.ParentNodeInterface;
+  var SelectorsInterface = scope.SelectorsInterface;
+  var WrapperNode = scope.WrapperNode;
+  var addWrapNodeListMethod = scope.addWrapNodeListMethod;
+  var mixin = scope.mixin;
+  var wrappers = scope.wrappers;
 
   var shadowRootTable = new SideTable();
 
@@ -13,10 +21,10 @@
   WrapperElement.prototype = Object.create(WrapperNode.prototype);
   mixin(WrapperElement.prototype, {
     createShadowRoot: function() {
-      var newShadowRoot = new WrapperShadowRoot(this);
+      var newShadowRoot = new scope.WrapperShadowRoot(this);
       shadowRootTable.set(this, newShadowRoot);
 
-      var renderer = new ShadowRenderer(this);
+      var renderer = new scope.ShadowRenderer(this);
 
       this.invalidateShadowRenderer();
 
@@ -50,5 +58,5 @@
 
   wrappers.register(Element, WrapperElement);
 
-  exports.WrapperElement = WrapperElement;
-})(this);
+  scope.WrapperElement = WrapperElement;
+})(this.ShadowDOMPolyfill);

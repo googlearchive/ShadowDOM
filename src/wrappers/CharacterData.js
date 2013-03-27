@@ -2,8 +2,13 @@
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
 
-(function(exports) {
+(function(scope) {
   'use strict';
+
+  var ChildNodeInterface = scope.ChildNodeInterface;
+  var WrapperNode = scope.WrapperNode;
+  var mixin = scope.mixin;
+  var wrappers = scope.wrappers;
 
   function WrapperCharacterData(node) {
     WrapperNode.call(this, node);
@@ -23,5 +28,5 @@
   wrappers.register(CharacterData, WrapperCharacterData,
                     document.createTextNode(''));
 
-  exports.WrapperCharacterData = WrapperCharacterData;
-})(this);
+  scope.WrapperCharacterData = WrapperCharacterData;
+})(this.ShadowDOMPolyfill);

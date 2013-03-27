@@ -2,8 +2,14 @@
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
 
-(function(exports) {
+(function(scope) {
   'use strict';
+
+  var WrapperElement = scope.WrapperElement;
+  var mixin = scope.mixin;
+  var unwrap = scope.unwrap;
+  var wrap = scope.wrap;
+  var wrappers = scope.wrappers;
 
   /////////////////////////////////////////////////////////////////////////////
   // innerHTML and outerHTML
@@ -121,7 +127,7 @@
   function getterRequiresRendering(name) {
     Object.defineProperty(WrapperHTMLElement.prototype, name, {
       get: function() {
-        renderAllPending();
+        scope.renderAllPending();
         return this.impl[name];
       },
       configurable: true,
@@ -147,7 +153,7 @@
   function methodRequiresRendering(name) {
     Object.defineProperty(WrapperHTMLElement.prototype, name, {
       value: function() {
-        renderAllPending();
+        scope.renderAllPending();
         return this.impl[name].apply(this.impl, arguments);
       },
       configurable: true,
@@ -165,9 +171,9 @@
   wrappers.register(HTMLElement, WrapperHTMLElement,
                     document.createElement('span'));
 
-  exports.WrapperHTMLElement = WrapperHTMLElement;
+  scope.WrapperHTMLElement = WrapperHTMLElement;
 
   // TODO: Find a better way to share these two with WrapperShadowRoot.
-  exports.getInnerHTML = getInnerHTML;
-  exports.setInnerHTML = setInnerHTML
-})(this);
+  scope.getInnerHTML = getInnerHTML;
+  scope.setInnerHTML = setInnerHTML
+})(this.ShadowDOMPolyfill);

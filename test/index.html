@@ -25,9 +25,9 @@ function expectStructure(nodeOrWrapper, nonNullFields) {
 
 function unwrapAndExpectStructure(node, nonNullFields) {
   for (var p in nonNullFields) {
-    nonNullFields[p] = unwrap(nonNullFields[p]);
+    nonNullFields[p] = ShadowDOMPolyfill.unwrap(nonNullFields[p]);
   }
-  expectStructure(unwrap(node), nonNullFields);
+  expectStructure(ShadowDOMPolyfill.unwrap(node), nonNullFields);
 }
 
 function assertArrayEqual(a, b, msg) {

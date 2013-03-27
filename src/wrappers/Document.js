@@ -2,8 +2,17 @@
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
 
-(function(exports) {
+(function(scope) {
   'use strict';
+
+  var ParentNodeInterface = scope.ParentNodeInterface;
+  var WrapperNode = scope.WrapperNode;
+  var addWrapGetter = scope.addWrapGetter;
+  var mixin = scope.mixin;
+  var unwrap = scope.unwrap;
+  var wrap = scope.wrap;
+  var wrapNodeList = scope.wrapNodeList;
+  var wrappers = scope.wrappers;
 
   var implementationTable = new SideTable();
 
@@ -35,8 +44,6 @@
 
   wrappers.register(Document, WrapperDocument,
       document.implementation.createHTMLDocument(''));
-
-  exports.WrapperDocument = WrapperDocument;
 
   // Both WebKit and Gecko uses HTMLDocument for document. HTML5/DOM only has
   // one Document interface and IE implements the standard correctly.
@@ -124,4 +131,6 @@
   wrapImplMethod(WrapperDOMImplementation, 'createHTMLDocument');
   forwardImplMethod(WrapperDOMImplementation, 'hasFeature');
 
-})(this);
+  scope.WrapperDocument = WrapperDocument;
+
+})(this.ShadowDOMPolyfill);

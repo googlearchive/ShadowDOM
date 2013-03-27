@@ -6,6 +6,8 @@
 
 suite('Events', function() {
 
+  var adjustRelatedTarget = ShadowDOMPolyfill.adjustRelatedTarget;
+
   test('addEventListener', function() {
     var div1 = document.createElement('div');
     var div2 = document.createElement('div');

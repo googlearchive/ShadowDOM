@@ -2,8 +2,15 @@
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
 
-(function(exports) {
+(function(scope) {
   'use strict';
+
+  var WrapperHTMLElement = scope.WrapperHTMLElement;
+  var getInnerHTML = scope.getInnerHTML;
+  var mixin = scope.mixin;
+  var setInnerHTML = scope.setInnerHTML;
+  var wrap = scope.wrap;
+  var wrappers = scope.wrappers;
 
   var hasNative = typeof HTMLTemplateElement !== 'undefined';
   var contentTable = new SideTable();
@@ -73,5 +80,5 @@
   if (hasNative)
     wrappers.register(HTMLTemplateElement, WrapperHTMLTemplateElement);
 
-  exports.WrapperHTMLTemplateElement = WrapperHTMLTemplateElement;
-})(this);
+  scope.WrapperHTMLTemplateElement = WrapperHTMLTemplateElement;
+})(this.ShadowDOMPolyfill);
