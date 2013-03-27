@@ -20,7 +20,6 @@
     'wrappers/NodeList.js',
     'wrappers/Node.js',
     'wrappers/node-interfaces.js',
-    'wrappers/MouseEvent.js',
     'wrappers/CharacterData.js',
     'wrappers/Element.js',
     'wrappers/HTMLElement.js',
