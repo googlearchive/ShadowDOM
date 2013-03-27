@@ -8,6 +8,7 @@
   var mixin = scope.mixin;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
+  var registerWrapper = scope.registerWrapper;
   var wrappers = scope.wrappers;
 
   var wrappedFuns = new SideTable();
@@ -299,12 +300,12 @@
    * @param {!Node} original The original DOM node, aka, the visual DOM node.
    * @constructor
    */
-  function WrapperEvent(original) {
+  var WrapperEvent = function Event(original) {
     /**
      * @type {!Event}
      */
     this.impl = original;
-  }
+  };
 
   WrapperEvent.prototype = {
     get target() {
@@ -325,30 +326,29 @@
     }
   };
 
-  wrappers.register(Event, WrapperEvent, document.createEvent('Event'));
+  registerWrapper(Event, WrapperEvent, document.createEvent('Event'));
 
-  function WrapperUIEvent(original) {
+  var WrapperUIEvent = function UIEvent(original) {
     WrapperEvent.call(this, original);
-  }
+  };
   WrapperUIEvent.prototype = Object.create(WrapperEvent.prototype);
-  wrappers.register(UIEvent, WrapperUIEvent,
-                    document.createEvent('UIEvent'));
+  registerWrapper(UIEvent, WrapperUIEvent, document.createEvent('UIEvent'));
 
-  function WrapperMouseEvent(original) {
-    WrapperEvent.call(this, original);
-  }
+  var WrapperMouseEvent = function MouseEvent(original) {
+    WrapperUIEvent.call(this, original);
+  };
   WrapperMouseEvent.prototype = Object.create(WrapperUIEvent.prototype);
   mixin(WrapperMouseEvent.prototype, {
     get relatedTarget() {
       return relatedTargetTable.get(this);
     }
   });
-  wrappers.register(MouseEvent, WrapperMouseEvent,
-                    document.createEvent('MouseEvent'));
+  registerWrapper(MouseEvent, WrapperMouseEvent,
+                  document.createEvent('MouseEvent'));
 
-  function WrapperFocusEvent(original) {
-    WrapperEvent.call(this, original);
-  }
+  var WrapperFocusEvent = function FocusEvent(original) {
+    WrapperUIEvent.call(this, original);
+  };
   WrapperFocusEvent.prototype = Object.create(WrapperUIEvent.prototype);
   mixin(WrapperFocusEvent.prototype, {
     get relatedTarget() {
@@ -356,8 +356,8 @@
     }
   });
   if (typeof FocusEvent !== 'undefined') {
-    wrappers.register(FocusEvent, WrapperFocusEvent,
-                      document.createEvent('FocusEvent'));
+    registerWrapper(FocusEvent, WrapperFocusEvent,
+                    document.createEvent('FocusEvent'));
   }
 
   function isValidListener(fun) {
@@ -371,12 +371,12 @@
    * @param {!Node} original The original DOM node, aka, the visual DOM node.
    * @constructor
    */
-  function WrapperEventTarget(original) {
+  var WrapperEventTarget = function EventTarget(original) {
     /**
      * @type {!Node}
      */
     this.impl = original;
-  }
+  };
 
   var originalAddEventListener = Node.prototype.addEventListener;
   var originalRemoveEventListener = Node.prototype.removeEventListener;
@@ -439,7 +439,7 @@
   };
 
   if (typeof EventTarget !== 'undefined')
-    wrappers.register(EventTarget, WrapperEventTarget);
+    registerWrapper(EventTarget, WrapperEventTarget);
 
   scope.WrapperEvent = WrapperEvent;
   scope.WrapperEventTarget = WrapperEventTarget;

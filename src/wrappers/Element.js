@@ -11,13 +11,14 @@
   var WrapperNode = scope.WrapperNode;
   var addWrapNodeListMethod = scope.addWrapNodeListMethod;
   var mixin = scope.mixin;
+  var registerWrapper = scope.registerWrapper;
   var wrappers = scope.wrappers;
 
   var shadowRootTable = new SideTable();
 
-  function WrapperElement(node) {
+  var WrapperElement = function Element(node) {
     WrapperNode.call(this, node);
-  }
+  };
   WrapperElement.prototype = Object.create(WrapperNode.prototype);
   mixin(WrapperElement.prototype, {
     createShadowRoot: function() {
@@ -56,7 +57,7 @@
     addWrapNodeListMethod(WrapperElement, name);
   });
 
-  wrappers.register(Element, WrapperElement);
+  registerWrapper(Element, WrapperElement);
 
   scope.WrapperElement = WrapperElement;
 })(this.ShadowDOMPolyfill);

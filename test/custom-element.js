@@ -6,20 +6,13 @@
 
 suite('Custom Element', function() {
 
-  var rewrap = ShadowDOMPolyfill.rewrap;
-  var unwrap = ShadowDOMPolyfill.unwrap;
-  var wrap = ShadowDOMPolyfill.wrap;
-
   test('Correct Wrapper for Custom Element', function() {
 
     function MyElement() {};
-    MyElement.prototype = Object.create(HTMLUnknownElement.prototype);
+    MyElement.prototype = Object.create(HTMLElement.prototype);
     MyElement.prototype.customMethod = function() {};
     // make a DOM instance
     var div = document.createElement('div');
-    // strip wrapper (TODO(sjmiles): should we make api for this?)
-    div = unwrap(div);
-    rewrap(div);
     // implement custom API
     if (Object.__proto__) {
       // for browsers that support __proto__
@@ -32,10 +25,6 @@ suite('Custom Element', function() {
     }
     assert.typeOf(div.customMethod, 'function',
                   'plain custom element has custom function');
-    // wrap
-    var wrapper = wrap(div);
-    assert.typeOf(wrapper.customMethod, 'function',
-        'wrapped custom element has custom function');
   });
 
 });

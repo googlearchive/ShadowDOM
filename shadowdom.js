@@ -30,7 +30,8 @@
     'wrappers/generic.js',
     'wrappers/ShadowRoot.js',
     'ShadowRenderer.js',
-    'wrappers/Document.js'
+    'wrappers/Document.js',
+    'wrappers/override-constructors.js'
   ].forEach(function(src) {
     document.write('<script src="' + base + src + '"></script>');
   });
