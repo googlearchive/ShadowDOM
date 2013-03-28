@@ -7,12 +7,12 @@
 
   var WrapperHTMLElement = scope.WrapperHTMLElement;
   var mixin = scope.mixin;
-  var wrappers = scope.wrappers;
+  var registerWrapper = scope.registerWrapper;
 
-  function WrapperHTMLShadowElement(node) {
+  var WrapperHTMLShadowElement = function HTMLShadowElement(node) {
     WrapperHTMLElement.call(this, node);
     this.olderShadowRoot_ = null;
-  }
+  };
   WrapperHTMLShadowElement.prototype = Object.create(WrapperHTMLElement.prototype);
   mixin(WrapperHTMLShadowElement.prototype, {
     get olderShadowRoot() {
@@ -22,7 +22,7 @@
   });
 
   if (typeof HTMLShadowElement !== 'undefined')
-    wrappers.register(HTMLShadowElement, WrapperHTMLShadowElement);
+    registerWrapper(HTMLShadowElement, WrapperHTMLShadowElement);
 
   scope.WrapperHTMLShadowElement = WrapperHTMLShadowElement;
 })(this.ShadowDOMPolyfill);

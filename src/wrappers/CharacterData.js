@@ -8,11 +8,11 @@
   var ChildNodeInterface = scope.ChildNodeInterface;
   var WrapperNode = scope.WrapperNode;
   var mixin = scope.mixin;
-  var wrappers = scope.wrappers;
+  var registerWrapper = scope.registerWrapper;
 
-  function WrapperCharacterData(node) {
+  var WrapperCharacterData = function CharacterData(node) {
     WrapperNode.call(this, node);
-  }
+  };
   WrapperCharacterData.prototype = Object.create(WrapperNode.prototype);
   mixin(WrapperCharacterData.prototype, {
     get textContent() {
@@ -25,8 +25,8 @@
 
   mixin(WrapperCharacterData.prototype, ChildNodeInterface);
 
-  wrappers.register(CharacterData, WrapperCharacterData,
-                    document.createTextNode(''));
+  registerWrapper(CharacterData, WrapperCharacterData,
+                  document.createTextNode(''));
 
   scope.WrapperCharacterData = WrapperCharacterData;
 })(this.ShadowDOMPolyfill);

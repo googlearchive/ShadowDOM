@@ -14,7 +14,7 @@
 
   var shadowHostTable = new SideTable();
 
-  function WrapperShadowRoot(hostWrapper) {
+  var WrapperShadowRoot = function ShadowRoot(hostWrapper) {
     var node = unwrap(hostWrapper.impl.ownerDocument.createDocumentFragment());
     WrapperDocumentFragment.call(this, node);
 
@@ -29,7 +29,7 @@
 
     // TODO: are we invalidating on both sides?
     hostWrapper.invalidateShadowRenderer();
-  }
+  };
   WrapperShadowRoot.prototype = Object.create(WrapperDocumentFragment.prototype);
   mixin(WrapperShadowRoot.prototype, {
     get innerHTML() {

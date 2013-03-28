@@ -9,7 +9,7 @@
   var mixin = scope.mixin;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
-  var wrappers = scope.wrappers;
+  var registerWrapper = scope.registerWrapper;
 
   /////////////////////////////////////////////////////////////////////////////
   // innerHTML and outerHTML
@@ -96,9 +96,9 @@
     }
   }
 
-  function WrapperHTMLElement(node) {
+  var WrapperHTMLElement = function HTMLElement(node) {
     WrapperElement.call(this, node);
-  }
+  };
   WrapperHTMLElement.prototype = Object.create(WrapperElement.prototype);
   mixin(WrapperHTMLElement.prototype, {
     get innerHTML() {
@@ -168,8 +168,8 @@
   ].forEach(methodRequiresRendering);
 
   // HTMLElement is abstract so we use a subclass that has no members.
-  wrappers.register(HTMLElement, WrapperHTMLElement,
-                    document.createElement('span'));
+  registerWrapper(HTMLElement, WrapperHTMLElement,
+                  document.createElement('span'));
 
   scope.WrapperHTMLElement = WrapperHTMLElement;
 
