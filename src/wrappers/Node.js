@@ -82,7 +82,7 @@
     wrapper.firstChild_ = wrapper.lastChild_ = null;
   }
 
-  var originalNode = Node;
+  var OriginalNode = Node;
 
   /**
    * This represents a logical DOM node.
@@ -91,7 +91,7 @@
    * @extends {WrapperEventTarget}
    */
   var WrapperNode = function Node(original) {
-    assert(original instanceof originalNode);
+    assert(original instanceof OriginalNode);
 
     WrapperEventTarget.call(this, original);
 

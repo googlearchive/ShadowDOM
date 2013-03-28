@@ -300,11 +300,11 @@
    * @param {!Node} original The original DOM node, aka, the visual DOM node.
    * @constructor
    */
-  var WrapperEvent = function Event(original) {
+  var WrapperEvent = function Event(impl) {
     /**
      * @type {!Event}
      */
-    this.impl = original;
+    this.impl = impl;
   };
 
   WrapperEvent.prototype = {
@@ -371,11 +371,11 @@
    * @param {!Node} original The original DOM node, aka, the visual DOM node.
    * @constructor
    */
-  var WrapperEventTarget = function EventTarget(original) {
+  var WrapperEventTarget = function EventTarget(impl) {
     /**
      * @type {!Node}
      */
-    this.impl = original;
+    this.impl = impl;
   };
 
   var originalAddEventListener = Node.prototype.addEventListener;
