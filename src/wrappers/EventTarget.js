@@ -295,18 +295,19 @@
     }
   };
 
+  var OriginalEvent = Event;
+
   /**
    * This represents a logical DOM node.
    * @param {!Node} original The original DOM node, aka, the visual DOM node.
    * @constructor
    */
-  var WrapperEvent = function Event(impl) {
-    /**
-     * @type {!Event}
-     */
-    this.impl = impl;
+  var WrapperEvent = function Event(type, options) {
+    if (type instanceof OriginalEvent)
+      this.impl = type;
+    else
+      this.impl = new OriginalEvent(type, options);
   };
-
   WrapperEvent.prototype = {
     get target() {
       return targetTable.get(this);
@@ -325,40 +326,63 @@
       stopImmediatePropagationTable.set(this, true);
     }
   };
-
   registerWrapper(Event, WrapperEvent, document.createEvent('Event'));
 
-  var WrapperUIEvent = function UIEvent(original) {
-    WrapperEvent.call(this, original);
-  };
-  WrapperUIEvent.prototype = Object.create(WrapperEvent.prototype);
-  registerWrapper(UIEvent, WrapperUIEvent, document.createEvent('UIEvent'));
-
-  var WrapperMouseEvent = function MouseEvent(original) {
-    WrapperUIEvent.call(this, original);
-  };
-  WrapperMouseEvent.prototype = Object.create(WrapperUIEvent.prototype);
-  mixin(WrapperMouseEvent.prototype, {
-    get relatedTarget() {
-      return relatedTargetTable.get(this);
-    }
-  });
-  registerWrapper(MouseEvent, WrapperMouseEvent,
-                  document.createEvent('MouseEvent'));
-
-  var WrapperFocusEvent = function FocusEvent(original) {
-    WrapperUIEvent.call(this, original);
-  };
-  WrapperFocusEvent.prototype = Object.create(WrapperUIEvent.prototype);
-  mixin(WrapperFocusEvent.prototype, {
-    get relatedTarget() {
-      return relatedTargetTable.get(this);
-    }
-  });
-  if (typeof FocusEvent !== 'undefined') {
-    registerWrapper(FocusEvent, WrapperFocusEvent,
-                    document.createEvent('FocusEvent'));
+  function unwrapOptions(options) {
+    if (!options || !options.relatedTarget)
+      return options;
+    return Object.create(options, {
+      relatedTarget: {value: unwrap(options.relatedTarget)}
+    });
   }
+
+  function registerGenericEvent(name, SuperEvent, prototype) {
+    var OriginalEvent = window[name];
+    var GenericEvent = function(type, options) {
+      if (type instanceof OriginalEvent)
+        this.impl = type;
+      else
+        this.impl = new OriginalEvent(type, unwrapOptions(options));
+    };
+    GenericEvent.prototype = Object.create(SuperEvent.prototype);
+    if (prototype)
+      mixin(GenericEvent.prototype, prototype);
+    // Firefox does not support FocusEvent
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=855741
+    if (OriginalEvent)
+      registerWrapper(OriginalEvent, GenericEvent, document.createEvent(name));
+    return GenericEvent;
+  }
+
+  var WrapperUIEvent = registerGenericEvent('UIEvent', WrapperEvent);
+  var WrapperCustomEvent = registerGenericEvent('CustomEvent', WrapperEvent);
+
+  var relatedTargetProto = {
+    get relatedTarget() {
+      return relatedTargetTable.get(this) || wrap(unwrap(this).relatedTarget);
+    }
+  };
+
+  function getInitFunction(name, relatedTargetIndex) {
+    return function() {
+      arguments[relatedTargetIndex] = unwrap(arguments[relatedTargetIndex]);
+      var impl = unwrap(this);
+      impl[name].apply(impl, arguments);
+    };
+  }
+
+  var mouseEventProto = mixin({
+    initMouseEvent: getInitFunction('initMouseEvent', 14)
+  }, relatedTargetProto);
+
+  var focusEventProto = mixin({
+    initFocusEvent: getInitFunction('initFocusEvent', 5)
+  }, relatedTargetProto);
+
+  var WrapperMouseEvent = registerGenericEvent('MouseEvent', WrapperUIEvent,
+                                               mouseEventProto);
+  var WrapperFocusEvent = registerGenericEvent('FocusEvent', WrapperUIEvent,
+                                               focusEventProto);
 
   function isValidListener(fun) {
     if (typeof fun === 'function')
@@ -443,6 +467,8 @@
 
   scope.WrapperEvent = WrapperEvent;
   scope.WrapperEventTarget = WrapperEventTarget;
+  scope.WrapperUIEvent = WrapperUIEvent;
+  scope.WrapperFocusEvent = WrapperFocusEvent;
   scope.WrapperMouseEvent = WrapperMouseEvent;
   scope.adjustRelatedTarget = adjustRelatedTarget;
 
