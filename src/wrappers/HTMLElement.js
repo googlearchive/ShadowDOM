@@ -169,7 +169,7 @@
 
   // HTMLElement is abstract so we use a subclass that has no members.
   registerWrapper(HTMLElement, WrapperHTMLElement,
-                  document.createElement('span'));
+                  document.createElement('b'));
 
   scope.WrapperHTMLElement = WrapperHTMLElement;
 
