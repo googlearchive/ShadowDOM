@@ -539,8 +539,7 @@ suite('Events', function() {
     var e = new MouseEvent('mouseover', {relatedTarget: div});
     assert.equal(e.type, 'mouseover');
     assert.equal(e.relatedTarget, div);
-    // Chai's assert.instanceOf fails in Firefox for this.
-    assert.isTrue(e instanceof MouseEvent);
+    assert.instanceOf(e, MouseEvent);
   });
 
 });
