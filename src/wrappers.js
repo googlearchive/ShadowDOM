@@ -39,6 +39,11 @@ var ShadowDOMPolyfill = {};
     return to;
   };
 
+  // Mozilla's old DOM bindings are bretty busted:
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=855844
+  // Make sure they are create before we start modifying things.
+  Object.getOwnPropertyNames(window);
+
   function getWrapperConstructor(node) {
     var nativePrototype = node.__proto__ || Object.getPrototypeOf(node);
     var wrapperConstructor = constructorTable.get(nativePrototype);
@@ -154,9 +159,8 @@ var ShadowDOMPolyfill = {};
    * @param {Function=} opt_nativeConstructor
    * @return {Function} The generated constructor.
    */
-  function registerObject(object, opt_nativeConstructor) {
-    var nativePrototype = opt_nativeConstructor ?
-        opt_nativeConstructor.prototype : Object.getPrototypeOf(object);
+  function registerObject(object) {
+    var nativePrototype = Object.getPrototypeOf(object);
 
     var superWrapperConstructor = getWrapperConstructor(nativePrototype);
     var GeneratedWrapper = createWrapperConstructor(superWrapperConstructor);
@@ -171,12 +175,13 @@ var ShadowDOMPolyfill = {};
     }
     GeneratedWrapper.prototype =
         Object.create(superWrapperConstructor.prototype);
+    GeneratedWrapper.prototype.constructor = GeneratedWrapper;
 
     return GeneratedWrapper;
   }
 
-  var originalNode = Node;
-  var originalEvent = Event;
+  var OriginalNode = Node;
+  var OriginalEvent = Event;
 
   /**
    * Wraps a node in a WrapperNode. If there already exists a wrapper for the
@@ -188,8 +193,8 @@ var ShadowDOMPolyfill = {};
     if (node === null)
       return null;
 
-    assert(node instanceof originalNode ||
-           node instanceof originalEvent);
+    assert(node instanceof OriginalNode ||
+           node instanceof OriginalEvent);
     var wrapper = wrapperTable.get(node);
     if (!wrapper) {
       var wrapperConstructor = getWrapperConstructor(node);
@@ -221,8 +226,8 @@ var ShadowDOMPolyfill = {};
   function rewrap(node, wrapper) {
     if (wrapper === null)
       return;
-    assert(node instanceof originalNode ||
-           node instanceof originalEvent);
+    assert(node instanceof OriginalNode ||
+           node instanceof OriginalEvent);
     assert(wrapper === undefined || wrapper instanceof scope.WrapperNode);
     wrapperTable.set(node, wrapper);
   }
