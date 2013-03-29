@@ -402,9 +402,9 @@
     this.impl = impl;
   };
 
-  var originalAddEventListener = Node.prototype.addEventListener;
-  var originalRemoveEventListener = Node.prototype.removeEventListener;
-  var originalDispatchEvent = Node.prototype.dispatchEvent;
+  var originalAddEventListener = document.addEventListener;
+  var originalRemoveEventListener = document.removeEventListener;
+  var originalDispatchEvent = document.dispatchEvent;
 
   function getTargetToListenAt(wrapper) {
     if (wrapper instanceof scope.WrapperShadowRoot)
