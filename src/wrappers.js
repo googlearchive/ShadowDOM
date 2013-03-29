@@ -31,6 +31,7 @@ var ShadowDOMPolyfill = {};
         case 'length':
         case 'name':
         case 'prototype':
+        case 'toString':
           return;
       }
       Object.defineProperty(to, name,
