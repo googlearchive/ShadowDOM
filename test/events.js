@@ -12,8 +12,7 @@ suite('Events', function() {
 
   function createMouseOverEvent(relatedTarget) {
     var event = document.createEvent('MouseEvent');
-    var realEvent = unwrap(event);
-    realEvent.initMouseEvent(
+    event.initMouseEvent(
         'mouseover',  // typeArg
         true,  // canBubbleArg
         false,  // cancelableArg
@@ -28,7 +27,7 @@ suite('Events', function() {
         false,  // shiftKeyArg
         false,  // metaKeyArg
         0,  // buttonArg
-        unwrap(relatedTarget));  // relatedTargetArg
+        relatedTarget);  // relatedTargetArg
     return event;
   }
 
@@ -114,8 +113,7 @@ suite('Events', function() {
     div.removeEventListener('click', f, true);
 
     var event = document.createEvent('MouseEvent');
-    var unwrappedEvent = unwrap(event);
-    unwrappedEvent.initMouseEvent(
+    event.initMouseEvent(
         'click',  // type
         true,  // canBubble
         true,  // cancelable
@@ -131,7 +129,7 @@ suite('Events', function() {
         false,  // metaKey
         0,  // button
         null);  // relatedTarget
-    unwrap(div).dispatchEvent(unwrappedEvent);
+    div.dispatchEvent(event);
     assert.equal(calls, 3);
   });
 
@@ -519,6 +517,30 @@ suite('Events', function() {
     var div = document.createElement('div');
     div.addEventListener('click', undefined);
     div.click();
+  });
+
+  test('new Event', function() {
+    var e = new Event('x', {bubbles: true, cancelable: true});
+    assert.equal(e.type, 'x');
+    assert.equal(e.bubbles, true);
+    assert.equal(e.cancelable, true);
+    assert.instanceOf(e, Event);
+  });
+
+  test('new CustomEvent', function() {
+    var e = new CustomEvent('x', {detail: 42});
+    assert.equal(e.type, 'x');
+    assert.equal(e.detail, 42);
+    assert.instanceOf(e, CustomEvent);
+  });
+
+  test('new MouseEvent', function() {
+    var div = document.createElement('div');
+    var e = new MouseEvent('mouseover', {relatedTarget: div});
+    assert.equal(e.type, 'mouseover');
+    assert.equal(e.relatedTarget, div);
+    // Chai's assert.instanceOf fails in Firefox for this.
+    assert.isTrue(e instanceof MouseEvent);
   });
 
 });
