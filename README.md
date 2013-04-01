@@ -1,6 +1,8 @@
 ## ShadowDOM
 
-ShadowDOM polyfill with usable syntax.
+ShadowDOM polyfill with usable syntax. 
+
+See [toolkitchen/toolkit](https://github.com/toolkitchen/toolkit) for more information.
 
 ### Tests and Minification
 
