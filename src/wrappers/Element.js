@@ -6,23 +6,24 @@
   'use strict';
 
   var ChildNodeInterface = scope.ChildNodeInterface;
+  var Node = scope.wrappers.Node;
   var ParentNodeInterface = scope.ParentNodeInterface;
   var SelectorsInterface = scope.SelectorsInterface;
-  var WrapperNode = scope.WrapperNode;
   var addWrapNodeListMethod = scope.addWrapNodeListMethod;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
   var wrappers = scope.wrappers;
 
   var shadowRootTable = new SideTable();
+  var OriginalElement = window.Element;
 
-  var WrapperElement = function Element(node) {
-    WrapperNode.call(this, node);
-  };
-  WrapperElement.prototype = Object.create(WrapperNode.prototype);
-  mixin(WrapperElement.prototype, {
+  function Element(node) {
+    Node.call(this, node);
+  }
+  Element.prototype = Object.create(Node.prototype);
+  mixin(Element.prototype, {
     createShadowRoot: function() {
-      var newShadowRoot = new scope.WrapperShadowRoot(this);
+      var newShadowRoot = new wrappers.ShadowRoot(this);
       shadowRootTable.set(this, newShadowRoot);
 
       var renderer = new scope.ShadowRenderer(this);
@@ -35,7 +36,7 @@
     get shadowRoot() {
       return shadowRootTable.get(this) || null;
     },
-  
+
     setAttribute: function(name, value) {
       this.impl.setAttribute(name, value);
       // This is a bit agressive. We need to invalidate if it affects
@@ -45,19 +46,19 @@
     }
   });
 
-  mixin(WrapperElement.prototype, ChildNodeInterface);
-  mixin(WrapperElement.prototype, ParentNodeInterface);
-  mixin(WrapperElement.prototype, SelectorsInterface);
+  mixin(Element.prototype, ChildNodeInterface);
+  mixin(Element.prototype, ParentNodeInterface);
+  mixin(Element.prototype, SelectorsInterface);
 
   [
     'getElementsByTagName',
     'getElementsByTagNameNS',
     'getElementsByClassName'
   ].forEach(function(name) {
-    addWrapNodeListMethod(WrapperElement, name);
+    addWrapNodeListMethod(Element, name);
   });
 
-  registerWrapper(Element, WrapperElement);
+  registerWrapper(OriginalElement, Element);
 
-  scope.WrapperElement = WrapperElement;
+  scope.wrappers.Element = Element;
 })(this.ShadowDOMPolyfill);

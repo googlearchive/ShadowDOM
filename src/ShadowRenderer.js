@@ -5,8 +5,8 @@
 (function(scope) {
   'use strict';
 
-  var WrapperHTMLContentElement = scope.WrapperHTMLContentElement;
-  var WrapperNode = scope.WrapperNode;
+  var HTMLContentElement = scope.wrappers.HTMLContentElement;
+  var Node = scope.wrappers.Node;
   var assert = scope.assert;
   var mixin = scope.mixin;
   var unwrap = scope.unwrap;
@@ -16,7 +16,7 @@
    * Updates the fields of a wrapper to a snapshot of the logical DOM as needed.
    * Up means parentNode
    * Sideways means previous and next sibling.
-   * @param {!WrapperNode} wrapper
+   * @param {!Node} wrapper
    */
   function updateWrapperUpAndSideways(wrapper) {
     wrapper.previousSibling_ = wrapper.previousSibling;
@@ -27,7 +27,7 @@
   /**
    * Updates the fields of a wrapper to a snapshot of the logical DOM as needed.
    * Down means first and last child
-   * @param {!WrapperNode} wrapper
+   * @param {!Node} wrapper
    */
   function updateWrapperDown(wrapper) {
     wrapper.firstChild_ = wrapper.firstChild;
@@ -35,7 +35,7 @@
   }
 
   function updateAllChildNodes(parentNodeWrapper) {
-    assert(parentNodeWrapper instanceof WrapperNode);
+    assert(parentNodeWrapper instanceof Node);
     for (var childWrapper = parentNodeWrapper.firstChild;
          childWrapper;
          childWrapper = childWrapper.nextSibling) {
@@ -490,7 +490,7 @@
     new ShadowRenderer(host).render();
   };
 
-  WrapperNode.prototype.invalidateShadowRenderer = function() {
+  Node.prototype.invalidateShadowRenderer = function() {
     // TODO: If this is in light DOM we only need to invalidate renderer if this
     // is a direct child of a ShadowRoot.
     // Maybe we should only associate renderers with direct child nodes of a
@@ -503,14 +503,14 @@
     return true;
   };
 
-  WrapperHTMLContentElement.prototype.getDistributedNodes = function() {
+  HTMLContentElement.prototype.getDistributedNodes = function() {
     // TODO(arv): We should associate the element with the shadow root so we
     // only have to rerender this ShadowRenderer.
     renderAllPending();
     return getDistributedChildNodes(this);
   };
 
-  mixin(WrapperNode.prototype, {
+  mixin(Node.prototype, {
     get insertionPointParent() {
       return insertionPointParentTable.get(this) || null;
     }
