@@ -34,6 +34,11 @@
     return !!node.shadowRoot;
   }
 
+  function getEventParent(node) {
+    var dv;
+    return node.parentNode || (dv = node.defaultView) && wrap(dv) || null;
+  }
+
   // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#dfn-adjusted-parent
   function calculateParent(node, context) {
     // 1.
@@ -58,7 +63,7 @@
       }
     }
 
-    return node.parentNode;
+    return getEventParent(node);
   }
 
   // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#event-retargeting
@@ -135,9 +140,11 @@
   }
 
   function inSameTree(a, b) {
+    // a and/or b can be a window object which does not have a parentNode.
+    // Since null == undefined we are OK as long as we do not use === here.
     while (true) {
-      if (a === b)
-        return a !== null;
+      if (a == b)
+        return a != null;
       if (a)
         a = a.parentNode;
       if (b)
@@ -402,9 +409,20 @@
     this.impl = impl;
   };
 
-  var originalAddEventListener = document.addEventListener;
-  var originalRemoveEventListener = document.removeEventListener;
-  var originalDispatchEvent = document.dispatchEvent;
+  // Node and Window have different internal type checks in WebKit so we cannot
+  // use the same method as the original function.
+  var methodNames = [
+    'addEventListener',
+    'removeEventListener',
+    'dispatchEvent'
+  ];
+
+  [Element, Window, Document].forEach(function(constructor) {
+    var p = constructor.prototype;
+    methodNames.forEach(function(name) {
+      Object.defineProperty(p, name + '_', {value: p[name]});
+    });
+  });
 
   function getTargetToListenAt(wrapper) {
     if (wrapper instanceof scope.WrapperShadowRoot)
@@ -432,8 +450,8 @@
 
       listeners.push(listener);
 
-      originalAddEventListener.call(getTargetToListenAt(this), type,
-                                    dispatchOriginalEvent, true);
+      var target = getTargetToListenAt(this);
+      target.addEventListener_(type, dispatchOriginalEvent, true);
     },
     removeEventListener: function(type, fun, capture) {
       capture = Boolean(capture);
@@ -452,18 +470,31 @@
       }
 
       if (found && count === 1) {
-        originalRemoveEventListener.call(getTargetToListenAt(this),
-                                         type, dispatchOriginalEvent, true);
+        var target = getTargetToListenAt(this);
+        target.removeEventListener_(type, dispatchOriginalEvent, true);
       }
     },
     dispatchEvent: function(event) {
-      return originalDispatchEvent.call(getTargetToListenAt(this),
-                                        unwrap(event));
+      var target = getTargetToListenAt(this);
+      return target.dispatchEvent_(unwrap(event));
     }
   };
 
   if (typeof EventTarget !== 'undefined')
     registerWrapper(EventTarget, WrapperEventTarget);
+
+  function wrapEventTargetMethod(object) {
+    // For the EventTarget methods, the methods already call the original
+    // function object (instead of doing this.impl.foo so we can just redirect to
+    // the wrapper).
+    methodNames.forEach(function(name) {
+      var proto = Object.getPrototypeOf(object);
+      proto[name] = function() {
+        var wrapper = wrap(this);
+        return wrapper[name].apply(wrapper, arguments);
+      };
+    });
+  }
 
   scope.WrapperEvent = WrapperEvent;
   scope.WrapperEventTarget = WrapperEventTarget;
@@ -471,5 +502,6 @@
   scope.WrapperFocusEvent = WrapperFocusEvent;
   scope.WrapperMouseEvent = WrapperMouseEvent;
   scope.adjustRelatedTarget = adjustRelatedTarget;
+  scope.wrapEventTargetMethod = wrapEventTargetMethod;
 
 })(this.ShadowDOMPolyfill);

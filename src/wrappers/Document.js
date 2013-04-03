@@ -9,10 +9,11 @@
   var WrapperNode = scope.WrapperNode;
   var addWrapGetter = scope.addWrapGetter;
   var mixin = scope.mixin;
+  var registerWrapper = scope.registerWrapper;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
+  var wrapEventTargetMethod = scope.wrapEventTargetMethod;
   var wrapNodeList = scope.wrapNodeList;
-  var registerWrapper = scope.registerWrapper;
 
   var implementationTable = new SideTable();
 
@@ -93,22 +94,7 @@
     'querySelectorAll'
   ].forEach(wrapNodeListMethod);
 
-  // For the EventTarget methods, the methods already call the original
-  // function object (instead of doing this.impl.foo so we can just redirect to
-  // the wrapper).
-  function wrapEventTargetMethod(name) {
-    var proto = Object.getPrototypeOf(document);
-    proto[name] = function() {
-      var wrapper = wrap(this);
-      return wrapper[name].apply(wrapper, arguments);
-    };
-  }
-
-  [
-    'addEventListener',
-    'removeEventListener',
-    'dispatchEvent'
-  ].forEach(wrapEventTargetMethod);
+  wrapEventTargetMethod(document);
 
   function wrapImplMethod(constructor, name) {
     constructor.prototype[name] = function() {
