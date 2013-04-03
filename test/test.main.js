@@ -3,7 +3,6 @@
  * Use of this source code is governed by a BSD-style
  * license that can be found in the LICENSE file.
  */
-<script>
 
 var assert = chai.assert;
 
@@ -31,26 +30,27 @@ function assertArrayEqual(a, b, msg) {
   }
 }
 
-</script>
-<script>mocha.setup({
+mocha.setup({
   ui: 'tdd',
   globals: ['console', 'getInterface']
-})</script>
-<script src="test.js"></script>
-<script src="paralleltrees.js"></script>
-<script src="rerender.js"></script>
-<script src="reprojection.js"></script>
-<script src="custom-element.js"></script>
-<script src="HTMLShadowElement.js"></script>
-<script src="HTMLContentElement.js"></script>
-<script src="HTMLTemplateElement.js"></script>
-<script src="Document.js"></script>
-<script src="Window.js"></script>
-<script src="Element.js"></script>
-<script src="ParentNodeInterface.js"></script>
-<script src="wrappers.js"></script>
-<script src="events.js"></script>
-<div id="mocha"></div>
-<script>
-mocha.run();
-</script>
+})
+
+modules = [
+  "test.js",
+  "paralleltrees.js",
+  "rerender.js",
+  "reprojection.js",
+  "custom-element.js",
+  "HTMLShadowElement.js",
+  "HTMLContentElement.js",
+  "HTMLTemplateElement.js",
+  "Document.js",
+  "Window.js",
+  "Element.js",
+  "ParentNodeInterface.js",
+  "wrappers.js",
+  "events.js"
+];
+modules.forEach(function(inSrc) {
+  document.write('<script src="' + inSrc + '"></script>');
+});
