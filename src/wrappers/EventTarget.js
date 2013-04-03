@@ -6,9 +6,9 @@
   'use strict';
 
   var mixin = scope.mixin;
+  var registerWrapper = scope.registerWrapper;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
-  var registerWrapper = scope.registerWrapper;
   var wrappers = scope.wrappers;
 
   var wrappedFuns = new SideTable();
@@ -22,7 +22,7 @@
   var stopImmediatePropagationTable = new SideTable();
 
   function isShadowRoot(node) {
-    return node instanceof scope.WrapperShadowRoot;
+    return node instanceof wrappers.ShadowRoot;
   }
 
   function isInsertionPoint(node) {
@@ -302,20 +302,21 @@
     }
   };
 
-  var OriginalEvent = Event;
+  var OriginalEvent = window.Event;
 
   /**
-   * This represents a logical DOM node.
-   * @param {!Node} original The original DOM node, aka, the visual DOM node.
+   * Creates a new Event wrapper or wraps an existin native Event object.
+   * @param {string|Event} type
+   * @param {Object=} options
    * @constructor
    */
-  var WrapperEvent = function Event(type, options) {
+  function Event(type, options) {
     if (type instanceof OriginalEvent)
       this.impl = type;
     else
       this.impl = new OriginalEvent(type, options);
-  };
-  WrapperEvent.prototype = {
+  }
+  Event.prototype = {
     get target() {
       return targetTable.get(this);
     },
@@ -333,7 +334,7 @@
       stopImmediatePropagationTable.set(this, true);
     }
   };
-  registerWrapper(Event, WrapperEvent, document.createEvent('Event'));
+  registerWrapper(OriginalEvent, Event, document.createEvent('Event'));
 
   function unwrapOptions(options) {
     if (!options || !options.relatedTarget)
@@ -361,8 +362,8 @@
     return GenericEvent;
   }
 
-  var WrapperUIEvent = registerGenericEvent('UIEvent', WrapperEvent);
-  var WrapperCustomEvent = registerGenericEvent('CustomEvent', WrapperEvent);
+  var UIEvent = registerGenericEvent('UIEvent', Event);
+  var CustomEvent = registerGenericEvent('CustomEvent', Event);
 
   var relatedTargetProto = {
     get relatedTarget() {
@@ -386,10 +387,8 @@
     initFocusEvent: getInitFunction('initFocusEvent', 5)
   }, relatedTargetProto);
 
-  var WrapperMouseEvent = registerGenericEvent('MouseEvent', WrapperUIEvent,
-                                               mouseEventProto);
-  var WrapperFocusEvent = registerGenericEvent('FocusEvent', WrapperUIEvent,
-                                               focusEventProto);
+  var MouseEvent = registerGenericEvent('MouseEvent', UIEvent, mouseEventProto);
+  var FocusEvent = registerGenericEvent('FocusEvent', UIEvent, focusEventProto);
 
   function isValidListener(fun) {
     if (typeof fun === 'function')
@@ -397,17 +396,16 @@
     return fun && fun.handleEvent;
   }
 
+  var OriginalEventTarget = window.EventTarget;
+
   /**
-   * This represents a logical DOM node.
-   * @param {!Node} original The original DOM node, aka, the visual DOM node.
+   * This represents a wrapper for an EventTarget.
+   * @param {!EventTarget} impl The original event target.
    * @constructor
    */
-  var WrapperEventTarget = function EventTarget(impl) {
-    /**
-     * @type {!Node}
-     */
+  function EventTarget(impl) {
     this.impl = impl;
-  };
+  }
 
   // Node and Window have different internal type checks in WebKit so we cannot
   // use the same method as the original function.
@@ -425,12 +423,12 @@
   });
 
   function getTargetToListenAt(wrapper) {
-    if (wrapper instanceof scope.WrapperShadowRoot)
+    if (wrapper instanceof wrappers.ShadowRoot)
       wrapper = scope.getHostForShadowRoot(wrapper);
     return unwrap(wrapper);
   }
 
-  WrapperEventTarget.prototype = {
+  EventTarget.prototype = {
     addEventListener: function(type, fun, capture) {
       if (!isValidListener(fun))
         return;
@@ -480,8 +478,8 @@
     }
   };
 
-  if (typeof EventTarget !== 'undefined')
-    registerWrapper(EventTarget, WrapperEventTarget);
+  if (OriginalEventTarget)
+    registerWrapper(OriginalEventTarget, EventTarget);
 
   function wrapEventTargetMethod(object) {
     // For the EventTarget methods, the methods already call the original
@@ -496,11 +494,11 @@
     });
   }
 
-  scope.WrapperEvent = WrapperEvent;
-  scope.WrapperEventTarget = WrapperEventTarget;
-  scope.WrapperUIEvent = WrapperUIEvent;
-  scope.WrapperFocusEvent = WrapperFocusEvent;
-  scope.WrapperMouseEvent = WrapperMouseEvent;
+  scope.wrappers.Event = Event;
+  scope.wrappers.EventTarget = EventTarget;
+  scope.wrappers.UIEvent = UIEvent;
+  scope.wrappers.FocusEvent = FocusEvent;
+  scope.wrappers.MouseEvent = MouseEvent;
   scope.adjustRelatedTarget = adjustRelatedTarget;
   scope.wrapEventTargetMethod = wrapEventTargetMethod;
 

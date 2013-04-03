@@ -5,20 +5,22 @@
 (function(scope) {
   'use strict';
 
-  var WrapperEventTarget = scope.WrapperEventTarget;
-  var wrap = scope.wrap;
+  var EventTarget = scope.wrappers.EventTarget;
   var registerWrapper = scope.registerWrapper;
+  var wrap = scope.wrap;
   var wrapEventTargetMethod = scope.wrapEventTargetMethod;
 
-  var WrapperWindow = function Window(impl) {
-    WrapperEventTarget.call(this, impl);
-  };
-  WrapperWindow.prototype = Object.create(WrapperEventTarget.prototype);
+  var OriginalWindow = window.Window;
 
-  registerWrapper(Window, WrapperWindow);
+  function Window(impl) {
+    EventTarget.call(this, impl);
+  }
+  Window.prototype = Object.create(EventTarget.prototype);
+
+  registerWrapper(OriginalWindow, Window);
 
   wrapEventTargetMethod(window);
 
-  scope.WrapperWindow = WrapperWindow;
+  scope.wrappers.Window = Window;
 
 })(this.ShadowDOMPolyfill);

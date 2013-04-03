@@ -5,7 +5,7 @@
 (function(scope) {
   'use strict';
 
-  var WrapperElement = scope.WrapperElement;
+  var Element = scope.wrappers.Element;
   var mixin = scope.mixin;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
@@ -96,11 +96,13 @@
     }
   }
 
-  var WrapperHTMLElement = function HTMLElement(node) {
-    WrapperElement.call(this, node);
-  };
-  WrapperHTMLElement.prototype = Object.create(WrapperElement.prototype);
-  mixin(WrapperHTMLElement.prototype, {
+  var OriginalHTMLElement = window.HTMLElement;
+
+  function HTMLElement(node) {
+    Element.call(this, node);
+  }
+  HTMLElement.prototype = Object.create(Element.prototype);
+  mixin(HTMLElement.prototype, {
     get innerHTML() {
       // TODO(arv): This should fallback to this.impl.innerHTML if there
       // are no shadow trees below or above the context node.
@@ -109,7 +111,7 @@
     set innerHTML(value) {
       setInnerHTML(this, value, this.tagName);
     },
-  
+
     get outerHTML() {
       // TODO(arv): This should fallback to HTMLElement_prototype.outerHTML if there
       // are no shadow trees below or above the context node.
@@ -125,7 +127,7 @@
   });
 
   function getterRequiresRendering(name) {
-    Object.defineProperty(WrapperHTMLElement.prototype, name, {
+    Object.defineProperty(HTMLElement.prototype, name, {
       get: function() {
         scope.renderAllPending();
         return this.impl[name];
@@ -151,7 +153,7 @@
   ].forEach(getterRequiresRendering);
 
   function methodRequiresRendering(name) {
-    Object.defineProperty(WrapperHTMLElement.prototype, name, {
+    Object.defineProperty(HTMLElement.prototype, name, {
       value: function() {
         scope.renderAllPending();
         return this.impl[name].apply(this.impl, arguments);
@@ -168,10 +170,10 @@
   ].forEach(methodRequiresRendering);
 
   // HTMLElement is abstract so we use a subclass that has no members.
-  registerWrapper(HTMLElement, WrapperHTMLElement,
+  registerWrapper(OriginalHTMLElement, HTMLElement,
                   document.createElement('b'));
 
-  scope.WrapperHTMLElement = WrapperHTMLElement;
+  scope.wrappers.HTMLElement = HTMLElement;
 
   // TODO: Find a better way to share these two with WrapperShadowRoot.
   scope.getInnerHTML = getInnerHTML;

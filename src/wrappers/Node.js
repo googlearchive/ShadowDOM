@@ -5,15 +5,14 @@
 (function(scope) {
   'use strict';
 
-  var WrapperEventTarget = scope.WrapperEventTarget;
-  var WrapperNodeList = scope.WrapperNodeList;
+  var EventTarget = scope.wrappers.EventTarget;
+  var NodeList = scope.wrappers.NodeList;
   var addWrapGetter = scope.addWrapGetter;
   var assert = scope.assert;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
-  var wrappers = scope.wrappers;
 
   /**
    * Collects nodes from a DocumentFragment or a Node for removal followed
@@ -82,65 +81,65 @@
     wrapper.firstChild_ = wrapper.lastChild_ = null;
   }
 
-  var OriginalNode = Node;
+  var OriginalNode = window.Node;
 
   /**
-   * This represents a logical DOM node.
+   * This represents a wrapper of a native DOM node.
    * @param {!Node} original The original DOM node, aka, the visual DOM node.
    * @constructor
-   * @extends {WrapperEventTarget}
+   * @extends {EventTarget}
    */
-  var WrapperNode = function Node(original) {
+  function Node(original) {
     assert(original instanceof OriginalNode);
 
-    WrapperEventTarget.call(this, original);
+    EventTarget.call(this, original);
 
     // These properties are used to override the visual references with the
     // logical ones. If the value is undefined it means that the logical is the
     // same as the visual.
 
     /**
-     * @type {WrapperNode|undefined}
+     * @type {Node|undefined}
      * @private
      */
     this.parentNode_ = undefined;
 
     /**
-     * @type {WrapperNode|undefined}
+     * @type {Node|undefined}
      * @private
      */
     this.firstChild_ = undefined;
 
     /**
-     * @type {WrapperNode|undefined}
+     * @type {Node|undefined}
      * @private
      */
     this.lastChild_ = undefined;
 
     /**
-     * @type {WrapperNode|undefined}
+     * @type {Node|undefined}
      * @private
      */
     this.nextSibling_ = undefined;
 
     /**
-     * @type {WrapperNode|undefined}
+     * @type {Node|undefined}
      * @private
      */
     this.previousSibling_ = undefined;
   };
 
-  WrapperNode.prototype = Object.create(WrapperEventTarget.prototype);
-  mixin(WrapperNode.prototype, {
+  Node.prototype = Object.create(EventTarget.prototype);
+  mixin(Node.prototype, {
     appendChild: function(childWrapper) {
-      assert(childWrapper instanceof WrapperNode);
+      assert(childWrapper instanceof Node);
 
       this.invalidateShadowRenderer();
 
       var previousNode = this.lastChild;
       var nextNode = null;
       var nodes = collectNodes(childWrapper, this,
-                                        previousNode, nextNode);
+                               previousNode, nextNode);
 
       this.lastChild_ = nodes[nodes.length - 1];
       if (!previousNode)
@@ -160,8 +159,8 @@
       if (!refWrapper)
         return this.appendChild(childWrapper);
 
-      assert(childWrapper instanceof WrapperNode);
-      assert(refWrapper instanceof WrapperNode);
+      assert(childWrapper instanceof Node);
+      assert(refWrapper instanceof Node);
       assert(refWrapper.parentNode === this);
 
       this.invalidateShadowRenderer();
@@ -169,7 +168,7 @@
       var previousNode = refWrapper.previousSibling;
       var nextNode = refWrapper;
       var nodes = collectNodes(childWrapper, this,
-                                        previousNode, nextNode);
+                               previousNode, nextNode);
 
 
       if (this.firstChild === refWrapper)
@@ -185,7 +184,7 @@
     },
 
     removeChild: function(childWrapper) {
-      assert(childWrapper instanceof WrapperNode);
+      assert(childWrapper instanceof Node);
       if (childWrapper.parentNode !== this) {
         // TODO(arv): DOMException
         throw new Error('NotFoundError');
@@ -213,8 +212,8 @@
     },
 
     replaceChild: function(newChildWrapper, oldChildWrapper) {
-      assert(newChildWrapper instanceof WrapperNode);
-      assert(oldChildWrapper instanceof WrapperNode);
+      assert(newChildWrapper instanceof Node);
+      assert(oldChildWrapper instanceof Node);
 
       if (oldChildWrapper.parentNode !== this) {
         // TODO(arv): DOMException
@@ -228,7 +227,7 @@
       if (nextNode === newChildWrapper)
         nextNode = newChildWrapper.nextSibling;
       var nodes = collectNodes(newChildWrapper, this,
-                                        previousNode, nextNode);
+                               previousNode, nextNode);
 
       if (this.firstChild === oldChildWrapper)
         this.firstChild_ = nodes[0];
@@ -253,32 +252,32 @@
       return this.firstChild === null;
     },
 
-    /** @type {WrapperNode} */
+    /** @type {Node} */
     get parentNode() {
       // If the parentNode has not been overridden, use the original parentNode.
       return this.parentNode_ !== undefined ?
           this.parentNode_ : wrap(this.impl.parentNode);
     },
 
-    /** @type {WrapperNode} */
+    /** @type {Node} */
     get firstChild() {
       return this.firstChild_ !== undefined ?
           this.firstChild_ : wrap(this.impl.firstChild);
     },
 
-    /** @type {WrapperNode} */
+    /** @type {Node} */
     get lastChild() {
       return this.lastChild_ !== undefined ?
           this.lastChild_ : wrap(this.impl.lastChild);
     },
 
-    /** @type {WrapperNode} */
+    /** @type {Node} */
     get nextSibling() {
       return this.nextSibling_ !== undefined ?
           this.nextSibling_ : wrap(this.impl.nextSibling);
     },
 
-    /** @type {WrapperNode} */
+    /** @type {Node} */
     get previousSibling() {
       return this.previousSibling_ !== undefined ?
           this.previousSibling_ : wrap(this.impl.previousSibling);
@@ -311,7 +310,7 @@
     },
 
     get childNodes() {
-      var wrapperList = new WrapperNodeList();
+      var wrapperList = new NodeList();
       var i = 0;
       for (var child = this.firstChild; child; child = child.nextSibling) {
         wrapperList[i++] = child;
@@ -347,17 +346,16 @@
     }
   });
 
-  addWrapGetter(WrapperNode, 'ownerDocument');
+  addWrapGetter(Node, 'ownerDocument');
 
   // We use a DocumentFragment as a base and then delete the properties of
-  // DocumentFragment.prototype from the WrapperNode. Since delete makes objects
-  // slow in some JS engines we recreate the prototype object.
-  registerWrapper(Node, WrapperNode, document.createDocumentFragment());
-  delete WrapperNode.prototype.querySelector;
-  delete WrapperNode.prototype.querySelectorAll;
-  WrapperNode.prototype =
-      mixin(Object.create(WrapperEventTarget.prototype), WrapperNode.prototype);
+  // DocumentFragment.prototype from the wrapper Node. Since delete makes
+  // objects slow in some JS engines we recreate the prototype object.
+  registerWrapper(OriginalNode, Node, document.createDocumentFragment());
+  delete Node.prototype.querySelector;
+  delete Node.prototype.querySelectorAll;
+  Node.prototype = mixin(Object.create(EventTarget.prototype), Node.prototype);
 
-  scope.WrapperNode = WrapperNode;
+  scope.wrappers.Node = Node;
 
 })(this.ShadowDOMPolyfill);

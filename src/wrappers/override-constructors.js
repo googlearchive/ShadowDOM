@@ -7,20 +7,9 @@
 
   var isWrapperFor = scope.isWrapperFor;
 
-  Object.getOwnPropertyNames(scope).forEach(function(name) {
-    if (/^Wrapper/.test(name)) {
-      var wrapperConstructor = scope[name];
-      var nativeConstructorName = name.slice(7);
-      var nativeConstructor = window[nativeConstructorName];
-      if (nativeConstructor &&
-          isWrapperFor(wrapperConstructor, nativeConstructor)) {
-        window[nativeConstructorName] = wrapperConstructor;
-      }
-    }
+  Object.getOwnPropertyNames(scope.wrappers).forEach(function(name) {
+    window[name] = scope.wrappers[name]
   });
-
-  if (!window.EventTarget)
-    window.EventTarget = scope.WrapperEventTarget;
 
   // This is a list of the elements we currently override the global constructor
   // for.
