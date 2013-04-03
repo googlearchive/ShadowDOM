@@ -22,6 +22,7 @@ module.exports = function(grunt) {
     'wrappers/ShadowRoot.js',
     'ShadowRenderer.js',
     'wrappers/Document.js',
+    'wrappers/Window.js',
     'wrappers/override-constructors.js'
   ];
   ShadowDOM = ShadowDOM.map(function(p) {
