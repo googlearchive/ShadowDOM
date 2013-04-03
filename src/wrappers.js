@@ -9,6 +9,7 @@ var ShadowDOMPolyfill = {};
 
   var wrapperTable = new SideTable();
   var constructorTable = new SideTable();
+  var wrappers = Object.create(null);
 
   function assert(b) {
     if (!b)
@@ -183,6 +184,7 @@ var ShadowDOMPolyfill = {};
 
   var OriginalNode = Node;
   var OriginalEvent = Event;
+  var OriginalWindow = Window;
 
   /**
    * Wraps a node in a WrapperNode. If there already exists a wrapper for the
@@ -190,17 +192,18 @@ var ShadowDOMPolyfill = {};
    * @param {Node} node
    * @return {WrapperNode}
    */
-  function wrap(node) {
-    if (node === null)
+  function wrap(impl) {
+    if (impl === null)
       return null;
 
-    assert(node instanceof OriginalNode ||
-           node instanceof OriginalEvent);
-    var wrapper = wrapperTable.get(node);
+    assert(impl instanceof OriginalNode ||
+           impl instanceof OriginalEvent ||
+           impl instanceof OriginalWindow);
+    var wrapper = wrapperTable.get(impl);
     if (!wrapper) {
-      var wrapperConstructor = getWrapperConstructor(node);
-      wrapper = new wrapperConstructor(node);
-      wrapperTable.set(node, wrapper);
+      var wrapperConstructor = getWrapperConstructor(impl);
+      wrapper = new wrapperConstructor(impl);
+      wrapperTable.set(impl, wrapper);
     }
     return wrapper;
   }
@@ -213,8 +216,8 @@ var ShadowDOMPolyfill = {};
   function unwrap(wrapper) {
     if (wrapper === null)
       return null;
-    assert(wrapper instanceof scope.WrapperEventTarget ||
-           wrapper instanceof scope.WrapperEvent);
+    assert(wrapper instanceof wrappers.EventTarget ||
+           wrapper instanceof wrappers.Event);
     return wrapper.impl;
   }
 
@@ -229,7 +232,7 @@ var ShadowDOMPolyfill = {};
       return;
     assert(node instanceof OriginalNode ||
            node instanceof OriginalEvent);
-    assert(wrapper === undefined || wrapper instanceof scope.WrapperNode);
+    assert(wrapper === undefined || wrapper instanceof wrappers.Node);
     wrapperTable.set(node, wrapper);
   }
 
@@ -243,6 +246,7 @@ var ShadowDOMPolyfill = {};
     });
   }
 
+  scope.wrappers = wrappers;
   scope.addWrapGetter = addWrapGetter;
   scope.assert = assert;
   scope.mixin = mixin;

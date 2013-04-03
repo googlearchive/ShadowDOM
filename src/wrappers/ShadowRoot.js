@@ -5,7 +5,7 @@
 (function(scope) {
   'use strict';
 
-  var WrapperDocumentFragment = scope.WrapperDocumentFragment;
+  var DocumentFragment = scope.wrappers.DocumentFragment;
   var getInnerHTML = scope.getInnerHTML;
   var mixin = scope.mixin;
   var rewrap = scope.rewrap;
@@ -14,12 +14,12 @@
 
   var shadowHostTable = new SideTable();
 
-  var WrapperShadowRoot = function ShadowRoot(hostWrapper) {
+  function ShadowRoot(hostWrapper) {
     var node = unwrap(hostWrapper.impl.ownerDocument.createDocumentFragment());
-    WrapperDocumentFragment.call(this, node);
+    DocumentFragment.call(this, node);
 
-    // createDocumentFragment associates the node with a WrapperDocumentFragment
-    // instance. Override that.
+    // createDocumentFragment associates the node with a wrapper
+    // DocumentFragment instance. Override that.
     rewrap(node, this);
 
     var oldShadowRoot = hostWrapper.shadowRoot;
@@ -29,9 +29,9 @@
 
     // TODO: are we invalidating on both sides?
     hostWrapper.invalidateShadowRenderer();
-  };
-  WrapperShadowRoot.prototype = Object.create(WrapperDocumentFragment.prototype);
-  mixin(WrapperShadowRoot.prototype, {
+  }
+  ShadowRoot.prototype = Object.create(DocumentFragment.prototype);
+  mixin(ShadowRoot.prototype, {
     get innerHTML() {
       return getInnerHTML(this);
     },
@@ -45,7 +45,7 @@
     }
   });
 
-  scope.WrapperShadowRoot = WrapperShadowRoot;
+  scope.wrappers.ShadowRoot = ShadowRoot;
   scope.getHostForShadowRoot = function(node) {
     return shadowHostTable.get(node);
   };

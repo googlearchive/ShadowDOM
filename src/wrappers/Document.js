@@ -6,49 +6,52 @@
   'use strict';
 
   var ParentNodeInterface = scope.ParentNodeInterface;
-  var WrapperNode = scope.WrapperNode;
+  var Node = scope.wrappers.Node;
   var addWrapGetter = scope.addWrapGetter;
   var mixin = scope.mixin;
+  var registerWrapper = scope.registerWrapper;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
+  var wrapEventTargetMethod = scope.wrapEventTargetMethod;
   var wrapNodeList = scope.wrapNodeList;
-  var registerWrapper = scope.registerWrapper;
 
   var implementationTable = new SideTable();
 
-  var WrapperDocument = function Document(node) {
-    WrapperNode.call(this, node);
-  };
-  WrapperDocument.prototype = Object.create(WrapperNode.prototype);
+  var OriginalDocument = window.Document;
 
-  addWrapGetter(WrapperDocument, 'documentElement');
+  function Document(node) {
+    Node.call(this, node);
+  }
+  Document.prototype = Object.create(Node.prototype);
+
+  addWrapGetter(Document, 'documentElement');
 
   // Conceptually both body and head can be in a shadow but suporting that seems
   // overkill at this point.
-  addWrapGetter(WrapperDocument, 'body');
-  addWrapGetter(WrapperDocument, 'head');
+  addWrapGetter(Document, 'body');
+  addWrapGetter(Document, 'head');
 
-  mixin(WrapperDocument.prototype, ParentNodeInterface);
+  mixin(Document.prototype, ParentNodeInterface);
 
-  mixin(WrapperDocument.prototype, {
+  mixin(Document.prototype, {
     get implementation() {
       var implementation = implementationTable.get(this);
       if (implementation)
         return implementation;
       implementation =
-          new WrapperDOMImplementation(unwrap(this).implementation);
+          new DOMImplementation(unwrap(this).implementation);
       implementationTable.set(this, implementation);
       return implementation;
     }
   });
 
-  registerWrapper(Document, WrapperDocument,
+  registerWrapper(OriginalDocument, Document,
       document.implementation.createHTMLDocument(''));
 
   // Both WebKit and Gecko uses HTMLDocument for document. HTML5/DOM only has
   // one Document interface and IE implements the standard correctly.
-  if (typeof HTMLDocument !== 'undefined')
-    registerWrapper(HTMLDocument, WrapperDocument);
+  if (window.HTMLDocument)
+    registerWrapper(window.HTMLDocument, Document);
 
   function wrapMethod(name) {
     var proto = Object.getPrototypeOf(document);
@@ -56,7 +59,7 @@
     proto[name] = function() {
       return wrap(original.apply(this, arguments));
     };
-    WrapperDocument.prototype[name] = function() {
+    Document.prototype[name] = function() {
       return wrap(original.apply(this.impl, arguments));
     };
   }
@@ -81,7 +84,7 @@
     proto[name] = function() {
       return wrapNodeList(original.apply(this, arguments));
     };
-    WrapperDocument.prototype[name] = function() {
+    Document.prototype[name] = function() {
       return wrapNodeList(original.apply(this.impl, arguments));
     };
   }
@@ -93,22 +96,7 @@
     'querySelectorAll'
   ].forEach(wrapNodeListMethod);
 
-  // For the EventTarget methods, the methods already call the original
-  // function object (instead of doing this.impl.foo so we can just redirect to
-  // the wrapper).
-  function wrapEventTargetMethod(name) {
-    var proto = Object.getPrototypeOf(document);
-    proto[name] = function() {
-      var wrapper = wrap(this);
-      return wrapper[name].apply(wrapper, arguments);
-    };
-  }
-
-  [
-    'addEventListener',
-    'removeEventListener',
-    'dispatchEvent'
-  ].forEach(wrapEventTargetMethod);
+  wrapEventTargetMethod(document);
 
   function wrapImplMethod(constructor, name) {
     constructor.prototype[name] = function() {
@@ -122,15 +110,16 @@
     };
   }
 
-  var WrapperDOMImplementation = function DOMImplementation(node) {
+  function DOMImplementation(node) {
     this.impl = node;
-  };
+  }
 
-  wrapImplMethod(WrapperDOMImplementation, 'createDocumentType');
-  wrapImplMethod(WrapperDOMImplementation, 'createDocument');
-  wrapImplMethod(WrapperDOMImplementation, 'createHTMLDocument');
-  forwardImplMethod(WrapperDOMImplementation, 'hasFeature');
+  wrapImplMethod(DOMImplementation, 'createDocumentType');
+  wrapImplMethod(DOMImplementation, 'createDocument');
+  wrapImplMethod(DOMImplementation, 'createHTMLDocument');
+  forwardImplMethod(DOMImplementation, 'hasFeature');
 
-  scope.WrapperDocument = WrapperDocument;
+  scope.wrappers.Document = Document;
+  scope.wrappers.DOMImplementation = DOMImplementation;
 
 })(this.ShadowDOMPolyfill);

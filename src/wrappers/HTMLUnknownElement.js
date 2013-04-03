@@ -5,25 +5,27 @@
 (function(scope) {
   'use strict';
 
-  var WrapperHTMLContentElement = scope.WrapperHTMLContentElement;
-  var WrapperHTMLElement = scope.WrapperHTMLElement;
-  var WrapperHTMLShadowElement = scope.WrapperHTMLShadowElement;
-  var WrapperHTMLTemplateElement = scope.WrapperHTMLTemplateElement;
+  var HTMLContentElement = scope.wrappers.HTMLContentElement;
+  var HTMLElement = scope.wrappers.HTMLElement;
+  var HTMLShadowElement = scope.wrappers.HTMLShadowElement;
+  var HTMLTemplateElement = scope.wrappers.HTMLTemplateElement;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
 
-  var WrapperHTMLUnknownElement = function HTMLUnknownElement(node) {
+  var OriginalHTMLUnknownElement = window.HTMLUnknownElement;
+
+  function HTMLUnknownElement(node) {
     switch (node.localName) {
       case 'content':
-        return new WrapperHTMLContentElement(node);
+        return new HTMLContentElement(node);
       case 'shadow':
-        return new WrapperHTMLShadowElement(node);
+        return new HTMLShadowElement(node);
       case 'template':
-        return new WrapperHTMLTemplateElement(node);
+        return new HTMLTemplateElement(node);
     }
-    WrapperHTMLElement.call(this, node);
-  };
-  WrapperHTMLUnknownElement.prototype = Object.create(WrapperHTMLElement.prototype);
-  registerWrapper(HTMLUnknownElement, WrapperHTMLUnknownElement);
-  scope.WrapperHTMLUnknownElement = WrapperHTMLUnknownElement;
+    HTMLElement.call(this, node);
+  }
+  HTMLUnknownElement.prototype = Object.create(HTMLElement.prototype);
+  registerWrapper(OriginalHTMLUnknownElement, HTMLUnknownElement);
+  scope.wrappers.HTMLUnknownElement = HTMLUnknownElement;
 })(this.ShadowDOMPolyfill);

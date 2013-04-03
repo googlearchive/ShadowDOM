@@ -10,14 +10,13 @@
   var mixin = scope.mixin;
   var registerObject = scope.registerObject;
 
-  var WrapperDocumentFragment =
-      registerObject(document.createDocumentFragment());
-  mixin(WrapperDocumentFragment.prototype, ParentNodeInterface);
-  mixin(WrapperDocumentFragment.prototype, SelectorsInterface);
+  var DocumentFragment = registerObject(document.createDocumentFragment());
+  mixin(DocumentFragment.prototype, ParentNodeInterface);
+  mixin(DocumentFragment.prototype, SelectorsInterface);
 
   registerObject(document.createTextNode(''));
   registerObject(document.createComment(''));
 
-  scope.WrapperDocumentFragment = WrapperDocumentFragment;
+  scope.wrappers.DocumentFragment = DocumentFragment;
 
 })(this.ShadowDOMPolyfill);
