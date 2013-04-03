@@ -35,7 +35,7 @@ mocha.setup({
   globals: ['console', 'getInterface']
 })
 
-modules = [
+var modules = [
   "test.js",
   "paralleltrees.js",
   "rerender.js",
@@ -51,6 +51,7 @@ modules = [
   "wrappers.js",
   "events.js"
 ];
+
 modules.forEach(function(inSrc) {
   document.write('<script src="' + inSrc + '"></script>');
 });
