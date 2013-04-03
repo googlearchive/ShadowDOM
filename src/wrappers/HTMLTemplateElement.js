@@ -5,14 +5,13 @@
 (function(scope) {
   'use strict';
 
-  var WrapperHTMLElement = scope.WrapperHTMLElement;
+  var HTMLElement = scope.wrappers.HTMLElement;
   var getInnerHTML = scope.getInnerHTML;
   var mixin = scope.mixin;
+  var registerWrapper = scope.registerWrapper;
   var setInnerHTML = scope.setInnerHTML;
   var wrap = scope.wrap;
-  var registerWrapper = scope.registerWrapper;
 
-  var hasNative = typeof HTMLTemplateElement !== 'undefined';
   var contentTable = new SideTable();
   var templateContentsOwnerTable = new SideTable();
 
@@ -44,14 +43,16 @@
     return df;
   }
 
-  var WrapperHTMLTemplateElement = function HTMLTemplateElement(node) {
-    WrapperHTMLElement.call(this, node);
-  };
-  WrapperHTMLTemplateElement.prototype = Object.create(WrapperHTMLElement.prototype);
+  var OriginalHTMLTemplateElement = window.HTMLTemplateElement;
 
-  mixin(WrapperHTMLTemplateElement.prototype, {
+  function HTMLTemplateElement(node) {
+    HTMLElement.call(this, node);
+  }
+  HTMLTemplateElement.prototype = Object.create(HTMLElement.prototype);
+
+  mixin(HTMLTemplateElement.prototype, {
     get content() {
-      if (hasNative)
+      if (OriginalHTMLTemplateElement)
         return wrap(this.impl.content);
 
       // TODO(arv): This should be done in createCallback. I initially tried to
@@ -77,8 +78,8 @@
 
   });
 
-  if (hasNative)
-    registerWrapper(HTMLTemplateElement, WrapperHTMLTemplateElement);
+  if (OriginalHTMLTemplateElement)
+    registerWrapper(OriginalHTMLTemplateElement, HTMLTemplateElement);
 
-  scope.WrapperHTMLTemplateElement = WrapperHTMLTemplateElement;
+  scope.wrappers.HTMLTemplateElement = HTMLTemplateElement;
 })(this.ShadowDOMPolyfill);

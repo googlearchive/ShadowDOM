@@ -5,15 +5,17 @@
 (function(scope) {
   'use strict';
 
-  var WrapperHTMLElement = scope.WrapperHTMLElement;
+  var HTMLElement = scope.wrappers.HTMLElement;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
 
-  var WrapperHTMLContentElement = function HTMLContentElement(node) {
-    WrapperHTMLElement.call(this, node);
-  };
-  WrapperHTMLContentElement.prototype = Object.create(WrapperHTMLElement.prototype);
-  mixin(WrapperHTMLContentElement.prototype, {
+  var OriginalHTMLContentElement = window.HTMLContentElement;
+
+  function HTMLContentElement(node) {
+    HTMLElement.call(this, node);
+  }
+  HTMLContentElement.prototype = Object.create(HTMLElement.prototype);
+  mixin(HTMLContentElement.prototype, {
     get select() {
       return this.getAttribute('select');
     },
@@ -27,8 +29,8 @@
     // TODO: attribute boolean resetStyleInheritance;
   });
 
-  if (typeof HTMLContentElement !== 'undefined')
-    registerWrapper(HTMLContentElement, WrapperHTMLContentElement);
+  if (OriginalHTMLContentElement)
+    registerWrapper(OriginalHTMLContentElement, HTMLContentElement);
 
-  scope.WrapperHTMLContentElement = WrapperHTMLContentElement;
+  scope.wrappers.HTMLContentElement = HTMLContentElement;
 })(this.ShadowDOMPolyfill);

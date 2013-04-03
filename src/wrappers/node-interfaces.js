@@ -5,7 +5,7 @@
 (function(scope) {
   'use strict';
 
-  var WrapperNodeList = scope.WrapperNodeList;
+  var NodeList = scope.wrappers.NodeList;
   var mixin = scope.mixin;
   var wrap = scope.wrap;
   var wrapNodeList = scope.wrapNodeList;
@@ -44,7 +44,7 @@
     },
 
     get children() {
-      var wrapperList = new WrapperNodeList();
+      var wrapperList = new NodeList();
       var i = 0;
       for (var child = this.firstElementChild;
            child;

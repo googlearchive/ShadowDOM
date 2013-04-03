@@ -9,6 +9,7 @@ var ShadowDOMPolyfill = {};
 
   var wrapperTable = new SideTable();
   var constructorTable = new SideTable();
+  var wrappers = Object.create(null);
 
   function assert(b) {
     if (!b)
@@ -215,8 +216,8 @@ var ShadowDOMPolyfill = {};
   function unwrap(wrapper) {
     if (wrapper === null)
       return null;
-    assert(wrapper instanceof scope.WrapperEventTarget ||
-           wrapper instanceof scope.WrapperEvent);
+    assert(wrapper instanceof wrappers.EventTarget ||
+           wrapper instanceof wrappers.Event);
     return wrapper.impl;
   }
 
@@ -231,7 +232,7 @@ var ShadowDOMPolyfill = {};
       return;
     assert(node instanceof OriginalNode ||
            node instanceof OriginalEvent);
-    assert(wrapper === undefined || wrapper instanceof scope.WrapperNode);
+    assert(wrapper === undefined || wrapper instanceof wrappers.Node);
     wrapperTable.set(node, wrapper);
   }
 
@@ -245,6 +246,7 @@ var ShadowDOMPolyfill = {};
     });
   }
 
+  scope.wrappers = wrappers;
   scope.addWrapGetter = addWrapGetter;
   scope.assert = assert;
   scope.mixin = mixin;

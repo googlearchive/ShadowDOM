@@ -5,24 +5,26 @@
 (function(scope) {
   'use strict';
 
-  var WrapperHTMLElement = scope.WrapperHTMLElement;
+  var HTMLElement = scope.wrappers.HTMLElement;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
 
-  var WrapperHTMLShadowElement = function HTMLShadowElement(node) {
-    WrapperHTMLElement.call(this, node);
+  var OriginalHTMLShadowElement = window.HTMLShadowElement;
+
+  function HTMLShadowElement(node) {
+    HTMLElement.call(this, node);
     this.olderShadowRoot_ = null;
-  };
-  WrapperHTMLShadowElement.prototype = Object.create(WrapperHTMLElement.prototype);
-  mixin(WrapperHTMLShadowElement.prototype, {
+  }
+  HTMLShadowElement.prototype = Object.create(HTMLElement.prototype);
+  mixin(HTMLShadowElement.prototype, {
     get olderShadowRoot() {
       return this.olderShadowRoot_;
     }
     // TODO: attribute boolean resetStyleInheritance;
   });
 
-  if (typeof HTMLShadowElement !== 'undefined')
-    registerWrapper(HTMLShadowElement, WrapperHTMLShadowElement);
+  if (OriginalHTMLShadowElement)
+    registerWrapper(OriginalHTMLShadowElement, HTMLShadowElement);
 
-  scope.WrapperHTMLShadowElement = WrapperHTMLShadowElement;
+  scope.wrappers.HTMLShadowElement = HTMLShadowElement;
 })(this.ShadowDOMPolyfill);
