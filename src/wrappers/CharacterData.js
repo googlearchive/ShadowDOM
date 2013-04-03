@@ -6,15 +6,17 @@
   'use strict';
 
   var ChildNodeInterface = scope.ChildNodeInterface;
-  var WrapperNode = scope.WrapperNode;
+  var Node = scope.wrappers.Node;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
 
-  var WrapperCharacterData = function CharacterData(node) {
-    WrapperNode.call(this, node);
-  };
-  WrapperCharacterData.prototype = Object.create(WrapperNode.prototype);
-  mixin(WrapperCharacterData.prototype, {
+  var OriginalCharacterData = window.CharacterData;
+
+  function CharacterData(node) {
+    Node.call(this, node);
+  }
+  CharacterData.prototype = Object.create(Node.prototype);
+  mixin(CharacterData.prototype, {
     get textContent() {
       return this.data;
     },
@@ -23,10 +25,10 @@
     }
   });
 
-  mixin(WrapperCharacterData.prototype, ChildNodeInterface);
+  mixin(CharacterData.prototype, ChildNodeInterface);
 
-  registerWrapper(CharacterData, WrapperCharacterData,
+  registerWrapper(OriginalCharacterData, CharacterData,
                   document.createTextNode(''));
 
-  scope.WrapperCharacterData = WrapperCharacterData;
+  scope.wrappers.CharacterData = CharacterData;
 })(this.ShadowDOMPolyfill);

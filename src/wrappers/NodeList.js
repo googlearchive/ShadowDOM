@@ -11,19 +11,19 @@
     Object.defineProperty(obj, prop, {enumerable: false});
   }
 
-  var WrapperNodeList = function NodeList() {
+  function NodeList() {
     this.length = 0;
     nonEnum(this, 'length');
-  };
-  WrapperNodeList.prototype = {
+  }
+  NodeList.prototype = {
     item: function(index) {
       return this[index];
     }
   };
-  nonEnum(WrapperNodeList.prototype, 'item');
+  nonEnum(NodeList.prototype, 'item');
 
   function wrapNodeList(list) {
-    var wrapperList = new WrapperNodeList();
+    var wrapperList = new NodeList();
     for (var i = 0, length = list.length; i < length; i++) {
       wrapperList[i] = wrap(list[i]);
     }
@@ -37,7 +37,7 @@
     };
   }
 
-  scope.WrapperNodeList = WrapperNodeList;
+  scope.wrappers.NodeList = NodeList;
   scope.addWrapNodeListMethod = addWrapNodeListMethod;
   scope.wrapNodeList = wrapNodeList;
 
