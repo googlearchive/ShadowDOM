@@ -542,4 +542,119 @@ suite('Events', function() {
     assert.instanceOf(e, MouseEvent);
   });
 
+  /**
+   * Creates a deep tree, (all nodes but the leaf have 1 child)
+   */
+  function getPropagationTree(log) {
+    var div = document.createElement('div');
+    div.innerHTML = '<a><b><c></c></b></a>';
+    var a = div.firstChild;
+    var b = a.firstChild;
+    var c = b.firstChild;
+    var sr = b.createShadowRoot();
+    sr.innerHTML = '<d><content></content></d>';
+    var d = sr.firstChild;
+    var content = d.firstChild;
+    var sr2 = d.createShadowRoot();
+    sr2.innerHTML = '<e><content></content></e>';
+    var e = sr2.firstChild;
+    var content2 = e.firstChild;
+
+    div.offsetWidth;
+
+    var tree = {
+      div: div,
+      a: a,
+      b: b,
+      sr: sr,
+      d: d,      
+      sr2: sr2,
+      e: e,
+      content2: content2,
+      content: content,
+      c: c,
+    };
+
+    Object.keys(tree).forEach(function(key) {
+      var node = tree[key];
+      node.displayName = key;
+      [true, false].forEach(function(capture) {
+        node.addEventListener('x', function f(e) {
+          log.push(node.displayName + ' ' + getPhaseName(e));
+          node.removeEventListener('x', f, capture);
+        }, capture);
+      });
+    });
+
+    return tree;
+  }
+
+  function getPhaseName(event) {
+    switch (event.eventPhase) {
+      case Event.BUBBLING_PHASE:
+        return 'B';
+      case Event.AT_TARGET:
+        return 'T';
+      case Event.CAPTURING_PHASE:
+        return 'C';
+    }
+  }
+
+  test('propagation (bubbles)', function() {
+    var log = [];
+    var tree = getPropagationTree(log);
+
+    var e = new Event('x', {bubbles: true});
+    tree.c.dispatchEvent(e);
+
+    // This order is not correct, see issue 79
+    var expected = [
+      'div C',
+      'a C',
+      'sr C',
+      'd C',
+      'sr2 C',
+      'e C',
+      'content2 C',
+      'c T',
+      'c T',
+      'content2 B',
+      'e B',
+      'sr2 B',
+      'd B',
+      'sr B',
+      'b T',
+      'b T',
+      'a B',
+      'div B'
+    ];
+
+    assertArrayEqual(expected, log);
+  });
+
+  test('propagation (bubbles: false)', function() {
+    var log = [];
+    var tree = getPropagationTree(log);
+
+    var e = new Event('x', {bubbles: false});
+    tree.c.dispatchEvent(e);
+
+    // This order is not correct, see issue 79
+    var expected = [
+      'div C',
+      'a C',
+      'sr C',
+      'd C',
+      'sr2 C',
+      'e C',
+      'content2 C',
+      'c T',
+      'c T',
+      'b T',
+      'b T',
+    ];
+
+    assertArrayEqual(expected, log);
+  });
+
 });
