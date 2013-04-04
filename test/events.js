@@ -542,4 +542,19 @@ suite('Events', function() {
     assert.instanceOf(e, MouseEvent);
   });
 
+  test('window on load', function(done) {
+    var iframe = document.createElement('iframe');
+    iframe.src = 'on-load-test.html';
+    wrap(document).body.appendChild(iframe);
+    window.addEventListener('message', function f(e) {
+      var data = e.data;
+      if (data && data[0] === 'iframe-load-done') {
+        assertArrayEqual(['iframe-load-done', true, true, true, true], data);
+        wrap(document).body.removeChild(iframe);
+        window.removeEventListener('message', f);
+        done();
+      }
+    });
+  });
+
 });
