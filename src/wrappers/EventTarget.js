@@ -54,7 +54,7 @@
     if (context && isInsertionPoint(node)) {
       var parentNode = node.parentNode;
       if (parentNode && isShadowHost(parentNode)) {
-        var trees = getShadowTrees(parentNode);
+        var trees = scope.getShadowTrees(parentNode);
         var p = context.insertionPointParent;
         for (var i = 0; i < trees.length; i++) {
           if (trees[i].contains(p))
@@ -73,18 +73,20 @@
     var targets = [];
     while (ancestor) {  // 3.
       var context = null;  // 3.2.
+      // TODO(arv): Change order of these. If the stack is empty we always end
+      // up pushing ancestor, no matter what.
       if (isInsertionPoint(ancestor)) {  // 3.1.
         context = topMostNotInsertionPoint(stack);  // 3.1.1.
         var top = stack[stack.length - 1] || ancestor;  // 3.1.2.
         stack.push(top);
-      }
-      if (!stack.length)
+      } else if (!stack.length) {
         stack.push(ancestor);  // 3.3.
+      }
       var target = stack[stack.length - 1];  // 3.4.
       targets.push({target: target, ancestor: ancestor});  // 3.5.
       if (isShadowRoot(ancestor))  // 3.6.
         stack.pop();  // 3.6.1.
-      ancestor = calculateParent(ancestor, context);
+      ancestor = calculateParent(ancestor, context);  // 3.7.
     }
     return targets;
   }
@@ -139,17 +141,16 @@
     return node.insertionPointParent;
   }
 
-  function inSameTree(a, b) {
-    // a and/or b can be a window object which does not have a parentNode.
-    // Since null == undefined we are OK as long as we do not use === here.
-    while (true) {
-      if (a == b)
-        return a != null;
-      if (a)
-        a = a.parentNode;
-      if (b)
-        b = b.parentNode;
+  function rootOfNode(node) {
+    var p;
+    while (p = node.parentNode) {
+      node = p;
     }
+    return node;
+  }
+
+  function inSameTree(a, b) {
+    return rootOfNode(a) === rootOfNode(b);
   }
 
   function dispatchOriginalEvent(originalEvent) {
@@ -233,7 +234,7 @@
 
       var adjusted = adjustRelatedTarget(currentTarget, relatedTarget);
       if (adjusted === target)
-        return false;
+        return true;
 
       relatedTargetTable.set(event, adjusted);
     }
