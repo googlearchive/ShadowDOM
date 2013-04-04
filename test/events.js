@@ -572,7 +572,7 @@ suite('Events', function() {
       e: e,
       content2: content2,
       content: content,
-      c: c,
+      c: c
     };
 
     Object.keys(tree).forEach(function(key) {
@@ -655,6 +655,21 @@ suite('Events', function() {
     ];
 
     assertArrayEqual(expected, log);
+  });
+
+  test('window on load', function(done) {
+    var iframe = document.createElement('iframe');
+    iframe.src = 'on-load-test.html';
+    wrap(document).body.appendChild(iframe);
+    window.addEventListener('message', function f(e) {
+      var data = e.data;
+      if (data && data[0] === 'iframe-load-done') {
+        assertArrayEqual(['iframe-load-done', true, true, true, true], data);
+        wrap(document).body.removeChild(iframe);
+        window.removeEventListener('message', f);
+        done();
+      }
+    });
   });
 
 });

@@ -167,6 +167,18 @@
   function dispatchEvent(event, originalWrapperTarget) {
     var eventPath = retarget(originalWrapperTarget);
 
+    // For window load events the load event is dispatched at the window but
+    // the target is set to the document.
+    //
+    // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-end.html#the-end
+    //
+    // TODO(arv): Find a loess hacky way to do this.
+    if (event.type === 'load' &&
+        eventPath.length === 2 &&
+        eventPath[0].target instanceof wrappers.Document) {
+      eventPath.shift();
+    }
+
     if (dispatchCapturing(event, eventPath)) {
       if (dispatchAtTarget(event, eventPath)) {
         dispatchBubbling(event, eventPath);

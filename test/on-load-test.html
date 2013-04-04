@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<script src="../shadowdom.js"></script>
+<script>
+
+var wrap = ShadowDOMPolyfill.wrap;
+
+window.addEventListener('load', function(e) {
+  var result = [
+    'iframe-load-done',
+    e.target === wrap(document),
+    e.currentTarget === wrap(window),
+    this === wrap(window),
+    e.eventPhase === Event.AT_TARGET
+  ];
+  parent.postMessage(result, '*');
+});
+
+</script>
