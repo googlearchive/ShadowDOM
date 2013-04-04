@@ -107,10 +107,19 @@
   var shadowDOMRendererTable = new SideTable();
   var nextOlderShadowTreeTable = new SideTable();
   var insertionPointParentTable = new SideTable();
+  var eventParentTable = new SideTable();
 
   function distributeChildToInsertionPoint(child, insertionPoint) {
     getDistributedChildNodes(insertionPoint).push(child);
     insertionPointParentTable.set(child, insertionPoint);
+
+    var eventParent = child;
+    var tmp;
+    while (tmp = eventParentTable.get(eventParent)) {
+      eventParent = tmp;
+    }
+    if (eventParent !== insertionPoint)
+      eventParentTable.set(eventParent, insertionPoint);
   }
 
   function resetDistributedChildNodes(insertionPoint) {
@@ -159,7 +168,7 @@
           resetDistributedChildNodes(insertionPoint);
           for (var i = 0; i < pool.length; i++) {  // 1.2
             var node = pool[i];  // 1.2.1
-            if (node === undefined)
+            if (node === undefined)  // removed
               continue;
             if (matchesCriteria(node, insertionPoint)) {  // 1.2.2
               distributeChildToInsertionPoint(node, insertionPoint);  // 1.2.2.1
@@ -377,41 +386,43 @@
     // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#dfn-tree-composition
     treeComposition: function () {
       var shadowHost = this.host;
-      var tree = shadowHost.shadowRoot;
-      var pool = [];
+      var tree = shadowHost.shadowRoot;  // 1.
+      var pool = [];  // 2.
       var shadowHostChildNodes = getChildNodesSnapshot(shadowHost);
-      shadowHostChildNodes.forEach(function(child) {
-        if (isInsertionPoint(child)) {
-          var reprojected = getDistributedChildNodes(child);
+      shadowHostChildNodes.forEach(function(child) {  // 3.
+        if (isInsertionPoint(child)) {  // 3.2.
+          var reprojected = getDistributedChildNodes(child);  // 3.2.1.
           // if reprojected is undef... reset it?
-          if (!reprojected || !reprojected.length)
+          if (!reprojected || !reprojected.length)  // 3.2.2.
             reprojected = getChildNodesSnapshot(child);
-          pool.push.apply(pool, reprojected);
+          pool.push.apply(pool, reprojected);  // 3.2.3.
         } else {
-          pool.push(child);
+          pool.push(child); // 3.3.
         }
       });
 
       var shadowInsertionPoint, point;
-      while (tree) {
+      while (tree) {  // 4.
+        // 4.1.
         shadowInsertionPoint = undefined;  // Reset every iteration.
         visit(tree, isActiveShadowInsertionPoint, function(point) {
           shadowInsertionPoint = point;
           return false;
         });
         point = shadowInsertionPoint;
-        pool = distribute(tree, pool);
-        if (point) {
-          var nextOlderTree = getNextOlderTree(tree);
+
+        pool = distribute(tree, pool);  // 4.2.
+        if (point) {  // 4.3.
+          var nextOlderTree = getNextOlderTree(tree);  // 4.3.1.
           if (!nextOlderTree) {
-            break;
+            break;  // 4.3.1.1.
           } else {
-            tree = nextOlderTree;
-            assignShadowTreeToShadowInsertionPoint(tree, point);
-            continue;
+            tree = nextOlderTree;  // 4.3.2.2.
+            assignShadowTreeToShadowInsertionPoint(tree, point);  // 4.3.2.2.
+            continue;  // 4.3.2.3.
           }
         } else {
-          break;
+          break;  // 4.4.
         }
       }
     },
@@ -517,10 +528,10 @@
   });
 
   scope.ShadowRenderer = ShadowRenderer;
-  scope.renderAllPending = renderAllPending;
-
-  scope.nextOlderShadowTreeTable = nextOlderShadowTreeTable;
+  scope.eventParentTable = eventParentTable;
   scope.getShadowTrees = getShadowTrees;
+  scope.nextOlderShadowTreeTable = nextOlderShadowTreeTable;
+  scope.renderAllPending = renderAllPending;
 
   // Exposed for testing
   scope.visual = {
