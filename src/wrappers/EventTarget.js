@@ -185,9 +185,9 @@
       var target = eventPath[i].target;
       var currentTarget = eventPath[i].ancestor;
       if (target === currentTarget)
-        phase = Event.AT_TARGET;
-      else
-        phase = Event.CAPTURING_PHASE;
+        continue;
+
+      phase = Event.CAPTURING_PHASE;
       if (!invoke(eventPath[i], event, phase))
         return false;
     }
@@ -201,19 +201,22 @@
   }
 
   function dispatchBubbling(event, eventPath) {
-    if (event.bubbles) {
-      var phase = Event.BUBBLING_PHASE;
+    var bubbles = event.bubbles;
+    var phase;
 
-      for (var i = 1; i < eventPath.length; i++) {
-        var target = eventPath[i].target;
-        var currentTarget = eventPath[i].ancestor;
-        if (target === currentTarget)
-          continue
-        if (!invoke(eventPath[i], event, phase))
-          return false;
-      }
+    for (var i = 1; i < eventPath.length; i++) {
+      var target = eventPath[i].target;
+      var currentTarget = eventPath[i].ancestor;
+      if (target === currentTarget)
+        phase = Event.AT_TARGET;
+      else if (bubbles && !stopImmediatePropagationTable.get(event))
+        phase = Event.BUBBLING_PHASE;
+      else
+        continue;
+
+      if (!invoke(eventPath[i], event, phase))
+        return;
     }
-    return true;
   }
 
   function invoke(tuple, event, phase) {
