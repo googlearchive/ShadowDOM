@@ -33,4 +33,14 @@ suite('Window', function() {
     document.body.click();
     assert.equal(2, calls);
   });
+
+  test('getComputedStyle', function() {
+    var div = document.createElement('div');
+    var cs = window.getComputedStyle(div);
+    assert.isTrue(cs != null);
+
+    div = document.createElement('div');
+    cs = wrap(window).getComputedStyle(div);
+    assert.isTrue(cs != null);
+  });
 });
