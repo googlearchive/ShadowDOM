@@ -46,9 +46,9 @@
       return node.insertionPointParent || scope.getHostForShadowRoot(node)
 
     // 2.
-    var p = node.insertionPointParent;
-    if (p)
-      return p;
+    var distributedEventParent = scope.eventParentTable.get(node);
+    if (distributedEventParent)
+      return distributedEventParent;
 
     // 3.
     if (context && isInsertionPoint(node)) {
@@ -83,7 +83,7 @@
         stack.push(ancestor);  // 3.3.
       }
       var target = stack[stack.length - 1];  // 3.4.
-      targets.push({target: target, ancestor: ancestor});  // 3.5.
+      targets.push({target: target, currentTarget: ancestor});  // 3.5.
       if (isShadowRoot(ancestor))  // 3.6.
         stack.pop();  // 3.6.1.
       ancestor = calculateParent(ancestor, context);  // 3.7.
@@ -196,7 +196,7 @@
 
     for (var i = eventPath.length - 1; i > 0; i--) {
       var target = eventPath[i].target;
-      var currentTarget = eventPath[i].ancestor;
+      var currentTarget = eventPath[i].currentTarget;
       if (target === currentTarget)
         continue;
 
@@ -219,7 +219,7 @@
 
     for (var i = 1; i < eventPath.length; i++) {
       var target = eventPath[i].target;
-      var currentTarget = eventPath[i].ancestor;
+      var currentTarget = eventPath[i].currentTarget;
       if (target === currentTarget)
         phase = Event.AT_TARGET;
       else if (bubbles && !stopImmediatePropagationTable.get(event))
@@ -234,7 +234,7 @@
 
   function invoke(tuple, event, phase) {
     var target = tuple.target;
-    var currentTarget = tuple.ancestor;
+    var currentTarget = tuple.currentTarget;
 
     var listeners = listenersTable.get(currentTarget);
     if (!listeners)
