@@ -149,7 +149,8 @@
       // A better aproach might be to make sure we only get here for nodes that
       // are related to a shadow host and then invalidate that and re-render
       // the host (on reflow?).
-      this.impl.appendChild(unwrapNodesForInsertion(nodes));
+      Object.getPrototypeOf(this.impl).appendChild.call(this.impl,
+          unwrapNodesForInsertion(nodes));
 
       return childWrapper;
     },
@@ -178,7 +179,8 @@
       var refNode = unwrap(refWrapper);
       var parentNode = refNode.parentNode;
       if (parentNode)
-        parentNode.insertBefore(unwrapNodesForInsertion(nodes), refNode);
+        Object.getPrototypeOf(parentNode).insertBefore.call(parentNode,
+            unwrapNodesForInsertion(nodes), refNode);
 
       return childWrapper;
     },
@@ -206,7 +208,8 @@
       var childNode = unwrap(childWrapper);
       var parentNode = childNode.parentNode;
       if (parentNode)
-        parentNode.removeChild(childNode);
+        Object.getPrototypeOf(parentNode).removeChild.call(parentNode,
+            childNode);
 
       return childWrapper;
     },
@@ -241,8 +244,9 @@
       // replaceChild no matter what the parent is?
       var oldChildNode = unwrap(oldChildWrapper);
       if (oldChildNode.parentNode) {
-        oldChildNode.parentNode.replaceChild(unwrapNodesForInsertion(nodes),
-                                             oldChildNode);
+        Object.getPrototypeOf(oldChildNode.parentNode).replaceChild.call(
+            oldChildNode.parentNode, unwrapNodesForInsertion(nodes),
+                oldChildNode);
       }
 
       return oldChildWrapper;
