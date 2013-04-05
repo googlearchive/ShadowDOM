@@ -258,11 +258,11 @@ suite('Shadow DOM', function() {
 
   });
 
-  suite('insertionPointParent', function() {
+  suite('insertionParent', function() {
 
     test('none', function() {
       var div = document.createElement('div');
-      assert.isNull(div.insertionPointParent);
+      assert.isNull(div.insertionParent);
     })
 
     test('content', function() {
@@ -271,9 +271,9 @@ suite('Shadow DOM', function() {
       var a = host.firstChild;
       var tn3 = a.firstChild;
 
-      assert.isNull(host.insertionPointParent);
-      assert.isNull(a.insertionPointParent);
-      assert.isNull(tn3.insertionPointParent);
+      assert.isNull(host.insertionParent);
+      assert.isNull(a.insertionParent);
+      assert.isNull(tn3.insertionParent);
 
       var hostShadowRoot = host.createShadowRoot();
       hostShadowRoot.innerHTML = '1<content></content>5';
@@ -282,10 +282,10 @@ suite('Shadow DOM', function() {
       var tn5 = hostShadowRoot.lastChild;
 
       host.offsetWidth;
-      assert.equal(a.insertionPointParent, content1);
-      assert.isNull(tn1.insertionPointParent);
-      assert.isNull(tn3.insertionPointParent);
-      assert.isNull(tn5.insertionPointParent);
+      assert.equal(a.insertionParent, content1);
+      assert.isNull(tn1.insertionParent);
+      assert.isNull(tn3.insertionParent);
+      assert.isNull(tn5.insertionParent);
 
       var aShadowRoot = a.createShadowRoot();
       aShadowRoot.innerHTML = '2<content></content>4';
@@ -294,12 +294,12 @@ suite('Shadow DOM', function() {
       var tn4 = aShadowRoot.firstChild;
 
       host.offsetWidth;
-      assert.equal(a.insertionPointParent, content1);
-      assert.isNull(tn1.insertionPointParent);
-      assert.isNull(tn2.insertionPointParent);
-      assert.equal(tn3.insertionPointParent, content2);
-      assert.isNull(tn4.insertionPointParent);
-      assert.isNull(tn5.insertionPointParent);
+      assert.equal(a.insertionParent, content1);
+      assert.isNull(tn1.insertionParent);
+      assert.isNull(tn2.insertionParent);
+      assert.equal(tn3.insertionParent, content2);
+      assert.isNull(tn4.insertionParent);
+      assert.isNull(tn5.insertionParent);
     });
 
   });
