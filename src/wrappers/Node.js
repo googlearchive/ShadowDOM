@@ -333,7 +333,7 @@
       return clone;
     },
 
-    // insertionPointParent is added in ShadowRender.js
+    // insertionParent is added in ShadowRender.js
 
     contains: function(child) {
       // TODO(arv): Optimize using ownerDocument etc.

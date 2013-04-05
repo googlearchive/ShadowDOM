@@ -106,12 +106,12 @@
   var distributedChildNodesTable = new SideTable();
   var shadowDOMRendererTable = new SideTable();
   var nextOlderShadowTreeTable = new SideTable();
-  var insertionPointParentTable = new SideTable();
+  var insertionParentTable = new SideTable();
   var eventParentTable = new SideTable();
 
   function distributeChildToInsertionPoint(child, insertionPoint) {
     getDistributedChildNodes(insertionPoint).push(child);
-    insertionPointParentTable.set(child, insertionPoint);
+    insertionParentTable.set(child, insertionPoint);
 
     var eventParent = child;
     var tmp;
@@ -363,8 +363,8 @@
     renderShadowInsertionPoint: function(visualParent, tree, shadowInsertionPoint) {
       var nextOlderTree = getNextOlderTree(tree);
       if (nextOlderTree) {
-        // This makes ShadowRoot have its insertionPointParent be the <shadow>.
-        insertionPointParentTable.set(nextOlderTree, shadowInsertionPoint);
+        // This makes ShadowRoot have its insertionParent be the <shadow>.
+        insertionParentTable.set(nextOlderTree, shadowInsertionPoint);
         shadowInsertionPoint.olderShadowRoot_ = nextOlderTree;
         this.remove(shadowInsertionPoint);
         var shadowDOMChildNodes = getChildNodesSnapshot(nextOlderTree);
@@ -522,8 +522,8 @@
   };
 
   mixin(Node.prototype, {
-    get insertionPointParent() {
-      return insertionPointParentTable.get(this) || null;
+    get insertionParent() {
+      return insertionParentTable.get(this) || null;
     }
   });
 
