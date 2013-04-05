@@ -6,7 +6,9 @@
   'use strict';
 
   var EventTarget = scope.wrappers.EventTarget;
+  var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
+  var unwrap = scope.unwrap;
   var wrap = scope.wrap;
   var wrapEventTargetMethod = scope.wrapEventTargetMethod;
 
@@ -16,6 +18,20 @@
     EventTarget.call(this, impl);
   }
   Window.prototype = Object.create(EventTarget.prototype);
+
+  var originalGetComputedStyle = window.getComputedStyle;
+
+  mixin(Object.getPrototypeOf(window), {
+    getComputedStyle: function(el, pseudo) {
+      return originalGetComputedStyle.call(this, unwrap(el), pseudo);
+    }
+  });
+
+  mixin(Window.prototype, {
+    getComputedStyle: function(el, pseudo) {
+      return originalGetComputedStyle.call(unwrap(this), unwrap(el), pseudo);
+    }
+  });
 
   registerWrapper(OriginalWindow, Window);
 
