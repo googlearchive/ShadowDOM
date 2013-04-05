@@ -330,7 +330,7 @@
     if (type instanceof OriginalEvent)
       this.impl = type;
     else
-      this.impl = new OriginalEvent(type, options);
+      this.impl = constructEvent(OriginalEvent, 'Event', type, options);
   }
   Event.prototype = {
     get target() {
@@ -366,7 +366,7 @@
       if (type instanceof OriginalEvent)
         this.impl = type;
       else
-        this.impl = new OriginalEvent(type, unwrapOptions(options));
+        this.impl = constructEvent(OriginalEvent, name, type, options);
     };
     GenericEvent.prototype = Object.create(SuperEvent.prototype);
     if (prototype)
@@ -405,6 +405,73 @@
 
   var MouseEvent = registerGenericEvent('MouseEvent', UIEvent, mouseEventProto);
   var FocusEvent = registerGenericEvent('FocusEvent', UIEvent, focusEventProto);
+
+
+  // In case the browser does not support event constructors we polyfill that
+  // be calling `createEvent('Foo')` and `initFooEvent` where the arguments to
+  // `initFooEvent` are derived from the registered default event init dict.
+  var defaultInitDicts = Object.create(null);
+
+  var supportsEventConstructors = (function() {
+    try {
+      new window.MouseEvent('click');
+    } catch (ex) {
+      return false;
+    }
+    return true;
+  })();
+
+  /**
+   * Constructs a new native event.
+   */
+  function constructEvent(OriginalEvent, name, type, options) {
+    if (supportsEventConstructors)
+      return new OriginalEvent(type, unwrapOptions(options));
+
+    // Create the arguments from the default dictionary.
+    var event = unwrap(document.createEvent(name));
+    var defaultDict = defaultInitDicts[name];
+    var args = [type];
+    Object.keys(defaultDict).forEach(function(key) {
+      var v = options != null && key in options ?
+          options[key] : defaultDict[key];
+      if (key === 'relatedTarget')
+        v = unwrap(v);
+      args.push(v);
+    });
+    event['init' + name].apply(event, args);
+    return event;
+  }
+
+  if (!supportsEventConstructors) {
+    var configureEventConstructor = function(name, initDict, superName) {
+      if (superName) {
+        var superDict = defaultInitDicts[superName];
+        initDict = mixin(mixin({}, superDict), initDict);
+      }
+
+      defaultInitDicts[name] = initDict;
+    };
+
+    // The order of the default event init dictionary keys is important, the
+    // arguments to initFooEvent is derived from that.
+    configureEventConstructor('Event', {bubbles: false, cancelable: false});
+    configureEventConstructor('CustomEvent', {detail: null}, 'Event');
+    configureEventConstructor('UIEvent', {view: null, detail: 0}, 'Event');
+    configureEventConstructor('MouseEvent', {
+      screenX: 0,
+      screenY: 0,
+      clientX: 0,
+      clientY: 0,
+      ctrlKey: false,
+      altKey: false,
+      shiftKey: false,
+      metaKey: false,
+      button: 0,
+      relatedTarget: null
+    }, 'UIEvent');
+    configureEventConstructor('FocusEvent', {relatedTarget: null}, 'UIEvent');
+  }
 
   function isValidListener(fun) {
     if (typeof fun === 'function')
@@ -510,12 +577,13 @@
     });
   }
 
-  scope.wrappers.Event = Event;
-  scope.wrappers.EventTarget = EventTarget;
-  scope.wrappers.UIEvent = UIEvent;
-  scope.wrappers.FocusEvent = FocusEvent;
-  scope.wrappers.MouseEvent = MouseEvent;
   scope.adjustRelatedTarget = adjustRelatedTarget;
   scope.wrapEventTargetMethod = wrapEventTargetMethod;
+  scope.wrappers.CustomEvent = CustomEvent;
+  scope.wrappers.Event = Event;
+  scope.wrappers.EventTarget = EventTarget;
+  scope.wrappers.FocusEvent = FocusEvent;
+  scope.wrappers.MouseEvent = MouseEvent;
+  scope.wrappers.UIEvent = UIEvent;
 
 })(this.ShadowDOMPolyfill);
