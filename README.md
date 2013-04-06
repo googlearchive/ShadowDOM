@@ -34,7 +34,7 @@ A component user supplies the light DOM; the node has a (hidden) shadow DOM; and
       <span>People say: <q>Hello World</q></span>
     </my-custom-element>
 
-Under a proper (native) Shadow DOM implementation, the following would be true about this example:
+The following is true about this example:
 
 * The light DOM that belongs to `<my-custom-element>` is visible to the user as its normal subtree. It can expressed by `.childNodes`, `.children`, `.innerHTML` or any other property or method that gives you information about a node's subtree.
 * Nodes in light DOM or shadow DOM express parent and sibling relationships that match their respective tree structures; the relationships that exist in the rendered tree are not expressed anywhere in DOM.
@@ -49,64 +49,63 @@ A polyfill to provide Shadow DOM functionality in browsers that don't
 support it natively. This section explains how a proper (native) implementation
 differs from our polyfill implementation.
 
-### Polyfill limitations
+### Logical DOM
 
-To polyfill Shadow DOM it's necessary to compose the rendered tree into the DOM proper, as that is what the browser is going to display. That means the truisms above no longer apply. There are several important differences to consider under a polyfilled Shadow DOM:
+The light DOM and the shadow DOM is referred to as the logical DOM. This is the DOM that the developer interacts with. The composed DOM is what the browser sees and uses to render the pixels on the screen.
 
-* `<my-custom-element>`'s light DOM must be stored in a subtree separate from main DOM. `<my-custom-element>`'s native `.childNodes`, `.children`, `.innerHTML` properties and methods all refer to the rendered tree.
-* Nodes in light DOM or shadow DOM express native parent and sibling relationships that match only the rendered tree structure; the relationships that exist in the original light and shadow trees are not expressed by native DOM.
+### Wrappers
 
-For proper polyfilling, these contradictions need to be solved by overriding the DOM tree accessors from JS to provide the illusion of the separated DOM trees.
+The polyfill is implemented using _wrappers_. A wrapper wraps the native DOM node in a wrapper node. The wrapper node looks and behaves identical to the native node (minus bugs and known limitations). For example:
 
-In particular, the Toolkit Shadow DOM polyfill does not provide the ability to operate on light and shadow subtrees as strictly normal DOM subtrees. Instead, those subtrees are embedded in the native (rendered) DOM and special APIs are provided to navigate them.
+```js
+var div = document.createElement('div');
+div.innerHTML = '<b>Hello world</b>';
+assert(div.firstChild instanceof HTMLElement);
+```
 
-#### Subtree perversions
+But `div` is actually a wrapper of the element that the browser normally gives you. This wrapper just happen to have the same interface as the browser provided element.
 
-Using the native DOM accessors (such as `childNodes`) on a tree containing Shadow DOM polyfill subtrees, you will encounter these unusual DOM structures:
+It has an `innerHTML` setter that works just like the native `innerHTML` but it instead of working on the composed tree it works on the local DOM. When you change the logical DOM tree like this it might cause the composed tree to need to be re-rendered. This does not happen immediately, but it is scheduled to happen later as needed.
 
-* **LightDOM**: Nodes that have shadow DOM are assigned a corresponding `.lightDOM` document-fragment. When walking DOM, one generally wants to descend into light DOM subtrees (via `.lightDOM`) and not the native (rendered) tree, to mimic the proper hiding of shadow DOM.
+The wrapper node also have a `firstChild` getter which once again works on the logical DOM.
 
-* **Changelings**: Changelings are "dummy" nodes that take the place of a real node, called the `baby`. A Changeling is created when a `baby` has to be moved into a composition. In other words, Changelings allow a node to be in multiple subtrees. 
+`instanceof` still works because we have replaced the global `HTMLElement` constructor with our custom one.
 
-    <shadow-root>
-      <span-changeling></span-changeling>
-    </shadow-root>
-    <my-custom-element><span>I'm in two places at once</span></my-custom-element>
-    
-When we interrogate `<span-changeling>`'s `.parentNode` property, it correctly references `<shadow-root>`. The Changeling has preserved the position of the `<span>` in the shadow DOM when the actual `<span>` had to be re-parented into the rendered tree. Being Changeling-aware, we can get non-positional information via `.baby`. For example, the real `innerText` is available via `baby.innerText`.
+#### More Logical DOM
 
-* **Insertion Lists**: alternate child lists that represent subtrees before insertion-points are removed. 
+The `wrappers.Node` object keeps track of the logical (light as well as shadow, but not composed) DOM. Internally it has has the 5 fundamental Node pointers, `parentNode`, `firstChild`, `lastChild`, `nextSibling` and `previousSibling`. When the DOM tree is manipulated these pointers are updated to always represent the logical tree. When the shadow DOM renderer needs to render the visual tree, these internal pointers are updated as needed.
 
-Insertion-points, namely `<content>` and `<shadow>` are intended to be invisible to the render engine, for the purposes of, for example, parent/child selectors. A shadow DOM subtree like this:
+#### Wrap all the objects!
 
-    <content></content>
+The intent is to wrap all the DOM objects that interact with the DOM tree. For this polyfill to be completely transparent we need to wrap a lot of APIs. Any method, accessor or constructor that takes or returns a Node or an object that indirectly touches a node needs to be wrapped. As you can imagine there are a lot of these. At the moment we have done the most common ones but there are sure to be missing ones as soon as you try to use this with your code.
 
-might compose with light DOM into 
+### `wrap` and `unwrap`
 
-    <my-custom-element>
-      <content>
-        <span>Hello World</span>
-      </content>
-    </my-custom-element>
+There are bound to be cases where we haven't done the wrapping for you. In those cases you can use `wrap` to create a wrapper of a native object, or `unwrap` to get the underlying native object from a wrapper. These two functions are available on the `ShadowDOMPolyfill` object.
 
-but the render tree must see this as
+#### Event Retargetting
 
-    <my-custom-element>
-      <span>Hello World</span>
-    </my-custom-element>
+An important aspect of the shadow DOM is that events are retargetted to never expose the shadow DOM to the light DOM. For example.
 
-In this case, an `.insertions` array is created on `<my-custom-element>` which contains the child list from the composed tree. In this case this contains simply `[<content>]`.
+```js
+var div = document.createElement('div');
+div.innerHTML = 'Click me';
+var sr = div.createShadowRoot();
+sr.innerHTML = '<b><content></content></b>';
+```
 
-### Locality
+If the user clicks on the `div` the real `target` of the click event is the `<b>` element. But that element is not visible in the light DOM so the target is therefore retargetted to the `div` element itself. However, if there is an event listener on the `<content>`, `<b>` or the shadow root, the target should be visible to the event listener.
 
-Because shadow DOM subtrees can be embedded in other shadow DOM subtrees, it quickly becomes possible for a node to be both in light and shadow DOM, depending on your perspective. Instead of having two kinds of trees, it's simpler to talk about a node's _local_ tree. This way, my shadow DOM is just my _local_ tree, and my light DOM is part of _my parentNode's_ local tree. 
+Similar issues occur with `relatedTarget` in `mouseover` and `mouseout` events.
 
-<p class="alert">
-<strong>Note</strong>: Nodes distributed to insertion-points (<code>&lt;content></code>, <code>&lt;shadow</code>) are not considered part of the local tree, and must be studied separately via the <code>.getDistributedNodes()</code> function.
-</p>
+To support this kind of behavior the event dispatching in the browser has to be reimplemented by the polyfill.
 
-### API Utilities
 
-* `ShadowDOM.deref(inNode)`: dereference a Changeling: returns `inNode.baby` if it exists, otherwise `inNode`.
-* `ShadowDOM.localQuery[All](inNode, inSelector)`: a subset of `querySelector[All]` that searches the input node's local tree for nodes matching `inSelector` (for a restricted set of selectors).
-* `ShadowDOM.localNodes(inNode)`: returns a simple array of nodes at the top of inNode's local tree.
+#### Known issues
+
+* CSS encapsulation is not implemented.
+* `Object.prototype.toString` does not return the same string as for native objects.
+* No live `NodeList`s. All node lists are snapshotted upon read.
+* `document`, `window`, `document.body`, `document.head` and others are non configurable and cannot be overridden. We are trying to make these work as seamlessly as possible but there will doubtlessly be cases where there will be problems; for those cases you can use `wrap` and `unwrap` to get unblocked.
+* `onclick` and other `on*` attribute event handler do not wrap the event object as needed.
+* Cross window/frame access is not implemented.
