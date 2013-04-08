@@ -36,20 +36,22 @@ mocha.setup({
 })
 
 var modules = [
-  "test.js",
-  "paralleltrees.js",
-  "rerender.js",
-  "reprojection.js",
-  "custom-element.js",
-  "HTMLShadowElement.js",
-  "HTMLContentElement.js",
-  "HTMLTemplateElement.js",
-  "Document.js",
-  "Window.js",
-  "Element.js",
-  "ParentNodeInterface.js",
-  "wrappers.js",
-  "events.js"
+  'Document.js',
+  'Element.js',
+  'HTMLBodyElement.js',
+  'HTMLContentElement.js',
+  'HTMLHeadElement.js',
+  'HTMLShadowElement.js',
+  'HTMLTemplateElement.js',
+  'ParentNodeInterface.js',
+  'Window.js',
+  'custom-element.js',
+  'events.js',
+  'paralleltrees.js',
+  'reprojection.js',
+  'rerender.js',
+  'test.js',
+  'wrappers.js',
 ];
 
 modules.forEach(function(inSrc) {

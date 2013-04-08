@@ -31,6 +31,18 @@
   addWrapGetter(Document, 'body');
   addWrapGetter(Document, 'head');
 
+  // We also override some of the methods on document.body and document.head
+  // for convenience.
+  [window.HTMLBodyElement, window.HTMLHeadElement].forEach(function(ctor) {
+    ['appendChild', 'insertBefore', 'replaceChild', 'removeChild'].forEach(
+      function(name) {
+        ctor.prototype[name] = function() {
+          var w = wrap(this);
+          return w[name].apply(w, arguments);
+        };
+      });
+  });
+
   mixin(Document.prototype, ParentNodeInterface);
 
   mixin(Document.prototype, {
