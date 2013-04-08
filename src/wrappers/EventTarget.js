@@ -408,7 +408,7 @@
 
 
   // In case the browser does not support event constructors we polyfill that
-  // be calling `createEvent('Foo')` and `initFooEvent` where the arguments to
+  // by calling `createEvent('Foo')` and `initFooEvent` where the arguments to
   // `initFooEvent` are derived from the registered default event init dict.
   var defaultInitDicts = Object.create(null);
 
