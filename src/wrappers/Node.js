@@ -129,6 +129,11 @@
     this.previousSibling_ = undefined;
   };
 
+  var originalAppendChild = OriginalNode.prototype.appendChild;
+  var originalInsertBefore = OriginalNode.prototype.insertBefore;
+  var originalReplaceChild = OriginalNode.prototype.replaceChild;
+  var originalRemoveChild = OriginalNode.prototype.removeChild;
+
   Node.prototype = Object.create(EventTarget.prototype);
   mixin(Node.prototype, {
     appendChild: function(childWrapper) {
@@ -149,7 +154,7 @@
       // A better aproach might be to make sure we only get here for nodes that
       // are related to a shadow host and then invalidate that and re-render
       // the host (on reflow?).
-      this.impl.appendChild(unwrapNodesForInsertion(nodes));
+      originalAppendChild.call(this.impl, unwrapNodesForInsertion(nodes));
 
       return childWrapper;
     },
@@ -177,8 +182,12 @@
       // insertBefore refWrapper no matter what the parent is?
       var refNode = unwrap(refWrapper);
       var parentNode = refNode.parentNode;
-      if (parentNode)
-        parentNode.insertBefore(unwrapNodesForInsertion(nodes), refNode);
+      if (parentNode) {
+        originalInsertBefore.call(
+            parentNode,
+            unwrapNodesForInsertion(nodes),
+            refNode);
+      }
 
       return childWrapper;
     },
@@ -206,7 +215,7 @@
       var childNode = unwrap(childWrapper);
       var parentNode = childNode.parentNode;
       if (parentNode)
-        parentNode.removeChild(childNode);
+        originalRemoveChild.call(parentNode, childNode);
 
       return childWrapper;
     },
@@ -241,8 +250,10 @@
       // replaceChild no matter what the parent is?
       var oldChildNode = unwrap(oldChildWrapper);
       if (oldChildNode.parentNode) {
-        oldChildNode.parentNode.replaceChild(unwrapNodesForInsertion(nodes),
-                                             oldChildNode);
+        originalReplaceChild.call(
+            oldChildNode.parentNode,
+            unwrapNodesForInsertion(nodes),
+            oldChildNode);
       }
 
       return oldChildWrapper;
