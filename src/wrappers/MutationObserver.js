@@ -11,6 +11,7 @@
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
   var wrapNodeList = scope.wrapNodeList;
+  var wrappers = scope.wrappers;
 
   var OriginalMutationObserver = window.MutationObserver ||
       window.WebKitMutationObserver;
@@ -70,9 +71,12 @@
       callback.call(self, wrapRecords(mutations), self);
     });
   }
+
+  var OriginalNode = window.Node;
+
   MutationObserver.prototype = {
     observe: function(target, options) {
-      if (target !== document)
+      if (target instanceof wrappers.Node)
         target = unwrap(target);
       this.impl.observe(target, options);
     },
