@@ -56,6 +56,15 @@
       return implementation;
     }
   });
+  
+  var originalAdoptNode = document.adoptNode;
+  Document.prototype.adoptNode = function(node) {
+    originalAdoptNode.call(this.impl, unwrap(node));
+    return node;
+  };
+  Object.getPrototypeOf(document).adoptNode = function(node) {
+    return wrap(this).adoptNode(node);
+  };
 
   registerWrapper(OriginalDocument, Document,
       document.implementation.createHTMLDocument(''));
