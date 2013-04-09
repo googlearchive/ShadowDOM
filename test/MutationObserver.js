@@ -181,6 +181,7 @@ suite('MutationObserver', function() {
       assert.equal(observer, mo);
       assert.equal(records[0].type, 'attributes');
       assert.equal(records[0].target, wrap(document).body);
+      mo.disconnect();
       done();
     });
     mo.observe(document, {
@@ -189,6 +190,48 @@ suite('MutationObserver', function() {
     });
 
     document.body.setAttribute('a', 'b');
+  });
+
+  test('observe document.body', function(done) {
+    if (!window.MutationObserver) {
+      done();
+      return;
+    }
+
+    var mo = new MutationObserver(function(records, observer) {
+      assert.equal(this, mo);
+      assert.equal(observer, mo);
+      assert.equal(records[0].type, 'attributes');
+      assert.equal(records[0].target, wrap(document).body);
+      mo.disconnect();
+      done();
+    });
+    mo.observe(document.body, {
+      attributes: true
+    });
+
+    document.body.setAttribute('a', 'b');
+  });
+
+  test('observe document.head', function(done) {
+    if (!window.MutationObserver) {
+      done();
+      return;
+    }
+
+    var mo = new MutationObserver(function(records, observer) {
+      assert.equal(this, mo);
+      assert.equal(observer, mo);
+      assert.equal(records[0].type, 'attributes');
+      assert.equal(records[0].target, wrap(document).head);
+      mo.disconnect();
+      done();
+    });
+    mo.observe(document.head, {
+      attributes: true
+    });
+
+    document.head.setAttribute('a', 'b');
   });
 
 });
