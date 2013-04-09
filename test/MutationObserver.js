@@ -6,6 +6,7 @@
 
 suite('MutationObserver', function() {
 
+  var wrap = ShadowDOMPolyfill.wrap;
   var addedNodes, removedNodes;
 
   setup(function() {
@@ -167,6 +168,27 @@ suite('MutationObserver', function() {
     });
 
     div.removeChild(b);
+  });
+
+  test('observe document', function(done) {
+    if (!window.MutationObserver) {
+      done();
+      return;
+    }
+
+    var mo = new MutationObserver(function(records, observer) {
+      assert.equal(this, mo);
+      assert.equal(observer, mo);
+      assert.equal(records[0].type, 'attributes');
+      assert.equal(records[0].target, wrap(document).body);
+      done();
+    });
+    mo.observe(document, {
+      attributes: true,
+      subtree: true
+    });
+
+    document.body.setAttribute('a', 'b');
   });
 
 });

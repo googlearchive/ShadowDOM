@@ -72,7 +72,9 @@
   }
   MutationObserver.prototype = {
     observe: function(target, options) {
-      this.impl.observe(unwrap(target), options);
+      if (target !== document)
+        target = unwrap(target);
+      this.impl.observe(target, options);
     },
     disconnect: function() {
       this.impl.disconnect();
