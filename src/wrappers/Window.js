@@ -21,11 +21,9 @@
 
   var originalGetComputedStyle = window.getComputedStyle;
 
-  mixin(Object.getPrototypeOf(window), {
-    getComputedStyle: function(el, pseudo) {
-      return originalGetComputedStyle.call(this, unwrap(el), pseudo);
-    }
-  });
+  Object.getPrototypeOf(window).getComputedStyle = function(el, pseudo) {
+    return originalGetComputedStyle.call(this, unwrap(el), pseudo);
+  };
 
   mixin(Window.prototype, {
     getComputedStyle: function(el, pseudo) {
