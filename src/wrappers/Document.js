@@ -7,7 +7,7 @@
 
   var ParentNodeInterface = scope.ParentNodeInterface;
   var Node = scope.wrappers.Node;
-  var addWrapGetter = scope.addWrapGetter;
+  var defineWrapGetter = scope.defineWrapGetter;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
   var unwrap = scope.unwrap;
@@ -24,12 +24,12 @@
   }
   Document.prototype = Object.create(Node.prototype);
 
-  addWrapGetter(Document, 'documentElement');
+  defineWrapGetter(Document, 'documentElement');
 
   // Conceptually both body and head can be in a shadow but suporting that seems
   // overkill at this point.
-  addWrapGetter(Document, 'body');
-  addWrapGetter(Document, 'head');
+  defineWrapGetter(Document, 'body');
+  defineWrapGetter(Document, 'head');
 
   // We also override some of the methods on document.body and document.head
   // for convenience.

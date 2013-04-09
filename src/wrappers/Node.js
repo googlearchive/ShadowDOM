@@ -7,7 +7,7 @@
 
   var EventTarget = scope.wrappers.EventTarget;
   var NodeList = scope.wrappers.NodeList;
-  var addWrapGetter = scope.addWrapGetter;
+  var defineWrapGetter = scope.defineWrapGetter;
   var assert = scope.assert;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
@@ -357,7 +357,7 @@
     }
   });
 
-  addWrapGetter(Node, 'ownerDocument');
+  defineWrapGetter(Node, 'ownerDocument');
 
   // We use a DocumentFragment as a base and then delete the properties of
   // DocumentFragment.prototype from the wrapper Node. Since delete makes
