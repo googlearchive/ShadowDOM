@@ -43,6 +43,7 @@ var modules = [
   'HTMLHeadElement.js',
   'HTMLShadowElement.js',
   'HTMLTemplateElement.js',
+  'MutationObserver.js',
   'ParentNodeInterface.js',
   'Window.js',
   'custom-element.js',
