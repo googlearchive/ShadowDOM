@@ -36,6 +36,7 @@ mocha.setup({
 })
 
 var modules = [
+  'Comment.js',
   'Document.js',
   'Element.js',
   'HTMLBodyElement.js',
@@ -45,6 +46,7 @@ var modules = [
   'HTMLTemplateElement.js',
   'MutationObserver.js',
   'ParentNodeInterface.js',
+  'Text.js',
   'Window.js',
   'custom-element.js',
   'events.js',
