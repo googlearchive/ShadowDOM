@@ -6,10 +6,11 @@
   'use strict';
 
   var Element = scope.wrappers.Element;
+  var defineGetter = scope.defineGetter;
   var mixin = scope.mixin;
+  var registerWrapper = scope.registerWrapper;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
-  var registerWrapper = scope.registerWrapper;
 
   /////////////////////////////////////////////////////////////////////////////
   // innerHTML and outerHTML
@@ -127,14 +128,10 @@
   });
 
   function getterRequiresRendering(name) {
-    Object.defineProperty(HTMLElement.prototype, name, {
-      get: function() {
-        scope.renderAllPending();
-        return this.impl[name];
-      },
-      configurable: true,
-      enumerable: true
-    });
+    defineGetter(HTMLElement, name, function() {
+      scope.renderAllPending();
+      return this.impl[name];
+     });
   }
 
   [

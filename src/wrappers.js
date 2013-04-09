@@ -236,25 +236,30 @@ var ShadowDOMPolyfill = {};
     wrapperTable.set(node, wrapper);
   }
 
-  function addWrapGetter(wrapperConstructor, name) {
-    Object.defineProperty(wrapperConstructor.prototype, name, {
-      get: function() {
-        return wrap(this.impl[name]);
-      },
+  function defineGetter(constructor, name, getter) {
+    Object.defineProperty(constructor.prototype, name, {
+      get: getter,
       configurable: true,
       enumerable: true
     });
   }
 
-  scope.wrappers = wrappers;
-  scope.addWrapGetter = addWrapGetter;
+  function defineWrapGetter(constructor, name) {
+    defineGetter(constructor, name, function() {
+      return wrap(this.impl[name]);
+    });
+  }
+
   scope.assert = assert;
+  scope.defineGetter = defineGetter;
+  scope.defineWrapGetter = defineWrapGetter;
+  scope.isWrapperFor = isWrapperFor;
   scope.mixin = mixin;
   scope.registerObject = registerObject;
   scope.registerWrapper = register;
   scope.rewrap = rewrap;
   scope.unwrap = unwrap;
   scope.wrap = wrap;
-  scope.isWrapperFor = isWrapperFor;
+  scope.wrappers = wrappers;
 
 })(this.ShadowDOMPolyfill);
