@@ -10,7 +10,7 @@
   var registerWrapper = scope.registerWrapper;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
-  var wrapEventTargetMethod = scope.wrapEventTargetMethod;
+  var wrapEventTargetMethods = scope.wrapEventTargetMethods;
 
   var OriginalWindow = window.Window;
 
@@ -33,7 +33,7 @@
 
   registerWrapper(OriginalWindow, Window);
 
-  wrapEventTargetMethod(window);
+  wrapEventTargetMethods([OriginalWindow]);
 
   scope.wrappers.Window = Window;
 

@@ -5,6 +5,7 @@
 (function(scope) {
   'use strict';
 
+  var forwardMethodsToWrapper = scope.forwardMethodsToWrapper;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
   var unwrap = scope.unwrap;
@@ -564,21 +565,12 @@
   if (OriginalEventTarget)
     registerWrapper(OriginalEventTarget, EventTarget);
 
-  function wrapEventTargetMethod(object) {
-    // For the EventTarget methods, the methods already call the original
-    // function object (instead of doing this.impl.foo so we can just redirect to
-    // the wrapper).
-    methodNames.forEach(function(name) {
-      var proto = Object.getPrototypeOf(object);
-      proto[name] = function() {
-        var wrapper = wrap(this);
-        return wrapper[name].apply(wrapper, arguments);
-      };
-    });
+  function wrapEventTargetMethods(constructors) {
+    forwardMethodsToWrapper(constructors, methodNames);
   }
 
   scope.adjustRelatedTarget = adjustRelatedTarget;
-  scope.wrapEventTargetMethod = wrapEventTargetMethod;
+  scope.wrapEventTargetMethods = wrapEventTargetMethods;
   scope.wrappers.CustomEvent = CustomEvent;
   scope.wrappers.Event = Event;
   scope.wrappers.EventTarget = EventTarget;
