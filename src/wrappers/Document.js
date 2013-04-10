@@ -12,8 +12,9 @@
   var registerWrapper = scope.registerWrapper;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
-  var wrapEventTargetMethod = scope.wrapEventTargetMethod;
+  var wrapEventTargetMethods = scope.wrapEventTargetMethods;
   var wrapNodeList = scope.wrapNodeList;
+  var forwardMethodsToWrapper = scope.forwardMethodsToWrapper;
 
   var implementationTable = new SideTable();
 
@@ -33,15 +34,13 @@
 
   // We also override some of the methods on document.body and document.head
   // for convenience.
-  [window.HTMLBodyElement, window.HTMLHeadElement].forEach(function(ctor) {
-    ['appendChild', 'insertBefore', 'replaceChild', 'removeChild'].forEach(
-      function(name) {
-        ctor.prototype[name] = function() {
-          var w = wrap(this);
-          return w[name].apply(w, arguments);
-        };
-      });
-  });
+  forwardMethodsToWrapper([window.HTMLBodyElement, window.HTMLHeadElement],
+      [
+        'appendChild',
+        'insertBefore',
+        'replaceChild',
+        'removeChild'
+      ]);
 
   mixin(Document.prototype, ParentNodeInterface);
 
@@ -117,7 +116,15 @@
     'querySelectorAll'
   ].forEach(wrapNodeListMethod);
 
-  wrapEventTargetMethod(document);
+  wrapEventTargetMethods([
+    window.HTMLDocument || window.Document,  // Gecko adds these to HTMLDocument
+    window.HTMLBodyElement,
+    window.HTMLHeadElement
+  ]);
+
+  function DOMImplementation(impl) {
+    this.impl = impl;
+  }
 
   function wrapImplMethod(constructor, name) {
     constructor.prototype[name] = function() {
@@ -129,10 +136,6 @@
     constructor.prototype[name] = function() {
       return this.impl[name].apply(this.impl, arguments);
     };
-  }
-
-  function DOMImplementation(node) {
-    this.impl = node;
   }
 
   wrapImplMethod(DOMImplementation, 'createDocumentType');

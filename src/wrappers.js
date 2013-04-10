@@ -250,9 +250,28 @@ var ShadowDOMPolyfill = {};
     });
   }
 
+  /**
+   * Forwards existing methods on the native object to the wrapper methods.
+   * This does not wrap any of the arguments or the return value since the
+   * wrapper implementation already takes care of that.
+   * @param {Array.<Function>} constructors
+   * @parem {Array.<string>} names
+   */
+  function forwardMethodsToWrapper(constructors, names) {
+    constructors.forEach(function(constructor) {
+      names.forEach(function(name) {
+        constructor.prototype[name] = function() {
+          var w = wrap(this);
+          return w[name].apply(w, arguments);
+        };
+      });
+    });
+  }
+
   scope.assert = assert;
   scope.defineGetter = defineGetter;
   scope.defineWrapGetter = defineWrapGetter;
+  scope.forwardMethodsToWrapper = forwardMethodsToWrapper;
   scope.isWrapperFor = isWrapperFor;
   scope.mixin = mixin;
   scope.registerObject = registerObject;
