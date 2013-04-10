@@ -14,6 +14,10 @@
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
 
+  function assertIsNodeWrapper(node) {
+    assert(node instanceof Node);
+  }
+
   /**
    * Collects nodes from a DocumentFragment or a Node for removal followed
    * by an insertion.
@@ -75,7 +79,7 @@
       childWrapper.previousSibling_ = childWrapper.nextSibling_ = childWrapper.parentNode_ = null;
       var parentNode = childNode.parentNode;
       if (parentNode)
-        parentNode.removeChild(childNode);
+        originalRemoveChild.call(parentNode, childNode);
       childWrapper = nextSibling;
     }
     wrapper.firstChild_ = wrapper.lastChild_ = null;
@@ -137,7 +141,7 @@
   Node.prototype = Object.create(EventTarget.prototype);
   mixin(Node.prototype, {
     appendChild: function(childWrapper) {
-      assert(childWrapper instanceof Node);
+      assertIsNodeWrapper(childWrapper);
 
       this.invalidateShadowRenderer();
 
@@ -164,8 +168,8 @@
       if (!refWrapper)
         return this.appendChild(childWrapper);
 
-      assert(childWrapper instanceof Node);
-      assert(refWrapper instanceof Node);
+      assertIsNodeWrapper(childWrapper);
+      assertIsNodeWrapper(refWrapper);
       assert(refWrapper.parentNode === this);
 
       this.invalidateShadowRenderer();
@@ -193,7 +197,7 @@
     },
 
     removeChild: function(childWrapper) {
-      assert(childWrapper instanceof Node);
+      assertIsNodeWrapper(childWrapper);
       if (childWrapper.parentNode !== this) {
         // TODO(arv): DOMException
         throw new Error('NotFoundError');
@@ -221,8 +225,8 @@
     },
 
     replaceChild: function(newChildWrapper, oldChildWrapper) {
-      assert(newChildWrapper instanceof Node);
-      assert(oldChildWrapper instanceof Node);
+      assertIsNodeWrapper(newChildWrapper);
+      assertIsNodeWrapper(oldChildWrapper);
 
       if (oldChildWrapper.parentNode !== this) {
         // TODO(arv): DOMException
