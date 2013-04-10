@@ -27,11 +27,19 @@ suite('Window', function() {
       win.removeEventListener('click', f);
     });
 
-    document.body.click();
-    assert.equal(2, calls);
+    addEventListener('click', function f(e) {
+      calls++;
+      assert.equal(this, win);
+      assert.equal(e.target, doc.body);
+      assert.equal(e.currentTarget, this);
+      removeEventListener('click', f);
+    });
 
     document.body.click();
-    assert.equal(2, calls);
+    assert.equal(3, calls);
+
+    document.body.click();
+    assert.equal(3, calls);
   });
 
   test('getComputedStyle', function() {
@@ -42,5 +50,10 @@ suite('Window', function() {
     div = document.createElement('div');
     cs = wrap(window).getComputedStyle(div);
     assert.isTrue(cs != null);
+
+    div = document.createElement('div');
+    cs = getComputedStyle(div);
+    assert.isTrue(cs != null);
   });
+
 });
