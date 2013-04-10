@@ -105,4 +105,7 @@ suite('HTMLBodyElement', function() {
     assert.equal(calls, 2);
   });
 
+  testIframe('innerHTML', 'document-body-inner-html.html', function(result) {
+    assertArrayEqual([true, true], result);
+  });
 });
