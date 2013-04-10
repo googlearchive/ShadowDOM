@@ -3,14 +3,17 @@
 <script>
 
 var wrap = ShadowDOMPolyfill.wrap;
+var doc = wrap(document);
 
-window.addEventListener('load', function(e) {
+doc.addEventListener('DOMContentLoaded', function(e) {
+  var html = '<a></a><b></b>';
+  doc.body.innerHTML = html;
+
   var result = [
-    e.target === wrap(document),
-    e.currentTarget === wrap(window),
-    this === wrap(window),
-    e.eventPhase === Event.AT_TARGET
+    doc.body.innerHTML === html,
+    document.body.innerHTML === html
   ];
+
   parent.postMessage({
     id: window.location.hash.slice(1),
     result: result

@@ -85,4 +85,8 @@ suite('HTMLBodyElement', function() {
     doc.body.removeChild(div);
     assert.isNull(div.parentNode);
   });
+
+  testIframe('innerHTML', 'document-body-inner-html.html', function(result) {
+    assertArrayEqual([true, true], result);
+  });
 });
