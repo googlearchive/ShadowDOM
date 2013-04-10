@@ -85,4 +85,24 @@ suite('HTMLBodyElement', function() {
     doc.body.removeChild(div);
     assert.isNull(div.parentNode);
   });
+
+  test('dispatchEvent', function() {
+    var calls = 0;
+    var doc = wrap(document);
+    var f;
+    document.body.addEventListener('x', f = function(e) {
+      calls++;
+      assert.equal(e.target, doc.body);
+      assert.equal(e.currentTarget, doc.body);
+      assert.equal(this, doc.body);
+      if (calls === 2)
+        document.body.removeEventListener('x', f);
+    });
+
+    document.body.dispatchEvent(new Event('x'));
+    doc.body.dispatchEvent(new Event('x'));
+
+    assert.equal(calls, 2);
+  });
+
 });
