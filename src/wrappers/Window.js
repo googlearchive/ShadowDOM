@@ -10,7 +10,6 @@
   var registerWrapper = scope.registerWrapper;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
-  var wrapEventTargetMethods = scope.wrapEventTargetMethods;
 
   var OriginalWindow = window.Window;
 
@@ -20,10 +19,17 @@
   Window.prototype = Object.create(EventTarget.prototype);
 
   var originalGetComputedStyle = window.getComputedStyle;
-
-  Object.getPrototypeOf(window).getComputedStyle = function(el, pseudo) {
-    return originalGetComputedStyle.call(this, unwrap(el), pseudo);
+  OriginalWindow.prototype.getComputedStyle = function(el, pseudo) {
+    return originalGetComputedStyle.call(this || window, unwrap(el), pseudo);
   };
+
+  ['addEventListener', 'removeEventListener', 'dispatchEvent'].forEach(
+      function(name) {
+        OriginalWindow.prototype[name] = function() {
+          var w = wrap(this || window);
+          return w[name].apply(w, arguments);
+        };
+      });
 
   mixin(Window.prototype, {
     getComputedStyle: function(el, pseudo) {
@@ -32,8 +38,6 @@
   });
 
   registerWrapper(OriginalWindow, Window);
-
-  wrapEventTargetMethods([OriginalWindow]);
 
   scope.wrappers.Window = Window;
 
