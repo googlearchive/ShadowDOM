@@ -5,7 +5,9 @@
 (function(scope) {
   'use strict';
 
+  var GetElementsByInterface = scope.GetElementsByInterface;
   var ParentNodeInterface = scope.ParentNodeInterface;
+  var SelectorsInterface = scope.SelectorsInterface;
   var Node = scope.wrappers.Node;
   var defineWrapGetter = scope.defineWrapGetter;
   var mixin = scope.mixin;
@@ -32,17 +34,66 @@
   defineWrapGetter(Document, 'body');
   defineWrapGetter(Document, 'head');
 
+  // document cannot be overridden so we override a bunch of its methods
+  // directly on the instance.
+
+  function wrapMethod(name) {
+    var original = document[name];
+    Document.prototype[name] = function() {
+      return wrap(original.apply(this.impl, arguments));
+    };
+  }
+
+  [
+    'getElementById',
+    'createElement',
+    'createElementNS',
+    'createTextNode',
+    'createDocumentFragment',
+    'createEvent',
+    'createEventNS',
+  ].forEach(wrapMethod);
+
+  var originalAdoptNode = document.adoptNode;
+  Document.prototype.adoptNode = function(node) {
+    originalAdoptNode.call(this.impl, unwrap(node));
+    return node;
+  };
+
   // We also override some of the methods on document.body and document.head
   // for convenience.
-  forwardMethodsToWrapper([window.HTMLBodyElement, window.HTMLHeadElement],
-      [
-        'appendChild',
-        'insertBefore',
-        'replaceChild',
-        'removeChild'
-      ]);
+  forwardMethodsToWrapper([
+    window.HTMLBodyElement,
+    window.HTMLDocument || window.Document,  // Gecko adds these to HTMLDocument
+    window.HTMLHeadElement,
+  ], [
+    'appendChild',
+    'getElementsByClassName',
+    'getElementsByTagName',
+    'getElementsByTagNameNS',
+    'insertBefore',
+    'querySelector',
+    'querySelectorAll',
+    'removeChild',
+    'replaceChild',
+  ]);
 
+  forwardMethodsToWrapper([
+    window.HTMLDocument || window.Document,  // Gecko adds these to HTMLDocument
+  ], [
+    'adoptNode',
+    'createDocumentFragment',
+    'createElement',
+    'createElementNS',
+    'createEvent',
+    'createEventNS',
+    'createTextNode',
+    'getElementById',
+  ]);
+
+  mixin(Document.prototype, GetElementsByInterface);
   mixin(Document.prototype, ParentNodeInterface);
+  mixin(Document.prototype, SelectorsInterface);
 
   mixin(Document.prototype, {
     get implementation() {
@@ -55,15 +106,6 @@
       return implementation;
     }
   });
-  
-  var originalAdoptNode = document.adoptNode;
-  Document.prototype.adoptNode = function(node) {
-    originalAdoptNode.call(this.impl, unwrap(node));
-    return node;
-  };
-  Object.getPrototypeOf(document).adoptNode = function(node) {
-    return wrap(this).adoptNode(node);
-  };
 
   registerWrapper(OriginalDocument, Document,
       document.implementation.createHTMLDocument(''));
@@ -73,53 +115,10 @@
   if (window.HTMLDocument)
     registerWrapper(window.HTMLDocument, Document);
 
-  function wrapMethod(name) {
-    var proto = Object.getPrototypeOf(document);
-    var original = proto[name];
-    proto[name] = function() {
-      return wrap(original.apply(this, arguments));
-    };
-    Document.prototype[name] = function() {
-      return wrap(original.apply(this.impl, arguments));
-    };
-  }
-
-  // document cannot be overridden so we override a bunch of its methods
-  // directly on the instance
-
-  [
-    'getElementById',
-    'querySelector',
-    'createElement',
-    'createElementNS',
-    'createTextNode',
-    'createDocumentFragment',
-    'createEvent',
-    'createEventNS',
-  ].forEach(wrapMethod);
-
-  function wrapNodeListMethod(name) {
-    var proto = Object.getPrototypeOf(document);
-    var original = proto[name];
-    proto[name] = function() {
-      return wrapNodeList(original.apply(this, arguments));
-    };
-    Document.prototype[name] = function() {
-      return wrapNodeList(original.apply(this.impl, arguments));
-    };
-  }
-
-  [
-    'getElementsByTagName',
-    'getElementsByTagNameNS',
-    'getElementsByClassName',
-    'querySelectorAll'
-  ].forEach(wrapNodeListMethod);
-
   wrapEventTargetMethods([
-    window.HTMLDocument || window.Document,  // Gecko adds these to HTMLDocument
     window.HTMLBodyElement,
-    window.HTMLHeadElement
+    window.HTMLDocument || window.Document,  // Gecko adds these to HTMLDocument
+    window.HTMLHeadElement,
   ]);
 
   function DOMImplementation(impl) {

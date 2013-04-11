@@ -66,17 +66,7 @@
     }
   };
 
-  var SelectorsInterface = {
-    querySelector: function(s) {
-      return wrap(this.impl.querySelector(s));
-    },
-    querySelectorAll: function(s) {
-      return wrapNodeList(this.impl.querySelectorAll(s));
-    }
-  };
-
   scope.ChildNodeInterface = ChildNodeInterface;
   scope.ParentNodeInterface = ParentNodeInterface;
-  scope.SelectorsInterface = SelectorsInterface;
 
 })(this.ShadowDOMPolyfill);
