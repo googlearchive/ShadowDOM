@@ -331,7 +331,7 @@
     if (type instanceof OriginalEvent)
       this.impl = type;
     else
-      this.impl = constructEvent(OriginalEvent, 'Event', type, options);
+      return wrap(constructEvent(OriginalEvent, 'Event', type, options));
   }
   Event.prototype = {
     get target() {
@@ -367,7 +367,7 @@
       if (type instanceof OriginalEvent)
         this.impl = type;
       else
-        this.impl = constructEvent(OriginalEvent, name, type, options);
+        return wrap(constructEvent(OriginalEvent, name, type, options));
     };
     GenericEvent.prototype = Object.create(SuperEvent.prototype);
     if (prototype)
