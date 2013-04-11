@@ -68,10 +68,10 @@
 
   var SelectorsInterface = {
     querySelector: function(s) {
-      return wrap(this.impl.querySelector(s));
+      return scope.localQuery(this, s);
     },
     querySelectorAll: function(s) {
-      return wrapNodeList(this.impl.querySelectorAll(s));
+      return scope.localQueryAll(this, s);
     }
   };
 
