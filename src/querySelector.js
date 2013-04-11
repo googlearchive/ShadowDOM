@@ -11,7 +11,8 @@
   // impls
   if (!matches) {
     var impls = ['webkit', 'moz', 'ms', 'o'];
-    for (var i = 0, p, ms; (p = impls[i]); i++) {
+    for (var i = 0, l = impls.length, p, ms; i < l; i++) {
+      p = impls[i];
       ms = Element.prototype[p + 'MatchesSelector'];
       if (ms) {
         matches = ms;
@@ -20,48 +21,36 @@
     }
   }
   
+  // curry a matching function
   matches = matches.call.bind(matches);
 
-  // utility
+ 
+  var unwrap = scope.unwrap;
   
-  var insertionNames = {shadow: true, content: true};
-  
-  function isInsertionPoint(inNode) {
-    return insertionNames[inNode.localName];
-  }
-
-  function search(inNode, inSelector, inResults) {
-    var c = inNode.children;
-    if (c && inSelector) {
-      for (var i = 0, n; (n = c[i]); i++) {
-        if (matches(scope.unwrap(n), inSelector)) {
-          if (!inResults) {
-            return n;
+  function search(node, selector, results) {
+    var e = node.firstElementChild;
+    while (e) {
+      if (matches(unwrap(e), selector)) {
+          if (!results) {
+            return e;
           }
-          inResults.push(n);
-        }
-        if (!isInsertionPoint(n)) {
-          search(n, inSelector, inResults);
-        }
+          results[results.length++] = e;
       }
+      e = e.nextElementSibling;          
     }
-    return inResults;
+    return results;
   }
 
   // localQuery and localQueryAll will only match Simple Selectors,
   // Structural Pseudo Classes are not guarenteed to be correct
   // http://www.w3.org/TR/css3-selectors/#simple-selectors
   
-  scope.localQueryAll = function(inNode, inSlctr) {
-    var nodes = new NodeList();
-    nodes.push = function(i) {
-      this[this.length++] = i;
-    };
-    return search(inNode, inSlctr, nodes);
+  scope.localQueryAll = function(node, selector) {
+    return search(node, selector, new NodeList());
   };
 
-  scope.localQuery = function(inNode, inSlctr) {
-    return search(inNode, inSlctr);
+  scope.localQuery = function(node, selector) {
+    return search(node, selector);
   };
 
 })(this.ShadowDOMPolyfill);
