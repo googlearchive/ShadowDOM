@@ -955,4 +955,15 @@ test('retarget order (multiple shadow roots)', function() {
     assertArrayEqual([true, true, true, true], result);
   });
 
+  test('event wrap round trip', function() {
+    var e = new Event('x');
+    assert.equal(e, wrap(unwrap(e)));
+  });
+
+  test('mouse event wrap round trip', function() {
+    var e = new MouseEvent('x');
+    assert.equal(e, wrap(unwrap(e)));
+  });
+
+
 });
