@@ -4,10 +4,15 @@
 
 (function(scope) {
   'use strict';
-  
+
+  // imports
+   
+  var unwrap = scope.unwrap;
+
+  // find a MatchesSelector for this platform
+    
   // spec
   var matches = Element.prototype.matches;
-  
   // impls
   if (!matches) {
     var impls = ['webkit', 'moz', 'ms', 'o'];
@@ -20,13 +25,9 @@
       }
     }
   }
-  
   // curry a matching function
   matches = matches.call.bind(matches);
 
- 
-  var unwrap = scope.unwrap;
-  
   function search(node, selector, results) {
     var e = node.firstElementChild;
     while (e) {
@@ -45,12 +46,17 @@
   // Structural Pseudo Classes are not guarenteed to be correct
   // http://www.w3.org/TR/css3-selectors/#simple-selectors
   
-  scope.localQueryAll = function(node, selector) {
+  function localQueryAll(node, selector) {
     return search(node, selector, new NodeList());
   };
 
-  scope.localQuery = function(node, selector) {
+  function localQuery(node, selector) {
     return search(node, selector);
   };
+  
+  // exports
+  
+  scope.localQueryAll = localQueryAll;
+  scope.localQuery = localQuery;
 
 })(this.ShadowDOMPolyfill);
