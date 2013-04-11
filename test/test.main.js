@@ -6,6 +6,20 @@
 
 var assert = chai.assert;
 
+var thisFile = 'test.main.js';
+var base;
+(function() {
+  var s$ = document.querySelectorAll('script[src]');
+  Array.prototype.forEach.call(s$, function(s) {
+    var src = s.getAttribute('src');
+    var re = new RegExp(thisFile + '[^\\\\]*');
+    var match = src.match(re);
+    if (match) {
+      base = src.slice(0, -match[0].length);
+    }
+  });
+})();
+
 function expectStructure(nodeOrWrapper, nonNullFields) {
   assert(nodeOrWrapper);
   assert.strictEqual(nodeOrWrapper.parentNode, nonNullFields.parentNode || null);
@@ -78,5 +92,5 @@ var modules = [
 ];
 
 modules.forEach(function(inSrc) {
-  document.write('<script src="' + inSrc + '"></script>');
+  document.write('<script src="' + base + inSrc + '"></script>');
 });

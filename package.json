@@ -4,6 +4,7 @@
   "devDependencies": {
     "grunt": "*",
     "grunt-contrib-uglify": "*",
+    "grunt-karma": "*",
     "mocha": ">=1.9",
     "chai": "*"
   }

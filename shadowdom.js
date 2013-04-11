@@ -7,8 +7,10 @@
   var base = '';
   Array.prototype.forEach.call(document.querySelectorAll('script[src]'), function(s) {
     var src = s.getAttribute('src');
-    if (src.slice(-thisFile.length) == thisFile) {
-      base = src.slice(0, -thisFile.length);
+    var re = new RegExp(thisFile + '[^\\\\]*');
+    var match = src.match(re);
+    if (match) {
+      base = src.slice(0, -match[0].length);
     }
   });
   base += 'src/';
