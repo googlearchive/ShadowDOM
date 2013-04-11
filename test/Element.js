@@ -6,6 +6,14 @@
 
 suite('Element', function() {
 
+  test('querySelector', function() {
+    var div = document.createElement('div');
+    div.innerHTML = '<a><b></b></a>';
+    var b = div.firstChild.firstChild;
+    var qb = div.querySelector('b');
+    assert.equal(b, qb);
+  });
+
   test('querySelectorAll', function() {
     var div = document.createElement('div');
     div.innerHTML = '<a>0</a><a>1</a>';

@@ -13,6 +13,7 @@
     
   // spec
   var matches = Element.prototype.matches;
+  
   // impls
   if (!matches) {
     var impls = ['webkit', 'moz', 'ms', 'o'];
@@ -25,18 +26,37 @@
       }
     }
   }
-  // curry a matching function
-  matches = matches.call.bind(matches);
 
-  function search(node, selector, results) {
+  if (!matches) {
+      throw new Error('no MatchesSelector support');
+  };
+  
+  function matchesWrapper(node, selector) {
+    return matches.call(unwrap(node), selector);  
+  }
+  
+  function findOne(node, selector) {
+    var m, e = node.firstElementChild;
+    while (e) {
+      if (matchesWrapper(e, selector)) {
+        return e;
+      }
+      m = findOne(e, selector);
+      if (m) {
+        return m;
+      }
+      e = e.nextElementSibling;          
+    }
+    return null;
+  }
+
+  function findAll(node, selector, results) {
     var e = node.firstElementChild;
     while (e) {
-      if (matches(unwrap(e), selector)) {
-          if (!results) {
-            return e;
-          }
-          results[results.length++] = e;
+      if (matchesWrapper(e, selector)) {
+        results[results.length++] = e;
       }
+      findAll(e, selector, results);
       e = e.nextElementSibling;          
     }
     return results;
@@ -46,17 +66,17 @@
   // Structural Pseudo Classes are not guarenteed to be correct
   // http://www.w3.org/TR/css3-selectors/#simple-selectors
   
-  function localQueryAll(node, selector) {
-    return search(node, selector, new NodeList());
-  };
-
   function localQuery(node, selector) {
-    return search(node, selector);
+    return findOne(node, selector);
+  };
+  
+  function localQueryAll(node, selector) {
+    return findAll(node, selector, new NodeList());
   };
   
   // exports
   
-  scope.localQueryAll = localQueryAll;
   scope.localQuery = localQuery;
+  scope.localQueryAll = localQueryAll;
 
 })(this.ShadowDOMPolyfill);
