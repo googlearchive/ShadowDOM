@@ -38,24 +38,20 @@
     defineWrapGetter(MutationRecord, name);
   });
 
-  if (OriginalMutationRecord) {
-    registerWrapper(OriginalMutationRecord, MutationRecord);
-  } else {
-    // WebKit/Blink does not expose MutationRecord
-    // https://bugs.webkit.org/show_bug.cgi?id=114288
-    // https://code.google.com/p/chromium/issues/detail?id=229416
-
-    [
-      'type',
-      'attributeName',
-      'attributeNamespace',
-      'oldValue'
-    ].forEach(function(name) {
-      defineGetter(MutationRecord, name, function() {
-        return this.impl[name];
-      });
+  // WebKit/Blink treats these as instance properties so we override
+  [
+    'type',
+    'attributeName',
+    'attributeNamespace',
+    'oldValue'
+  ].forEach(function(name) {
+    defineGetter(MutationRecord, name, function() {
+      return this.impl[name];
     });
-  }
+  });
+
+  if (OriginalMutationRecord)
+    registerWrapper(OriginalMutationRecord, MutationRecord);
 
   function wrapRecord(record) {
     return new MutationRecord(record);
