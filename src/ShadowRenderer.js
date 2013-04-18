@@ -123,12 +123,6 @@
   }
 
   function resetDistributedChildNodes(insertionPoint) {
-    var oldDistributed = getDistributedChildNodes(insertionPoint);
-    if (oldDistributed) {
-      oldDistributed.forEach(function(node) {
-        eventParentTable.set(node, undefined);
-      });
-    }
     distributedChildNodesTable.set(insertionPoint, []);
   }
 
