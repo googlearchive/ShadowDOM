@@ -26,7 +26,7 @@
       var newShadowRoot = new wrappers.ShadowRoot(this);
       shadowRootTable.set(this, newShadowRoot);
 
-      var renderer = new scope.ShadowRenderer(this);
+      var renderer = scope.getRendererForHost(this);
 
       this.invalidateShadowRenderer();
 
