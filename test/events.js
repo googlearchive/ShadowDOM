@@ -965,5 +965,69 @@ test('retarget order (multiple shadow roots)', function() {
     assert.equal(e, wrap(unwrap(e)));
   });
 
+  test('event path in presence of shadow element', function() {
+    var div = document.createElement('div');
+
+    var menuButton = document.createElement('menu-button');
+    menuButton.innerHTML = '<a></a><b></b>';
+    var a = menuButton.firstChild;
+    var b = menuButton.lastChild;
+
+    var menuButtonSr = menuButton.createShadowRoot();
+    menuButtonSr.innerHTML = '<menu><content name="menu-button"></content></menu>';
+    var menu = menuButtonSr.firstChild;
+    var menuButtonContent = menu.firstChild;
+
+    var selectorSr = menu.createShadowRoot();
+    selectorSr.innerHTML = '<content name="selector"></content>';
+    var selectorContent = selectorSr.firstChild;
+
+    var menuSr = menu.createShadowRoot();
+    menuSr.innerHTML = 'xxx<shadow name="menu"></shadow>xxx';
+    var menuShadow = menuSr.firstElementChild;
+
+    menuButton.offsetWidth;
+
+    var tree = {
+      div: div,
+      menuButton: menuButton,
+      a: a,
+      b: b,
+      menuButtonSr: menuButtonSr,
+      menu: menu,
+      menuButtonContent: menuButtonContent,
+      menuSr: menuSr,
+      menuShadow: menuShadow,
+      selectorSr: selectorSr,
+      selectorContent: selectorContent,
+    };
+
+    var log = [];
+    addListeners(tree, 'x', log);
+
+    a.dispatchEvent(new Event('x', {bubbles: true}));
+
+    var expected = [
+      'menuButton, a, undefined, CAPTURING_PHASE',
+      'menuButtonSr, a, undefined, CAPTURING_PHASE',
+      'menu, a, undefined, CAPTURING_PHASE',
+      'menuSr, a, undefined, CAPTURING_PHASE',
+      'menuShadow, a, undefined, CAPTURING_PHASE',
+      'selectorSr, a, undefined, CAPTURING_PHASE',
+      'selectorContent, a, undefined, CAPTURING_PHASE',
+      'menuButtonContent, a, undefined, CAPTURING_PHASE',
+      'a, a, undefined, AT_TARGET',
+      'a, a, undefined, AT_TARGET',
+      'menuButtonContent, a, undefined, BUBBLING_PHASE',
+      'selectorContent, a, undefined, BUBBLING_PHASE',
+      'selectorSr, a, undefined, BUBBLING_PHASE',
+      'menuShadow, a, undefined, BUBBLING_PHASE',
+      'menuSr, a, undefined, BUBBLING_PHASE',
+      'menu, a, undefined, BUBBLING_PHASE',
+      'menuButtonSr, a, undefined, BUBBLING_PHASE',
+      'menuButton, a, undefined, BUBBLING_PHASE',
+    ];
+    assertArrayEqual(expected, log);
+  });
 
 });
