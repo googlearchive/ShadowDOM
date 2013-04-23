@@ -121,7 +121,8 @@ suite('Shadow DOM reprojection', function() {
     var textNodeB = pShadowRoot.childNodes[2]
     var contentB = pShadowRoot.childNodes[3];
     // call getDistributedNodes before composing the shadowRoots together
-    contentA.getDistributedNodes();
+    var distributedNodes = contentA.getDistributedNodes();
+    assert.equal(distributedNodes.length, 0);
     shadowRoot.appendChild(p);
 
     function testRender() {

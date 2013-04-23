@@ -329,6 +329,7 @@
       if (isShadowHost(node)) {
         this.appendChild(visualParent, node);
         var renderer = getRendererForHost(node);
+        renderer.dirty = true;  // Need to rerender due to reprojection.
         renderer.render();
       } else if (isInsertionPoint(node)) {
         this.renderInsertionPoint(visualParent, tree, node, isNested);
