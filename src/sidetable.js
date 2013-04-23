@@ -27,6 +27,9 @@ if (typeof WeakMap !== 'undefined' && navigator.userAgent.indexOf('Firefox/') < 
       },
       get: function(key) {
         return hasOwnProperty.call(key, this.name) ? key[this.name] : undefined;
+      },
+      delete: function(key) {
+        this.set(key, undefined);
       }
     }
   })();
