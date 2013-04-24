@@ -38,10 +38,10 @@ function unwrapAndExpectStructure(node, nonNullFields) {
 }
 
 function assertArrayEqual(a, b, msg) {
-  assert.equal(a.length, b.length, msg);
   for (var i = 0; i < a.length; i++) {
     assert.equal(a[i], b[i], msg);
   }
+  assert.equal(a.length, b.length, msg);
 }
 
 // TODO(arv): Use htmlTest when it has settled down.

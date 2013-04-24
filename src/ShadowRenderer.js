@@ -104,26 +104,28 @@
   }
 
   var distributedChildNodesTable = new SideTable();
-  var eventParentTable = new SideTable();
+  var eventParentsTable = new SideTable();
   var insertionParentTable = new SideTable();
   var nextOlderShadowTreeTable = new SideTable();
   var rendererForHostTable = new SideTable();
   var shadowDOMRendererTable = new SideTable();
 
+  var reprCounter = 0;
+
+  function repr(node) {
+    if (!node.displayName)
+      node.displayName = node.nodeName + '-' + ++reprCounter;
+    return node.displayName;
+  }
+
   function distributeChildToInsertionPoint(child, insertionPoint) {
     getDistributedChildNodes(insertionPoint).push(child);
     insertionParentTable.set(child, insertionPoint);
 
-    // If we have "a -> content1" and we now get (a, content2) the
-    // event parent chaing needs to be "a -> content1 -> content2".
-    var eventParent = child;
-    var tmp;
-    while (tmp = eventParentTable.get(eventParent)) {
-      eventParent = tmp;
-    }
-
-    eventParentTable.set(eventParent, insertionPoint);
-    eventParentTable.set(insertionPoint, undefined);
+    var eventParents = eventParentsTable.get(child);
+    if (!eventParents)
+      eventParentsTable.set(child, eventParents = []);
+    eventParents.push(insertionPoint);
   }
 
   function resetDistributedChildNodes(insertionPoint) {
@@ -536,7 +538,7 @@
     }
   });
 
-  scope.eventParentTable = eventParentTable;
+  scope.eventParentsTable = eventParentsTable;
   scope.getRendererForHost = getRendererForHost;
   scope.getShadowTrees = getShadowTrees;
   scope.nextOlderShadowTreeTable = nextOlderShadowTreeTable;
