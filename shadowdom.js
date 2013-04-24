@@ -32,6 +32,7 @@
     'wrappers/generic.js',
     'wrappers/ShadowRoot.js',
     'ShadowRenderer.js',
+    'querySelector.js',
     'wrappers/Document.js',
     'wrappers/Window.js',
     'wrappers/MutationObserver.js',
