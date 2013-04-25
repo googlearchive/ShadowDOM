@@ -6,6 +6,7 @@
   'use strict';
 
   var DocumentFragment = scope.wrappers.DocumentFragment;
+  var elementFromPoint = scope.elementFromPoint;
   var getInnerHTML = scope.getInnerHTML;
   var mixin = scope.mixin;
   var rewrap = scope.rewrap;
@@ -42,6 +43,10 @@
 
     invalidateShadowRenderer: function() {
       return shadowHostTable.get(this).invalidateShadowRenderer();
+    },
+
+    elementFromPoint: function(x, y) {
+      return elementFromPoint(this, this.ownerDocument, x, y);
     }
   });
 

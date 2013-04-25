@@ -80,6 +80,7 @@ var modules = [
   'HTMLTemplateElement.js',
   'MutationObserver.js',
   'ParentNodeInterface.js',
+  'ShadowRoot.js',
   'Text.js',
   'Window.js',
   'custom-element.js',
