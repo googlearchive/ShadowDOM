@@ -225,10 +225,6 @@
     }
   }
 
-  var matchesSelector = oneOf(document.documentElement,
-      ['matchesSelector', 'msMatchesSelector', 'mozMatchesSelector',
-      'webkitMatchesSelector']);
-
   /**
    * @param {Element} node
    * @oaram {Element} point The insertion point element.
@@ -255,7 +251,7 @@
       return false;
 
     try {
-      return node[matchesSelector](select);
+      return node.matches(select);
     } catch (ex) {
       // Invalid selector.
       return false;

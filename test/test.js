@@ -185,7 +185,7 @@ suite('Shadow DOM', function() {
 
       // :visited cannot be queried in JS.
 
-      // :target is not supported. matchesSelector(':target') does not seem to
+      // :target is not supported. matches(':target') does not seem to
       // work in WebKit nor Firefox.
 
       testRender(':enabled',
