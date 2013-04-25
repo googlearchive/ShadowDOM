@@ -8,6 +8,15 @@ suite('Document', function() {
 
   var wrap = ShadowDOMPolyfill.wrap;
 
+  var div;
+  teardown(function() {
+    if (div) {
+      if (div.parentNode)
+        div.parentNode.removeChild(div);
+      div = undefined;
+    }
+  });
+
   test('Ensure Document has ParentNodeInterface', function() {
     var doc = wrap(document).implementation.createHTMLDocument('');
     assert.equal(doc.firstElementChild.tagName, 'HTML');
@@ -50,6 +59,28 @@ suite('Document', function() {
     assert.isTrue(elements2[0] instanceof HTMLElement);
     assert.equal(doc.body, elements2[0]);
     assert.equal(doc.body, elements2.item(0));
+
+    div = document.body.appendChild(document.createElement('div'));
+    div.innerHTML = '<aa></aa><aa></aa>';
+    var aa1 = div.firstChild;
+    var aa2 = div.lastChild;
+
+    var sr = div.createShadowRoot();
+    sr.innerHTML = '<aa></aa><aa></aa>';
+    var aa3 = sr.firstChild;
+    var aa4 = sr.lastChild;
+
+    div.offsetHeight;
+
+    var elements = document.getElementsByTagName('aa');
+    assert.equal(elements.length, 2);
+    assert.equal(elements[0], aa1);
+    assert.equal(elements[1], aa2);
+
+    var elements = sr.getElementsByTagName('aa');
+    assert.equal(elements.length, 2);
+    assert.equal(elements[0], aa3);
+    assert.equal(elements[1], aa4);
   });
 
   test('querySelectorAll', function() {
@@ -66,6 +97,28 @@ suite('Document', function() {
     assert.equal(elements2.length, 1);
     assert.isTrue(elements2[0] instanceof HTMLElement);
     assert.equal(doc.body, elements2[0]);
+
+    div = document.body.appendChild(document.createElement('div'));
+    div.innerHTML = '<aa></aa><aa></aa>';
+    var aa1 = div.firstChild;
+    var aa2 = div.lastChild;
+
+    var sr = div.createShadowRoot();
+    sr.innerHTML = '<aa></aa><aa></aa>';
+    var aa3 = sr.firstChild;
+    var aa4 = sr.lastChild;
+
+    div.offsetHeight;
+
+    var elements = document.querySelectorAll('aa');
+    assert.equal(elements.length, 2);
+    assert.equal(elements[0], aa1);
+    assert.equal(elements[1], aa2);
+
+    var elements = sr.querySelectorAll('aa');
+    assert.equal(elements.length, 2);
+    assert.equal(elements[0], aa3);
+    assert.equal(elements[1], aa4);
   });
 
   test('addEventListener', function() {

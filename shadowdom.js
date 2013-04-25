@@ -21,6 +21,7 @@
     'wrappers/EventTarget.js',
     'wrappers/NodeList.js',
     'wrappers/Node.js',
+    'querySelector.js',
     'wrappers/node-interfaces.js',
     'wrappers/CharacterData.js',
     'wrappers/Element.js',
