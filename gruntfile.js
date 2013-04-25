@@ -10,6 +10,7 @@ module.exports = function(grunt) {
     'wrappers/EventTarget.js',
     'wrappers/NodeList.js',
     'wrappers/Node.js',
+    'querySelector.js',
     'wrappers/node-interfaces.js',
     'wrappers/CharacterData.js',
     'wrappers/Element.js',
@@ -23,6 +24,7 @@ module.exports = function(grunt) {
     'ShadowRenderer.js',
     'wrappers/Document.js',
     'wrappers/Window.js',
+    'wrappers/MutationObserver.js',
     'wrappers/override-constructors.js'
   ];
   ShadowDOM = ShadowDOM.map(function(p) {
