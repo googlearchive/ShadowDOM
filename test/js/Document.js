@@ -188,5 +188,5 @@ htmlSuite('Document', function() {
     assert.equal(doc.elementFromPoint(5, 5), div);
   });
 
-  htmlTest('document-write.html');
+  htmlTest('html/document-write.html');
 });
