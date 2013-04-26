@@ -56,6 +56,7 @@
   ].forEach(wrapMethod);
 
   var originalAdoptNode = document.adoptNode;
+  var originalWrite = document.write;
 
   mixin(Document.prototype, {
     adoptNode: function(node) {
@@ -64,6 +65,17 @@
     },
     elementFromPoint: function(x, y) {
       return elementFromPoint(this, this, x, y);
+    },
+    write: function(s) {
+      var all = this.querySelectorAll('*');
+      var last = all[all.length - 1];
+      while (last.nextSibling) {
+        last = last.nextSibling;
+      }
+      var p = last.parentNode;
+      p.lastChild_ = undefined;
+      last.nextSibling_ = undefined;
+      originalWrite.call(this.impl, s);
     }
   });
 

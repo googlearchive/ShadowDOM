@@ -4,7 +4,7 @@
  * license that can be found in the LICENSE file.
  */
 
-suite('Document', function() {
+htmlSuite('Document', function() {
 
   var wrap = ShadowDOMPolyfill.wrap;
 
@@ -188,4 +188,5 @@ suite('Document', function() {
     assert.equal(doc.elementFromPoint(5, 5), div);
   });
 
+  htmlTest('document-write.html');
 });
