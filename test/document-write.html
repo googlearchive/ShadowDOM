@@ -4,11 +4,14 @@
 <script src="../shadowdom.js"></script>
 <a></a><script>
 var assert = chai.assert;
+var wrap = ShadowDOMPolyfill.wrap;
 
 var a = document.querySelector('a');
-document.write('<b></b>');
+document.write('<script><' + '/script>');
+wrap(document).write('<b></b>');
 assert.equal(a.nextSibling.localName, 'script');
-assert.equal(a.nextSibling.nextSibling.localName, 'b');
+assert.equal(a.nextSibling.nextSibling.localName, 'script');
+assert.equal(a.nextSibling.nextSibling.nextSibling.localName, 'b');
 
 var all = document.querySelectorAll('*');
 var last = all[all.length - 1];

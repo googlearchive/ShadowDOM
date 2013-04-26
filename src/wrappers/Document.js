@@ -109,6 +109,7 @@
     'createTextNode',
     'elementFromPoint',
     'getElementById',
+    'write',
   ]);
 
   mixin(Document.prototype, GetElementsByInterface);
