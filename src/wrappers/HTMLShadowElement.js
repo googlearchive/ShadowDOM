@@ -19,7 +19,12 @@
   mixin(HTMLShadowElement.prototype, {
     get olderShadowRoot() {
       return this.olderShadowRoot_;
-    }
+    },
+
+    invalidateShadowRenderer: function() {
+      HTMLElement.prototype.invalidateShadowRenderer.call(this, true);
+    },
+
     // TODO: attribute boolean resetStyleInheritance;
   });
 
