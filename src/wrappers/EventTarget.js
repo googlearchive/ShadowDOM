@@ -580,7 +580,24 @@
     forwardMethodsToWrapper(constructors, methodNames);
   }
 
+
+  var originalElementFromPoint = document.elementFromPoint;
+
+  function elementFromPoint(self, document, x, y) {
+    scope.renderAllPending();
+
+    var element = wrap(originalElementFromPoint.call(document.impl, x, y));
+    var targets = retarget(element, this)
+    for (var i = 0; i < targets.length; i++) {
+      var target = targets[i];
+      if (target.currentTarget === self)
+        return target.target;
+    }
+    return null;
+  }
+
   scope.adjustRelatedTarget = adjustRelatedTarget;
+  scope.elementFromPoint = elementFromPoint;
   scope.wrapEventTargetMethods = wrapEventTargetMethods;
   scope.wrappers.CustomEvent = CustomEvent;
   scope.wrappers.Event = Event;

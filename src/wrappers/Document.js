@@ -6,17 +6,18 @@
   'use strict';
 
   var GetElementsByInterface = scope.GetElementsByInterface;
+  var Node = scope.wrappers.Node;
   var ParentNodeInterface = scope.ParentNodeInterface;
   var SelectorsInterface = scope.SelectorsInterface;
-  var Node = scope.wrappers.Node;
   var defineWrapGetter = scope.defineWrapGetter;
+  var elementFromPoint = scope.elementFromPoint;
+  var forwardMethodsToWrapper = scope.forwardMethodsToWrapper;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
   var wrapEventTargetMethods = scope.wrapEventTargetMethods;
   var wrapNodeList = scope.wrapNodeList;
-  var forwardMethodsToWrapper = scope.forwardMethodsToWrapper;
 
   var implementationTable = new SideTable();
 
@@ -55,10 +56,16 @@
   ].forEach(wrapMethod);
 
   var originalAdoptNode = document.adoptNode;
-  Document.prototype.adoptNode = function(node) {
-    originalAdoptNode.call(this.impl, unwrap(node));
-    return node;
-  };
+
+  mixin(Document.prototype, {
+    adoptNode: function(node) {
+      originalAdoptNode.call(this.impl, unwrap(node));
+      return node;
+    },
+    elementFromPoint: function(x, y) {
+      return elementFromPoint(this, this, x, y);
+    }
+  });
 
   // We also override some of the methods on document.body and document.head
   // for convenience.
@@ -88,6 +95,7 @@
     'createEvent',
     'createEventNS',
     'createTextNode',
+    'elementFromPoint',
     'getElementById',
   ]);
 
