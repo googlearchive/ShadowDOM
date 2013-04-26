@@ -4,7 +4,7 @@
  * license that can be found in the LICENSE file.
  */
 
-suite('Events', function() {
+htmlSuite('Events', function() {
 
   var adjustRelatedTarget = ShadowDOMPolyfill.adjustRelatedTarget;
   var unwrap = ShadowDOMPolyfill.unwrap;
@@ -951,9 +951,7 @@ test('retarget order (multiple shadow roots)', function() {
     assertArrayEqual(expected, log);
   });
 
-  testIframe('window on load', 'on-load-test.html', function(result) {
-    assertArrayEqual([true, true, true, true], result);
-  });
+  htmlTest('on-load-test.html');
 
   test('event wrap round trip', function() {
     var e = new Event('x');
