@@ -160,4 +160,32 @@ suite('Document', function() {
     assert.equal(div, div3);
     assert.equal(div.ownerDocument, doc2);
   });
+
+  test('elementFromPoint', function() {
+    div = document.body.appendChild(document.createElement('div'));
+    div.style.cssText = 'position: fixed; background: green; ' +
+                        'width: 10px; height: 10px; top: 0; left: 0;';
+
+    assert.equal(document.elementFromPoint(5, 5), div);
+
+    var doc = wrap(document);
+    assert.equal(doc.elementFromPoint(5, 5), div);
+  });
+
+  test('elementFromPoint in shadow', function() {
+    div = document.body.appendChild(document.createElement('div'));
+    div.style.cssText = 'position: fixed; background: red; ' +
+                        'width: 10px; height: 10px; top: 0; left: 0;';
+    var sr = div.createShadowRoot();
+    sr.innerHTML = '<a></a>';
+    var a = sr.firstChild;
+    a.style.cssText = 'position: absolute; width: 100%; height: 100%; ' +
+                      'background: green';
+
+    assert.equal(document.elementFromPoint(5, 5), div);
+
+    var doc = wrap(document);
+    assert.equal(doc.elementFromPoint(5, 5), div);
+  });
+
 });
