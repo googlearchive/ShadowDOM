@@ -105,5 +105,5 @@ htmlSuite('HTMLBodyElement', function() {
     assert.equal(calls, 2);
   });
 
-  htmlTest('document-body-inner-html.html');
+  htmlTest('html/document-body-inner-html.html');
 });
