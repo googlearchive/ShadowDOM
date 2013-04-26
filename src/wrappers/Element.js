@@ -33,9 +33,9 @@
       var newShadowRoot = new wrappers.ShadowRoot(this);
       shadowRootTable.set(this, newShadowRoot);
 
-      var renderer = scope.getRendererForHost(this);
+      scope.getRendererForHost(this);
 
-      this.invalidateShadowRenderer();
+      this.invalidateShadowRenderer(true);
 
       return newShadowRoot;
     },

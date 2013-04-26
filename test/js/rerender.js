@@ -49,7 +49,7 @@ suite('Shadow DOM rerender', function() {
     testRender();
   });
 
-test('<content>', function() {
+  test('<content>', function() {
     var host = document.createElement('div');
     host.innerHTML = '<a></a>';
     var a = host.firstChild;
@@ -126,7 +126,7 @@ test('<content>', function() {
     testRender();
   });
 
-test('<shadow>', function() {
+  test('<shadow>', function() {
     var host = document.createElement('div');
     host.innerHTML = '<a></a>';
     var a = host.firstChild;
@@ -485,5 +485,57 @@ test('<shadow>', function() {
       assert.strictEqual(getVisualInnerHtml(host), '<b></b>');
     });
 
+  });
+
+  test('Invalidation', function() {
+    var host = document.createElement('div');
+    host.innerHTML = '<a></a>';
+    var a = host.firstChild;
+
+    var sr = host.createShadowRoot();
+    sr.innerHTML = '<b></b><content></content><c></c>';
+    var b = sr.firstChild;
+    var content = b.nextSibling;
+    var c = sr.lastChild;
+
+    assert.equal(getVisualInnerHtml(host), '<b></b><a></a><c></c>');
+
+    a.textContent = 'x';
+
+    // Don't use getVisualInnerHtml but it does invalidation.
+    assert.equal(host.impl.innerHTML, '<b></b><a>x</a><c></c>');
+
+    host.appendChild(document.createTextNode('y'));
+    assert.equal(host.impl.innerHTML, '<b></b><a>x</a><c></c>y');  //dirty
+    host.offsetWidth;
+    assert.equal(host.impl.innerHTML, '<b></b><a>x</a>y<c></c>');
+
+    sr.appendChild(document.createTextNode('z'));
+    assert.equal(host.impl.innerHTML, '<b></b><a>x</a>y<c></c>');  //dirty
+    host.offsetWidth;
+    assert.equal(host.impl.innerHTML, '<b></b><a>x</a>y<c></c>z');
+
+    sr.insertBefore(document.createTextNode('w'), content);
+    assert.equal(host.impl.innerHTML, '<b></b><a>x</a>y<c></c>z');  // dirty
+    host.offsetWidth;
+    assert.equal(host.impl.innerHTML, '<b></b>w<a>x</a>y<c></c>z');
+
+    // This case does not need invalidation.
+    // We could make the check a bit more specific (check for nextSibling being
+    // null or a content/shadow).
+    sr.insertBefore(document.createTextNode('v'), c);
+    assert.equal(host.impl.innerHTML, '<b></b>w<a>x</a>yv<c></c>z');
+    host.offsetWidth;
+    assert.equal(host.impl.innerHTML, '<b></b>w<a>x</a>yv<c></c>z');
+
+    content.select = '*';
+    assert.equal(host.impl.innerHTML, '<b></b>w<a>x</a>yv<c></c>z');  // dirty
+    host.offsetWidth;
+    assert.equal(host.impl.innerHTML, '<b></b>w<a>x</a>v<c></c>z');
+
+    content.setAttribute('SelecT', 'no-match');
+    assert.equal(host.impl.innerHTML, '<b></b>w<a>x</a>v<c></c>z');  // dirty
+    host.offsetWidth;
+    assert.equal(host.impl.innerHTML, '<b></b>wv<c></c>z');
   });
 });

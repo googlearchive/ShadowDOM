@@ -27,9 +27,6 @@
     scope.nextOlderShadowTreeTable.set(this, oldShadowRoot);
 
     shadowHostTable.set(this, hostWrapper);
-
-    // TODO: are we invalidating on both sides?
-    hostWrapper.invalidateShadowRenderer();
   }
   ShadowRoot.prototype = Object.create(DocumentFragment.prototype);
   mixin(ShadowRoot.prototype, {
