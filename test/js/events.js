@@ -365,8 +365,6 @@ htmlSuite('Events', function() {
     var p = sr.firstChild;
     var content = p.firstChild;
 
-    div.offsetWidth;  // trigger recalc
-
     var calls = 0;
 
     addListener(b, div);
@@ -389,8 +387,6 @@ htmlSuite('Events', function() {
     sr2.innerHTML = '<q><shadow></shadow></q>';
     var q = sr2.firstChild;
     var shadow = q.firstChild;
-
-    div.offsetWidth;  // trigger recalc
 
     addListener(b, div);
     addListener(b, sr2);
@@ -421,8 +417,6 @@ htmlSuite('Events', function() {
     var e = sr.firstChild;
     var content = e.nextSibling;
     var f = sr.lastChild;
-
-    div.offsetWidth;  // trigger recalc
 
     assert.equal(adjustRelatedTarget(a, e), b);
     assert.equal(adjustRelatedTarget(e, f), f);
@@ -560,8 +554,6 @@ htmlSuite('Events', function() {
     sr2.innerHTML = '<e><content></content></e>';
     var e = tree.e = sr2.firstChild;
     var content2 = tree.content2 = e.firstChild;
-
-    div.offsetWidth;
 
     return tree;
   }
@@ -716,8 +708,6 @@ htmlSuite('Events', function() {
     sr3.innerHTML = '<content></content>';
     var content3 = tree.content3 = sr3.firstChild;
 
-    div.offsetWidth;
-
     var log = [];
     addListeners(tree, 'mouseover', log);
 
@@ -836,8 +826,6 @@ test('retarget order (multiple shadow roots)', function() {
     var sr3 = tree.sr3 = div.createShadowRoot();
     sr3.innerHTML = '<shadow></shadow>';
     var shadow2 = tree.shadow2 = sr3.firstChild;
-
-    div.offsetWidth;
 
     var log = [];
     addListeners(tree, 'mouseover', log);
@@ -984,8 +972,6 @@ test('retarget order (multiple shadow roots)', function() {
     menuSr.innerHTML = 'xxx<shadow name="menu"></shadow>xxx';
     var menuShadow = menuSr.firstElementChild;
 
-    menuButton.offsetWidth;
-
     var tree = {
       div: div,
       menuButton: menuButton,
@@ -1060,8 +1046,6 @@ test('retarget order (multiple shadow roots)', function() {
 
     var log = [];
     addListeners(tree, 'x', log);
-
-    div.offsetWidth;
 
     one.dispatchEvent(new Event('x', {bubbles: true}));
     var expected = [

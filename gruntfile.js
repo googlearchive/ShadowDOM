@@ -7,7 +7,7 @@ module.exports = function(grunt) {
   ShadowDOM = [
     'sidetable.js',
     'wrappers.js',
-    'wrappers/EventTarget.js',
+    'wrappers/events.js',
     'wrappers/NodeList.js',
     'wrappers/Node.js',
     'querySelector.js',
