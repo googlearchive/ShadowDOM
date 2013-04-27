@@ -165,11 +165,33 @@
     return rootOfNode(a) === rootOfNode(b);
   }
 
+  function isMutationEvent(type) {
+    switch (type) {
+      case 'DOMAttrModified':
+      case 'DOMAttributeNameChanged':
+      case 'DOMCharacterDataModified':
+      case 'DOMElementNameChanged':
+      case 'DOMNodeInserted':
+      case 'DOMNodeInsertedIntoDocument':
+      case 'DOMNodeRemoved':
+      case 'DOMNodeRemovedFromDocument':
+      case 'DOMSubtreeModified':
+        return true;
+    }
+    return false;
+  }
+
   function dispatchOriginalEvent(originalEvent) {
     // Make sure this event is only dispatched once.
     if (handledEventsTable.get(originalEvent))
       return;
     handledEventsTable.set(originalEvent, true);
+
+    // Don't do rendering if this is a mutation event since rendering might
+    // mutate the DOM which would fire more events and we would most likely
+    // just iloop.
+    if (!isMutationEvent(originalEvent.type))
+      scope.renderAllPending();
 
     var target = wrap(originalEvent.target);
     var event = wrap(originalEvent);
