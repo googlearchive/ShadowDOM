@@ -508,7 +508,7 @@
     new ShadowRenderer(host).render();
   };
 
-  Node.prototype.invalidateShadowRenderer = function() {
+  Node.prototype.invalidateShadowRenderer = function(force) {
     // TODO: If this is in light DOM we only need to invalidate renderer if this
     // is a direct child of a ShadowRoot.
     // Maybe we should only associate renderers with direct child nodes of a
@@ -517,7 +517,12 @@
     if (!renderer)
       return false;
 
-    renderer.invalidate();
+    var p;
+    if (force || this.shadowRoot ||
+        (p = this.parentNode) && (p.shadowRoot || p instanceof ShadowRoot)) {
+      renderer.invalidate();
+    }
+
     return true;
   };
 

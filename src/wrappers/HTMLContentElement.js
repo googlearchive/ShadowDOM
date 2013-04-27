@@ -21,8 +21,13 @@
     },
     set select(value) {
       this.setAttribute('select', value);
-      this.invalidateShadowRenderer();
     },
+
+    setAttribute: function(n, v) {
+      HTMLElement.prototype.setAttribute.call(this, n, v);
+      if (String(n).toLowerCase() === 'select')
+        this.invalidateShadowRenderer(true);
+    }
 
     // getDistributedNodes is added in ShadowRenderer
 
