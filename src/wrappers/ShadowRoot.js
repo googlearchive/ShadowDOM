@@ -44,6 +44,10 @@
 
     elementFromPoint: function(x, y) {
       return elementFromPoint(this, this.ownerDocument, x, y);
+    },
+
+    getElementById: function(id) {
+      return this.querySelector('#' + id);
     }
   });
 

@@ -26,4 +26,15 @@ suite('ShadowRoot', function() {
     assert.equal(sr.elementFromPoint(5, 5), a);
   });
 
+  test('getElementById', function() {
+    var div = document.createElement('div');
+    var sr = div.createShadowRoot();
+    sr.innerHTML = '<a id=a name=b></a><b id=b></b>';
+    var a = sr.firstChild;
+    var b = sr.lastChild;
+
+    assert.equal(sr.getElementById('a'), a);
+    assert.equal(sr.getElementById('b'), b);
+  });
+
 });
