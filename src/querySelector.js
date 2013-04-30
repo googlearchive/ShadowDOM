@@ -52,11 +52,14 @@
       return this.querySelectorAll('.' + className);
     },
     getElementsByTagNameNS: function(ns, tagName) {
+      if (ns === '*')
+        return this.getElementsByTagName(tagName);
+
       // TODO(arv): Check tagName?
       var result = new NodeList;
       var els = this.getElementsByTagName(tagName);
       for (var i = 0, j = 0; i < els.length; i++) {
-        if (els[i].namespace === ns)
+        if (els[i].namespaceURI === ns)
           result[j++] = els[i];
       }
       result.length = j;
