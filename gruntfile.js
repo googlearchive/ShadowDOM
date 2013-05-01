@@ -30,7 +30,6 @@ module.exports = function(grunt) {
   ShadowDOM = ShadowDOM.map(function(p) {
     return 'src/' + p;
   });
-
   // karma setup
   var browsers;
   (function() {
@@ -50,13 +49,20 @@ module.exports = function(grunt) {
       }
     }
   })();
-
   grunt.initConfig({
     karma: {
-      ShadowDOM: {
+      options: {
         configFile: 'conf/karma.conf.js',
+        keepalive: true,
+        browsers: browsers
+      },
+      buildbot: {
         browsers: browsers,
-        keepalive: true
+        reporters: ['crbot'],
+        logLevel: 'OFF'
+      },
+      ShadowDOM: {
+        browsers: browsers
       }
     },
     uglify: {
@@ -97,12 +103,13 @@ module.exports = function(grunt) {
   // plugins
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-yuidoc');
-  grunt.loadNpmTasks('grunt-karma');
+  grunt.loadNpmTasks('grunt-karma-0.9.1');
 
   // tasks
   grunt.registerTask('default', ['uglify']);
   grunt.registerTask('minify', ['uglify']);
   grunt.registerTask('docs', ['yuidoc']);
-  grunt.registerTask('test', ['karma']);
+  grunt.registerTask('test', ['karma:ShadowDOM']);
+  grunt.registerTask('test-buildbot', ['karma:buildbot']);
 };
 
