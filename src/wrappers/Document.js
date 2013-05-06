@@ -21,8 +21,6 @@
 
   var implementationTable = new SideTable();
 
-  var OriginalDocument = window.Document;
-
   function Document(node) {
     Node.call(this, node);
   }
@@ -128,7 +126,7 @@
     }
   });
 
-  registerWrapper(OriginalDocument, Document,
+  registerWrapper(window.Document, Document,
       document.implementation.createHTMLDocument(''));
 
   // Both WebKit and Gecko uses HTMLDocument for document. HTML5/DOM only has
@@ -147,14 +145,16 @@
   }
 
   function wrapImplMethod(constructor, name) {
+    var original = document.implementation[name];
     constructor.prototype[name] = function() {
-      return wrap(this.impl[name].apply(this.impl, arguments));
+      return wrap(original.apply(this.impl, arguments));
     };
   }
 
   function forwardImplMethod(constructor, name) {
+    var original = document.implementation[name];
     constructor.prototype[name] = function() {
-      return this.impl[name].apply(this.impl, arguments);
+      return original.apply(this.impl, arguments);
     };
   }
 
@@ -162,6 +162,17 @@
   wrapImplMethod(DOMImplementation, 'createDocument');
   wrapImplMethod(DOMImplementation, 'createHTMLDocument');
   forwardImplMethod(DOMImplementation, 'hasFeature');
+
+  registerWrapper(window.DOMImplementation, DOMImplementation);
+
+  forwardMethodsToWrapper([
+    window.DOMImplementation,
+  ], [
+    'createDocumentType',
+    'createDocument',
+    'createHTMLDocument',
+    'hasFeature',
+  ]);
 
   scope.wrappers.Document = Document;
   scope.wrappers.DOMImplementation = DOMImplementation;

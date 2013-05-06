@@ -21,6 +21,10 @@ htmlSuite('Document', function() {
     var doc = wrap(document).implementation.createHTMLDocument('');
     assert.equal(doc.firstElementChild.tagName, 'HTML');
     assert.equal(doc.lastElementChild.tagName, 'HTML');
+
+    var doc2 = document.implementation.createHTMLDocument('');
+    assert.equal(doc2.firstElementChild.tagName, 'HTML');
+    assert.equal(doc2.lastElementChild.tagName, 'HTML');
   });
 
   test('document.documentElement', function() {
