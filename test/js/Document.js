@@ -87,6 +87,27 @@ htmlSuite('Document', function() {
     assert.equal(elements[1], aa4);
   });
 
+  test('getElementsByTagNameNS', function() {
+    var div = document.createElement('div');
+    var nsOne = 'http://one.com';
+    var nsTwo = 'http://two.com';
+    var aOne = div.appendChild(document.createElementNS(nsOne, 'a'));
+    var aTwo = div.appendChild(document.createElementNS(nsTwo, 'a'));
+
+    var all = div.getElementsByTagNameNS(nsOne, 'a');
+    assert.equal(all.length, 1);
+    assert.equal(all[0], aOne);
+
+    var all = div.getElementsByTagNameNS(nsTwo, 'a');
+    assert.equal(all.length, 1);
+    assert.equal(all[0], aTwo);
+
+    var all = div.getElementsByTagNameNS('*', 'a');
+    assert.equal(all.length, 2);
+    assert.equal(all[0], aOne);
+    assert.equal(all[1], aTwo);
+  });
+
   test('querySelectorAll', function() {
     var elements = document.querySelectorAll('body');
     assert.isTrue(elements instanceof NodeList);
