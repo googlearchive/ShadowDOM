@@ -85,6 +85,7 @@
     window.HTMLHeadElement,
   ], [
     'appendChild',
+    'compareDocumentPosition',
     'getElementsByClassName',
     'getElementsByTagName',
     'getElementsByTagNameNS',
