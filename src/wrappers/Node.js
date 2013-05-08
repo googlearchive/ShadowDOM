@@ -351,6 +351,9 @@
     // insertionParent is added in ShadowRender.js
 
     contains: function(child) {
+      if (!child)
+        return false;
+
       // TODO(arv): Optimize using ownerDocument etc.
       if (child === this)
         return true;
