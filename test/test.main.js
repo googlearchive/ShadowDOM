@@ -59,6 +59,7 @@ var modules = [
   'HTMLShadowElement.js',
   'HTMLTemplateElement.js',
   'MutationObserver.js',
+  'Node.js',
   'ParentNodeInterface.js',
   'ShadowRoot.js',
   'Text.js',
