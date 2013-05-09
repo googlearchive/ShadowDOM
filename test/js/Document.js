@@ -4,14 +4,27 @@
  * license that can be found in the LICENSE file.
  */
 
-suite('Document', function() {
+htmlSuite('Document', function() {
 
   var wrap = ShadowDOMPolyfill.wrap;
+
+  var div;
+  teardown(function() {
+    if (div) {
+      if (div.parentNode)
+        div.parentNode.removeChild(div);
+      div = undefined;
+    }
+  });
 
   test('Ensure Document has ParentNodeInterface', function() {
     var doc = wrap(document).implementation.createHTMLDocument('');
     assert.equal(doc.firstElementChild.tagName, 'HTML');
     assert.equal(doc.lastElementChild.tagName, 'HTML');
+
+    var doc2 = document.implementation.createHTMLDocument('');
+    assert.equal(doc2.firstElementChild.tagName, 'HTML');
+    assert.equal(doc2.lastElementChild.tagName, 'HTML');
   });
 
   test('document.documentElement', function() {
@@ -50,6 +63,49 @@ suite('Document', function() {
     assert.isTrue(elements2[0] instanceof HTMLElement);
     assert.equal(doc.body, elements2[0]);
     assert.equal(doc.body, elements2.item(0));
+
+    div = document.body.appendChild(document.createElement('div'));
+    div.innerHTML = '<aa></aa><aa></aa>';
+    var aa1 = div.firstChild;
+    var aa2 = div.lastChild;
+
+    var sr = div.createShadowRoot();
+    sr.innerHTML = '<aa></aa><aa></aa>';
+    var aa3 = sr.firstChild;
+    var aa4 = sr.lastChild;
+
+    div.offsetHeight;
+
+    var elements = document.getElementsByTagName('aa');
+    assert.equal(elements.length, 2);
+    assert.equal(elements[0], aa1);
+    assert.equal(elements[1], aa2);
+
+    var elements = sr.getElementsByTagName('aa');
+    assert.equal(elements.length, 2);
+    assert.equal(elements[0], aa3);
+    assert.equal(elements[1], aa4);
+  });
+
+  test('getElementsByTagNameNS', function() {
+    var div = document.createElement('div');
+    var nsOne = 'http://one.com';
+    var nsTwo = 'http://two.com';
+    var aOne = div.appendChild(document.createElementNS(nsOne, 'a'));
+    var aTwo = div.appendChild(document.createElementNS(nsTwo, 'a'));
+
+    var all = div.getElementsByTagNameNS(nsOne, 'a');
+    assert.equal(all.length, 1);
+    assert.equal(all[0], aOne);
+
+    var all = div.getElementsByTagNameNS(nsTwo, 'a');
+    assert.equal(all.length, 1);
+    assert.equal(all[0], aTwo);
+
+    var all = div.getElementsByTagNameNS('*', 'a');
+    assert.equal(all.length, 2);
+    assert.equal(all[0], aOne);
+    assert.equal(all[1], aTwo);
   });
 
   test('querySelectorAll', function() {
@@ -66,6 +122,28 @@ suite('Document', function() {
     assert.equal(elements2.length, 1);
     assert.isTrue(elements2[0] instanceof HTMLElement);
     assert.equal(doc.body, elements2[0]);
+
+    div = document.body.appendChild(document.createElement('div'));
+    div.innerHTML = '<aa></aa><aa></aa>';
+    var aa1 = div.firstChild;
+    var aa2 = div.lastChild;
+
+    var sr = div.createShadowRoot();
+    sr.innerHTML = '<aa></aa><aa></aa>';
+    var aa3 = sr.firstChild;
+    var aa4 = sr.lastChild;
+
+    div.offsetHeight;
+
+    var elements = document.querySelectorAll('aa');
+    assert.equal(elements.length, 2);
+    assert.equal(elements[0], aa1);
+    assert.equal(elements[1], aa2);
+
+    var elements = sr.querySelectorAll('aa');
+    assert.equal(elements.length, 2);
+    assert.equal(elements[0], aa3);
+    assert.equal(elements[1], aa4);
   });
 
   test('addEventListener', function() {
@@ -107,4 +185,33 @@ suite('Document', function() {
     assert.equal(div, div3);
     assert.equal(div.ownerDocument, doc2);
   });
+
+  test('elementFromPoint', function() {
+    div = document.body.appendChild(document.createElement('div'));
+    div.style.cssText = 'position: fixed; background: green; ' +
+                        'width: 10px; height: 10px; top: 0; left: 0;';
+
+    assert.equal(document.elementFromPoint(5, 5), div);
+
+    var doc = wrap(document);
+    assert.equal(doc.elementFromPoint(5, 5), div);
+  });
+
+  test('elementFromPoint in shadow', function() {
+    div = document.body.appendChild(document.createElement('div'));
+    div.style.cssText = 'position: fixed; background: red; ' +
+                        'width: 10px; height: 10px; top: 0; left: 0;';
+    var sr = div.createShadowRoot();
+    sr.innerHTML = '<a></a>';
+    var a = sr.firstChild;
+    a.style.cssText = 'position: absolute; width: 100%; height: 100%; ' +
+                      'background: green';
+
+    assert.equal(document.elementFromPoint(5, 5), div);
+
+    var doc = wrap(document);
+    assert.equal(doc.elementFromPoint(5, 5), div);
+  });
+
+  htmlTest('html/document-write.html');
 });

@@ -41,15 +41,23 @@
   }
 
   // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#dfn-adjusted-parent
-  function calculateParent(node, context) {
+  function calculateParents(node, context, ancestors) {
+    if (ancestors.length)
+      return ancestors.shift();
+
     // 1.
     if (isShadowRoot(node))
-      return node.insertionParent || scope.getHostForShadowRoot(node)
+      return node.insertionParent || scope.getHostForShadowRoot(node);
 
     // 2.
-    var distributedEventParent = scope.eventParentTable.get(node);
-    if (distributedEventParent)
-      return distributedEventParent;
+    var eventParents = scope.eventParentsTable.get(node);
+    if (eventParents) {
+      // Copy over the remaining event parents for next iteration.
+      for (var i = 1; i < eventParents.length; i++) {
+        ancestors[i - 1] = eventParents[i];
+      }
+      return eventParents[0];
+    }
 
     // 3.
     if (context && isInsertionPoint(node)) {
@@ -72,6 +80,7 @@
     var stack = [];  // 1.
     var ancestor = node;  // 2.
     var targets = [];
+    var ancestors = [];
     while (ancestor) {  // 3.
       var context = null;  // 3.2.
       // TODO(arv): Change order of these. If the stack is empty we always end
@@ -87,7 +96,8 @@
       targets.push({target: target, currentTarget: ancestor});  // 3.5.
       if (isShadowRoot(ancestor))  // 3.6.
         stack.pop();  // 3.6.1.
-      ancestor = calculateParent(ancestor, context);  // 3.7.
+
+      ancestor = calculateParents(ancestor, context, ancestors);  // 3.7.
     }
     return targets;
   }
@@ -102,6 +112,7 @@
 
   // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#dfn-adjusted-related-target
   function adjustRelatedTarget(target, related) {
+    var ancestors = [];
     while (target) {  // 3.
       var stack = [];  // 3.1.
       var ancestor = related;  // 3.2.
@@ -129,7 +140,7 @@
           stack.pop();
 
         last = ancestor;  // 3.4.6.
-        ancestor = calculateParent(ancestor, context);  // 3.4.7.
+        ancestor = calculateParents(ancestor, context, ancestors);  // 3.4.7.
       }
       if (isShadowRoot(target))  // 3.5.
         target = scope.getHostForShadowRoot(target);
@@ -154,11 +165,33 @@
     return rootOfNode(a) === rootOfNode(b);
   }
 
+  function isMutationEvent(type) {
+    switch (type) {
+      case 'DOMAttrModified':
+      case 'DOMAttributeNameChanged':
+      case 'DOMCharacterDataModified':
+      case 'DOMElementNameChanged':
+      case 'DOMNodeInserted':
+      case 'DOMNodeInsertedIntoDocument':
+      case 'DOMNodeRemoved':
+      case 'DOMNodeRemovedFromDocument':
+      case 'DOMSubtreeModified':
+        return true;
+    }
+    return false;
+  }
+
   function dispatchOriginalEvent(originalEvent) {
     // Make sure this event is only dispatched once.
     if (handledEventsTable.get(originalEvent))
       return;
     handledEventsTable.set(originalEvent, true);
+
+    // Don't do rendering if this is a mutation event since rendering might
+    // mutate the DOM which would fire more events and we would most likely
+    // just iloop.
+    if (!isMutationEvent(originalEvent.type))
+      scope.renderAllPending();
 
     var target = wrap(originalEvent.target);
     var event = wrap(originalEvent);
@@ -569,7 +602,24 @@
     forwardMethodsToWrapper(constructors, methodNames);
   }
 
+
+  var originalElementFromPoint = document.elementFromPoint;
+
+  function elementFromPoint(self, document, x, y) {
+    scope.renderAllPending();
+
+    var element = wrap(originalElementFromPoint.call(document.impl, x, y));
+    var targets = retarget(element, this)
+    for (var i = 0; i < targets.length; i++) {
+      var target = targets[i];
+      if (target.currentTarget === self)
+        return target.target;
+    }
+    return null;
+  }
+
   scope.adjustRelatedTarget = adjustRelatedTarget;
+  scope.elementFromPoint = elementFromPoint;
   scope.wrapEventTargetMethods = wrapEventTargetMethods;
   scope.wrappers.CustomEvent = CustomEvent;
   scope.wrappers.Event = Event;

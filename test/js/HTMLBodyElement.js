@@ -4,7 +4,7 @@
  * license that can be found in the LICENSE file.
  */
 
-suite('HTMLBodyElement', function() {
+htmlSuite('HTMLBodyElement', function() {
 
   var wrap = ShadowDOMPolyfill.wrap;
 
@@ -105,7 +105,5 @@ suite('HTMLBodyElement', function() {
     assert.equal(calls, 2);
   });
 
-  testIframe('innerHTML', 'document-body-inner-html.html', function(result) {
-    assertArrayEqual([true, true], result);
-  });
+  htmlTest('html/document-body-inner-html.html');
 });

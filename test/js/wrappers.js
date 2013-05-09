@@ -94,6 +94,9 @@ suite('Wrapper creation', function() {
     assert.isTrue(doc.contains(doc));
     assert.isFalse(doc.contains(div));
     assert.isFalse(doc.contains(textNode));
+
+    assert.isFalse(div.contains(null));
+    assert.isFalse(div.contains());
   });
 
   test('instanceof', function() {

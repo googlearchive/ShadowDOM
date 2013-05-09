@@ -1,1 +1,1 @@
-mocha.setup({ui:'tdd'});
+mocha.setup({ui:'tdd',htmlbase: '/base/test/'});

@@ -4,7 +4,7 @@
  * license that can be found in the LICENSE file.
  */
 
-suite('Events', function() {
+htmlSuite('Events', function() {
 
   var adjustRelatedTarget = ShadowDOMPolyfill.adjustRelatedTarget;
   var unwrap = ShadowDOMPolyfill.unwrap;
@@ -365,8 +365,6 @@ suite('Events', function() {
     var p = sr.firstChild;
     var content = p.firstChild;
 
-    div.offsetWidth;  // trigger recalc
-
     var calls = 0;
 
     addListener(b, div);
@@ -389,8 +387,6 @@ suite('Events', function() {
     sr2.innerHTML = '<q><shadow></shadow></q>';
     var q = sr2.firstChild;
     var shadow = q.firstChild;
-
-    div.offsetWidth;  // trigger recalc
 
     addListener(b, div);
     addListener(b, sr2);
@@ -421,8 +417,6 @@ suite('Events', function() {
     var e = sr.firstChild;
     var content = e.nextSibling;
     var f = sr.lastChild;
-
-    div.offsetWidth;  // trigger recalc
 
     assert.equal(adjustRelatedTarget(a, e), b);
     assert.equal(adjustRelatedTarget(e, f), f);
@@ -560,8 +554,6 @@ suite('Events', function() {
     sr2.innerHTML = '<e><content></content></e>';
     var e = tree.e = sr2.firstChild;
     var content2 = tree.content2 = e.firstChild;
-
-    div.offsetWidth;
 
     return tree;
   }
@@ -716,8 +708,6 @@ suite('Events', function() {
     sr3.innerHTML = '<content></content>';
     var content3 = tree.content3 = sr3.firstChild;
 
-    div.offsetWidth;
-
     var log = [];
     addListeners(tree, 'mouseover', log);
 
@@ -837,8 +827,6 @@ test('retarget order (multiple shadow roots)', function() {
     sr3.innerHTML = '<shadow></shadow>';
     var shadow2 = tree.shadow2 = sr3.firstChild;
 
-    div.offsetWidth;
-
     var log = [];
     addListeners(tree, 'mouseover', log);
 
@@ -951,9 +939,7 @@ test('retarget order (multiple shadow roots)', function() {
     assertArrayEqual(expected, log);
   });
 
-  testIframe('window on load', 'on-load-test.html', function(result) {
-    assertArrayEqual([true, true, true, true], result);
-  });
+  htmlTest('html/on-load-test.html');
 
   test('event wrap round trip', function() {
     var e = new Event('x');
@@ -965,5 +951,190 @@ test('retarget order (multiple shadow roots)', function() {
     assert.equal(e, wrap(unwrap(e)));
   });
 
+  test('event path in presence of shadow element', function() {
+    var div = document.createElement('div');
+
+    var menuButton = document.createElement('menu-button');
+    menuButton.innerHTML = '<a></a><b></b>';
+    var a = menuButton.firstChild;
+    var b = menuButton.lastChild;
+
+    var menuButtonSr = menuButton.createShadowRoot();
+    menuButtonSr.innerHTML = '<menu><content name="menu-button"></content></menu>';
+    var menu = menuButtonSr.firstChild;
+    var menuButtonContent = menu.firstChild;
+
+    var selectorSr = menu.createShadowRoot();
+    selectorSr.innerHTML = '<content name="selector"></content>';
+    var selectorContent = selectorSr.firstChild;
+
+    var menuSr = menu.createShadowRoot();
+    menuSr.innerHTML = 'xxx<shadow name="menu"></shadow>xxx';
+    var menuShadow = menuSr.firstElementChild;
+
+    var tree = {
+      div: div,
+      menuButton: menuButton,
+      a: a,
+      b: b,
+      menuButtonSr: menuButtonSr,
+      menu: menu,
+      menuButtonContent: menuButtonContent,
+      menuSr: menuSr,
+      menuShadow: menuShadow,
+      selectorSr: selectorSr,
+      selectorContent: selectorContent,
+    };
+
+    var log = [];
+    addListeners(tree, 'x', log);
+
+    a.dispatchEvent(new Event('x', {bubbles: true}));
+
+    var expected = [
+      'menuButton, a, undefined, CAPTURING_PHASE',
+      'menuButtonSr, a, undefined, CAPTURING_PHASE',
+      'menu, a, undefined, CAPTURING_PHASE',
+      'menuSr, a, undefined, CAPTURING_PHASE',
+      'menuShadow, a, undefined, CAPTURING_PHASE',
+      'selectorSr, a, undefined, CAPTURING_PHASE',
+      'selectorContent, a, undefined, CAPTURING_PHASE',
+      'menuButtonContent, a, undefined, CAPTURING_PHASE',
+      'a, a, undefined, AT_TARGET',
+      'a, a, undefined, AT_TARGET',
+      'menuButtonContent, a, undefined, BUBBLING_PHASE',
+      'selectorContent, a, undefined, BUBBLING_PHASE',
+      'selectorSr, a, undefined, BUBBLING_PHASE',
+      'menuShadow, a, undefined, BUBBLING_PHASE',
+      'menuSr, a, undefined, BUBBLING_PHASE',
+      'menu, a, undefined, BUBBLING_PHASE',
+      'menuButtonSr, a, undefined, BUBBLING_PHASE',
+      'menuButton, a, undefined, BUBBLING_PHASE',
+    ];
+    assertArrayEqual(expected, log);
+  });
+
+  test('event path with multiple content select', function() {
+    var div = document.createElement('div');
+    div.innerHTML = '<a><one></one><two></two></a>';
+    var a = div.firstChild;
+    var one = a.firstChild;
+    var two = a.lastChild;
+
+    var aRoot = a.createShadowRoot();
+    aRoot.innerHTML = '<b><content></content></b>';
+    var b = aRoot.firstChild;
+    var contentOfA = b.firstChild;
+
+    var bRoot = b.createShadowRoot();
+    bRoot.innerHTML = '<content select="one"></content>' +
+                      '<content select="two"></content>';
+    var contentSelectOne = bRoot.firstChild;
+    var contentSelectTwo = bRoot.lastChild;
+
+    var tree = {
+      a: a,
+      one: one,
+      two: two,
+      aRoot: aRoot,
+      b: b,
+      contentOfA: contentOfA,
+      bRoot: bRoot,
+      contentSelectOne: contentSelectOne,
+      contentSelectTwo: contentSelectTwo,
+    };
+
+    var log = [];
+    addListeners(tree, 'x', log);
+
+    one.dispatchEvent(new Event('x', {bubbles: true}));
+    var expected = [
+      'a, one, undefined, CAPTURING_PHASE',
+      'aRoot, one, undefined, CAPTURING_PHASE',
+      'b, one, undefined, CAPTURING_PHASE',
+      'bRoot, one, undefined, CAPTURING_PHASE',
+      'contentSelectOne, one, undefined, CAPTURING_PHASE',
+      'contentOfA, one, undefined, CAPTURING_PHASE',
+      'one, one, undefined, AT_TARGET',
+      'one, one, undefined, AT_TARGET',
+      'contentOfA, one, undefined, BUBBLING_PHASE',
+      'contentSelectOne, one, undefined, BUBBLING_PHASE',
+      'bRoot, one, undefined, BUBBLING_PHASE',
+      'b, one, undefined, BUBBLING_PHASE',
+      'aRoot, one, undefined, BUBBLING_PHASE',
+      'a, one, undefined, BUBBLING_PHASE',
+    ];
+    assertArrayEqual(expected, log);
+
+    var log = [];
+    addListeners(tree, 'x', log);
+    two.dispatchEvent(new Event('x', {bubbles: true}));
+    var expected = [
+      'a, two, undefined, CAPTURING_PHASE',
+      'aRoot, two, undefined, CAPTURING_PHASE',
+      'b, two, undefined, CAPTURING_PHASE',
+      'bRoot, two, undefined, CAPTURING_PHASE',
+      'contentSelectTwo, two, undefined, CAPTURING_PHASE',
+      'contentOfA, two, undefined, CAPTURING_PHASE',
+      'two, two, undefined, AT_TARGET',
+      'two, two, undefined, AT_TARGET',
+      'contentOfA, two, undefined, BUBBLING_PHASE',
+      'contentSelectTwo, two, undefined, BUBBLING_PHASE',
+      'bRoot, two, undefined, BUBBLING_PHASE',
+      'b, two, undefined, BUBBLING_PHASE',
+      'aRoot, two, undefined, BUBBLING_PHASE',
+      'a, two, undefined, BUBBLING_PHASE',
+    ];
+    assertArrayEqual(expected, log);
+
+    var log = [];
+    addListeners(tree, 'x', log);
+    contentOfA.dispatchEvent(new Event('x', {bubbles: true}));
+    var expected = [
+      'aRoot, contentOfA, undefined, CAPTURING_PHASE',
+      'b, contentOfA, undefined, CAPTURING_PHASE',
+      'contentOfA, contentOfA, undefined, AT_TARGET',
+      'contentOfA, contentOfA, undefined, AT_TARGET',
+      'b, contentOfA, undefined, BUBBLING_PHASE',
+      'aRoot, contentOfA, undefined, BUBBLING_PHASE',
+      'a, a, undefined, AT_TARGET',
+      'a, a, undefined, AT_TARGET',
+    ];
+    assertArrayEqual(expected, log);
+
+    var log = [];
+    addListeners(tree, 'x', log);
+    contentSelectOne.dispatchEvent(new Event('x', {bubbles: true}));
+    var expected = [
+      'aRoot, b, undefined, CAPTURING_PHASE',
+      'bRoot, contentSelectOne, undefined, CAPTURING_PHASE',
+      'contentSelectOne, contentSelectOne, undefined, AT_TARGET',
+      'contentSelectOne, contentSelectOne, undefined, AT_TARGET',
+      'bRoot, contentSelectOne, undefined, BUBBLING_PHASE',
+      'b, b, undefined, AT_TARGET',
+      'b, b, undefined, AT_TARGET',
+      'aRoot, b, undefined, BUBBLING_PHASE',
+      'a, a, undefined, AT_TARGET',
+      'a, a, undefined, AT_TARGET',
+    ];
+    assertArrayEqual(expected, log);
+
+    var log = [];
+    addListeners(tree, 'x', log);
+    contentSelectTwo.dispatchEvent(new Event('x', {bubbles: true}));
+    var expected = [
+      'aRoot, b, undefined, CAPTURING_PHASE',
+      'bRoot, contentSelectTwo, undefined, CAPTURING_PHASE',
+      'contentSelectTwo, contentSelectTwo, undefined, AT_TARGET',
+      'contentSelectTwo, contentSelectTwo, undefined, AT_TARGET',
+      'bRoot, contentSelectTwo, undefined, BUBBLING_PHASE',
+      'b, b, undefined, AT_TARGET',
+      'b, b, undefined, AT_TARGET',
+      'aRoot, b, undefined, BUBBLING_PHASE',
+      'a, a, undefined, AT_TARGET',
+      'a, a, undefined, AT_TARGET',
+    ];
+    assertArrayEqual(expected, log);
+  });
 
 });
