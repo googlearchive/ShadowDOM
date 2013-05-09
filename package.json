@@ -2,7 +2,7 @@
   "name": "ShadowDOM",
   "version": "0.0.1",
   "devDependencies": {
-    "mocha": "*",
+    "mocha": ">=1.9",
     "chai": "*",
     "grunt": "*",
     "grunt-contrib-uglify": "*",

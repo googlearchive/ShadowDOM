@@ -7,15 +7,17 @@
 suite('MutationObserver', function() {
 
   var wrap = ShadowDOMPolyfill.wrap;
-  var addedNodes, removedNodes;
-
-  setup(function() {
-    addedNodes = [];
-    removedNodes = [];
-  });
+  var addedNodes = [], removedNodes = [];
+  var div;
 
   teardown(function() {
-    addedNodes = removedNodes = undefined;
+    addedNodes = [];
+    removedNodes = [];
+    if (div) {
+      if (div.parentNode)
+        div.parentNode.removeChild(div);
+      div = undefined;
+    }
   });
 
   function mergeRecords(records) {
@@ -54,7 +56,7 @@ suite('MutationObserver', function() {
       return;
     }
 
-    var div = document.createElement('div');
+    div = document.body.appendChild(document.createElement('div'));
 
     var mo = new MutationObserver(function(records, observer) {
       mergeRecords(records);
@@ -79,7 +81,7 @@ suite('MutationObserver', function() {
       return;
     }
 
-    var div = document.createElement('div');
+    div = document.body.appendChild(document.createElement('div'));
 
     var mo = new MutationObserver(function(records, observer) {
       mergeRecords(records);
@@ -112,7 +114,7 @@ suite('MutationObserver', function() {
       return;
     }
 
-    var div = document.createElement('div');
+    div = document.body.appendChild(document.createElement('div'));
 
     var mo = new MutationObserver(function(records, observer) {
       mergeRecords(records);
@@ -146,7 +148,7 @@ suite('MutationObserver', function() {
       return;
     }
 
-    var div = document.createElement('div');
+    div = document.body.appendChild(document.createElement('div'));
 
     var mo = new MutationObserver(function(records, observer) {
       mergeRecords(records);
