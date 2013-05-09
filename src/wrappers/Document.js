@@ -5,20 +5,21 @@
 (function(scope) {
   'use strict';
 
-  var ParentNodeInterface = scope.ParentNodeInterface;
+  var GetElementsByInterface = scope.GetElementsByInterface;
   var Node = scope.wrappers.Node;
+  var ParentNodeInterface = scope.ParentNodeInterface;
+  var SelectorsInterface = scope.SelectorsInterface;
   var defineWrapGetter = scope.defineWrapGetter;
+  var elementFromPoint = scope.elementFromPoint;
+  var forwardMethodsToWrapper = scope.forwardMethodsToWrapper;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
   var wrapEventTargetMethods = scope.wrapEventTargetMethods;
   var wrapNodeList = scope.wrapNodeList;
-  var forwardMethodsToWrapper = scope.forwardMethodsToWrapper;
 
   var implementationTable = new SideTable();
-
-  var OriginalDocument = window.Document;
 
   function Document(node) {
     Node.call(this, node);
@@ -32,17 +33,87 @@
   defineWrapGetter(Document, 'body');
   defineWrapGetter(Document, 'head');
 
+  // document cannot be overridden so we override a bunch of its methods
+  // directly on the instance.
+
+  function wrapMethod(name) {
+    var original = document[name];
+    Document.prototype[name] = function() {
+      return wrap(original.apply(this.impl, arguments));
+    };
+  }
+
+  [
+    'getElementById',
+    'createElement',
+    'createElementNS',
+    'createTextNode',
+    'createDocumentFragment',
+    'createEvent',
+    'createEventNS',
+  ].forEach(wrapMethod);
+
+  var originalAdoptNode = document.adoptNode;
+  var originalWrite = document.write;
+
+  mixin(Document.prototype, {
+    adoptNode: function(node) {
+      originalAdoptNode.call(this.impl, unwrap(node));
+      return node;
+    },
+    elementFromPoint: function(x, y) {
+      return elementFromPoint(this, this, x, y);
+    },
+    write: function(s) {
+      var all = this.querySelectorAll('*');
+      var last = all[all.length - 1];
+      while (last.nextSibling) {
+        last = last.nextSibling;
+      }
+      var p = last.parentNode;
+      p.lastChild_ = undefined;
+      last.nextSibling_ = undefined;
+      originalWrite.call(this.impl, s);
+    }
+  });
+
   // We also override some of the methods on document.body and document.head
   // for convenience.
-  forwardMethodsToWrapper([window.HTMLBodyElement, window.HTMLHeadElement],
-      [
-        'appendChild',
-        'insertBefore',
-        'replaceChild',
-        'removeChild'
-      ]);
+  forwardMethodsToWrapper([
+    window.HTMLBodyElement,
+    window.HTMLDocument || window.Document,  // Gecko adds these to HTMLDocument
+    window.HTMLHeadElement,
+  ], [
+    'appendChild',
+    'compareDocumentPosition',
+    'getElementsByClassName',
+    'getElementsByTagName',
+    'getElementsByTagNameNS',
+    'insertBefore',
+    'querySelector',
+    'querySelectorAll',
+    'removeChild',
+    'replaceChild',
+  ]);
 
+  forwardMethodsToWrapper([
+    window.HTMLDocument || window.Document,  // Gecko adds these to HTMLDocument
+  ], [
+    'adoptNode',
+    'createDocumentFragment',
+    'createElement',
+    'createElementNS',
+    'createEvent',
+    'createEventNS',
+    'createTextNode',
+    'elementFromPoint',
+    'getElementById',
+    'write',
+  ]);
+
+  mixin(Document.prototype, GetElementsByInterface);
   mixin(Document.prototype, ParentNodeInterface);
+  mixin(Document.prototype, SelectorsInterface);
 
   mixin(Document.prototype, {
     get implementation() {
@@ -55,17 +126,8 @@
       return implementation;
     }
   });
-  
-  var originalAdoptNode = document.adoptNode;
-  Document.prototype.adoptNode = function(node) {
-    originalAdoptNode.call(this.impl, unwrap(node));
-    return node;
-  };
-  Object.getPrototypeOf(document).adoptNode = function(node) {
-    return wrap(this).adoptNode(node);
-  };
 
-  registerWrapper(OriginalDocument, Document,
+  registerWrapper(window.Document, Document,
       document.implementation.createHTMLDocument(''));
 
   // Both WebKit and Gecko uses HTMLDocument for document. HTML5/DOM only has
@@ -73,53 +135,10 @@
   if (window.HTMLDocument)
     registerWrapper(window.HTMLDocument, Document);
 
-  function wrapMethod(name) {
-    var proto = Object.getPrototypeOf(document);
-    var original = proto[name];
-    proto[name] = function() {
-      return wrap(original.apply(this, arguments));
-    };
-    Document.prototype[name] = function() {
-      return wrap(original.apply(this.impl, arguments));
-    };
-  }
-
-  // document cannot be overridden so we override a bunch of its methods
-  // directly on the instance
-
-  [
-    'getElementById',
-    'querySelector',
-    'createElement',
-    'createElementNS',
-    'createTextNode',
-    'createDocumentFragment',
-    'createEvent',
-    'createEventNS',
-  ].forEach(wrapMethod);
-
-  function wrapNodeListMethod(name) {
-    var proto = Object.getPrototypeOf(document);
-    var original = proto[name];
-    proto[name] = function() {
-      return wrapNodeList(original.apply(this, arguments));
-    };
-    Document.prototype[name] = function() {
-      return wrapNodeList(original.apply(this.impl, arguments));
-    };
-  }
-
-  [
-    'getElementsByTagName',
-    'getElementsByTagNameNS',
-    'getElementsByClassName',
-    'querySelectorAll'
-  ].forEach(wrapNodeListMethod);
-
   wrapEventTargetMethods([
-    window.HTMLDocument || window.Document,  // Gecko adds these to HTMLDocument
     window.HTMLBodyElement,
-    window.HTMLHeadElement
+    window.HTMLDocument || window.Document,  // Gecko adds these to HTMLDocument
+    window.HTMLHeadElement,
   ]);
 
   function DOMImplementation(impl) {
@@ -127,14 +146,16 @@
   }
 
   function wrapImplMethod(constructor, name) {
+    var original = document.implementation[name];
     constructor.prototype[name] = function() {
-      return wrap(this.impl[name].apply(this.impl, arguments));
+      return wrap(original.apply(this.impl, arguments));
     };
   }
 
   function forwardImplMethod(constructor, name) {
+    var original = document.implementation[name];
     constructor.prototype[name] = function() {
-      return this.impl[name].apply(this.impl, arguments);
+      return original.apply(this.impl, arguments);
     };
   }
 
@@ -142,6 +163,17 @@
   wrapImplMethod(DOMImplementation, 'createDocument');
   wrapImplMethod(DOMImplementation, 'createHTMLDocument');
   forwardImplMethod(DOMImplementation, 'hasFeature');
+
+  registerWrapper(window.DOMImplementation, DOMImplementation);
+
+  forwardMethodsToWrapper([
+    window.DOMImplementation,
+  ], [
+    'createDocumentType',
+    'createDocument',
+    'createHTMLDocument',
+    'hasFeature',
+  ]);
 
   scope.wrappers.Document = Document;
   scope.wrappers.DOMImplementation = DOMImplementation;

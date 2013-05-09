@@ -16,7 +16,6 @@ if (typeof WeakMap !== 'undefined' && navigator.userAgent.indexOf('Firefox/') < 
     var hasOwnProperty = Object.hasOwnProperty;
     var counter = new Date().getTime() % 1e9;
 
-
     SideTable = function() {
       this.name = '__st' + (Math.random() * 1e9 >>> 0) + (counter++ + '__');
     };
@@ -27,6 +26,9 @@ if (typeof WeakMap !== 'undefined' && navigator.userAgent.indexOf('Firefox/') < 
       },
       get: function(key) {
         return hasOwnProperty.call(key, this.name) ? key[this.name] : undefined;
+      },
+      delete: function(key) {
+        this.set(key, undefined);
       }
     }
   })();

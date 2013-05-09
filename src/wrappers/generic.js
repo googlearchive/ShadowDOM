@@ -5,6 +5,7 @@
 (function(scope) {
   'use strict';
 
+  var GetElementsByInterface = scope.GetElementsByInterface;
   var ParentNodeInterface = scope.ParentNodeInterface;
   var SelectorsInterface = scope.SelectorsInterface;
   var mixin = scope.mixin;
@@ -13,6 +14,7 @@
   var DocumentFragment = registerObject(document.createDocumentFragment());
   mixin(DocumentFragment.prototype, ParentNodeInterface);
   mixin(DocumentFragment.prototype, SelectorsInterface);
+  mixin(DocumentFragment.prototype, GetElementsByInterface);
 
   var Text = registerObject(document.createTextNode(''));
   var Comment = registerObject(document.createComment(''));

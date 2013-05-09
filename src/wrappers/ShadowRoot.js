@@ -6,6 +6,7 @@
   'use strict';
 
   var DocumentFragment = scope.wrappers.DocumentFragment;
+  var elementFromPoint = scope.elementFromPoint;
   var getInnerHTML = scope.getInnerHTML;
   var mixin = scope.mixin;
   var rewrap = scope.rewrap;
@@ -26,9 +27,6 @@
     scope.nextOlderShadowTreeTable.set(this, oldShadowRoot);
 
     shadowHostTable.set(this, hostWrapper);
-
-    // TODO: are we invalidating on both sides?
-    hostWrapper.invalidateShadowRenderer();
   }
   ShadowRoot.prototype = Object.create(DocumentFragment.prototype);
   mixin(ShadowRoot.prototype, {
@@ -42,6 +40,14 @@
 
     invalidateShadowRenderer: function() {
       return shadowHostTable.get(this).invalidateShadowRenderer();
+    },
+
+    elementFromPoint: function(x, y) {
+      return elementFromPoint(this, this.ownerDocument, x, y);
+    },
+
+    getElementById: function(id) {
+      return this.querySelector('#' + id);
     }
   });
 

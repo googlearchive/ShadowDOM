@@ -137,6 +137,8 @@
   var originalInsertBefore = OriginalNode.prototype.insertBefore;
   var originalReplaceChild = OriginalNode.prototype.replaceChild;
   var originalRemoveChild = OriginalNode.prototype.removeChild;
+  var originalCompareDocumentPosition =
+      OriginalNode.prototype.compareDocumentPosition;
 
   Node.prototype = Object.create(EventTarget.prototype);
   mixin(Node.prototype, {
@@ -351,6 +353,9 @@
     // insertionParent is added in ShadowRender.js
 
     contains: function(child) {
+      if (!child)
+        return false;
+
       // TODO(arv): Optimize using ownerDocument etc.
       if (child === this)
         return true;
@@ -358,6 +363,12 @@
       if (!parentNode)
         return false;
       return this.contains(parentNode);
+    },
+
+    compareDocumentPosition: function(otherNode) {
+      // This only wraps, it therefore only operates on the composed DOM and not
+      // the logical DOM.
+      return originalCompareDocumentPosition.call(this.impl, unwrap(otherNode));
     }
   });
 

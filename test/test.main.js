@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2013 The Toolkitchen Authors. All rights reserved.
  * Use of this source code is governed by a BSD-style
  * license that can be found in the LICENSE file.
@@ -38,30 +38,10 @@ function unwrapAndExpectStructure(node, nonNullFields) {
 }
 
 function assertArrayEqual(a, b, msg) {
-  assert.equal(a.length, b.length, msg);
   for (var i = 0; i < a.length; i++) {
     assert.equal(a[i], b[i], msg);
   }
-}
-
-// TODO(arv): Use htmlTest when it has settled down.
-function testIframe(name, src, callback) {
-  var wrap = ShadowDOMPolyfill.wrap;
-  test(name, function(done) {
-    var iframe = document.createElement('iframe');
-    iframe.src = src + '#' + name;
-    iframe.style.cssText = 'position: absolute; top: -10000px';
-    wrap(document).body.appendChild(iframe);
-    window.addEventListener('message', function f(e) {
-      var data = e.data;
-      if (data && data.id === name) {
-        callback(data.result);
-        wrap(document).body.removeChild(iframe);
-        window.removeEventListener('message', f);
-        done();
-      }
-    });
-  });
+  assert.equal(a.length, b.length, msg);
 }
 
 mocha.setup({
@@ -79,7 +59,9 @@ var modules = [
   'HTMLShadowElement.js',
   'HTMLTemplateElement.js',
   'MutationObserver.js',
+  'Node.js',
   'ParentNodeInterface.js',
+  'ShadowRoot.js',
   'Text.js',
   'Window.js',
   'custom-element.js',
@@ -92,5 +74,5 @@ var modules = [
 ];
 
 modules.forEach(function(inSrc) {
-  document.write('<script src="' + base + inSrc + '"></script>');
+  document.write('<script src="' + base + 'js/' + inSrc + '"></script>');
 });

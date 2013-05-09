@@ -182,8 +182,9 @@ var ShadowDOMPolyfill = {};
     return GeneratedWrapper;
   }
 
-  var OriginalNode = Node;
+  var OriginalDOMImplementation = DOMImplementation;
   var OriginalEvent = Event;
+  var OriginalNode = Node;
   var OriginalWindow = Window;
 
   /**
@@ -198,7 +199,8 @@ var ShadowDOMPolyfill = {};
 
     assert(impl instanceof OriginalNode ||
            impl instanceof OriginalEvent ||
-           impl instanceof OriginalWindow);
+           impl instanceof OriginalWindow ||
+           impl instanceof OriginalDOMImplementation);
     var wrapper = wrapperTable.get(impl);
     if (!wrapper) {
       var wrapperConstructor = getWrapperConstructor(impl);
@@ -217,7 +219,8 @@ var ShadowDOMPolyfill = {};
     if (wrapper === null)
       return null;
     assert(wrapper instanceof wrappers.EventTarget ||
-           wrapper instanceof wrappers.Event);
+           wrapper instanceof wrappers.Event ||
+           wrapper instanceof wrappers.DOMImplementation);
     return wrapper.impl;
   }
 
