@@ -7,9 +7,6 @@
 suite('Wrapper creation', function() {
 
   var wrap = ShadowDOMPolyfill.wrap;
-  var unwrap = ShadowDOMPolyfill.unwrap;
-  var rewrap = ShadowDOMPolyfill.rewrap;
-  var resetNodePointers = ShadowDOMPolyfill.resetNodePointers;
   var knownElements = ShadowDOMPolyfill.knownElements;
 
   test('Br element wrapper', function() {

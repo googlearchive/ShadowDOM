@@ -6,9 +6,6 @@
   'use strict';
 
   var NodeList = scope.wrappers.NodeList;
-  var mixin = scope.mixin;
-  var wrap = scope.wrap;
-  var wrapNodeList = scope.wrapNodeList;
 
   function forwardElement(node) {
     while (node && node.nodeType !== Node.ELEMENT_NODE) {
