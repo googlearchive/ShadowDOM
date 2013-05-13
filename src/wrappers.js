@@ -187,6 +187,19 @@ var ShadowDOMPolyfill = {};
   var OriginalNode = Node;
   var OriginalWindow = Window;
 
+  function isWrapper(object) {
+    return object instanceof wrappers.EventTarget ||
+           object instanceof wrappers.Event ||
+           object instanceof wrappers.DOMImplementation;
+  }
+
+  function isNative(object) {
+    return object instanceof OriginalNode ||
+           object instanceof OriginalEvent ||
+           object instanceof OriginalWindow ||
+           object instanceof OriginalDOMImplementation;
+  }
+
   /**
    * Wraps a node in a WrapperNode. If there already exists a wrapper for the
    * |node| that wrapper is returned instead.
@@ -197,10 +210,7 @@ var ShadowDOMPolyfill = {};
     if (impl === null)
       return null;
 
-    assert(impl instanceof OriginalNode ||
-           impl instanceof OriginalEvent ||
-           impl instanceof OriginalWindow ||
-           impl instanceof OriginalDOMImplementation);
+    assert(isNative(impl));
     var wrapper = wrapperTable.get(impl);
     if (!wrapper) {
       var wrapperConstructor = getWrapperConstructor(impl);
@@ -218,10 +228,26 @@ var ShadowDOMPolyfill = {};
   function unwrap(wrapper) {
     if (wrapper === null)
       return null;
-    assert(wrapper instanceof wrappers.EventTarget ||
-           wrapper instanceof wrappers.Event ||
-           wrapper instanceof wrappers.DOMImplementation);
+    assert(isWrapper(wrapper));
     return wrapper.impl;
+  }
+
+  /**
+   * Unwraps object if it is a wrapper.
+   * @param {Object} object
+   * @return {Object} The native implementation object.
+   */
+  function unwrapIfNeeded(object) {
+    return object && isWrapper(object) ? unwrap(object) : object;
+  }
+
+  /**
+   * Wraps object if it is not a wrapper.
+   * @param {Object} object
+   * @return {Object} The wrapper for object.
+   */
+  function wrapIfNeeded(object) {
+    return object && !isWrapper(object) ? wrap(object) : object;
   }
 
   /**
@@ -233,9 +259,8 @@ var ShadowDOMPolyfill = {};
   function rewrap(node, wrapper) {
     if (wrapper === null)
       return;
-    assert(node instanceof OriginalNode ||
-           node instanceof OriginalEvent);
-    assert(wrapper === undefined || wrapper instanceof wrappers.Node);
+    assert(isNative(node));
+    assert(wrapper === undefined || isWrapper(wrapper));
     wrapperTable.set(node, wrapper);
   }
 
@@ -281,7 +306,9 @@ var ShadowDOMPolyfill = {};
   scope.registerWrapper = register;
   scope.rewrap = rewrap;
   scope.unwrap = unwrap;
+  scope.unwrapIfNeeded = unwrapIfNeeded;
   scope.wrap = wrap;
+  scope.wrapIfNeeded = wrapIfNeeded;
   scope.wrappers = wrappers;
 
 })(this.ShadowDOMPolyfill);
