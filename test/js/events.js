@@ -1137,4 +1137,44 @@ test('retarget order (multiple shadow roots)', function() {
     assertArrayEqual(expected, log);
   });
 
+  test('onclick', function() {
+    div = document.createElement('div');
+    wrap(document).body.appendChild(div);
+
+    var calls = 0;
+    var event;
+
+    function f(e) {
+      event = e;
+      calls++;
+      assert.equal(this, div);
+      assert.equal(e.target, div);
+    }
+
+    div.onclick = f;
+
+    assert.equal(div.onclick, f);
+
+    div.click();
+    assert.equal(calls, 1);
+    assert.isFalse(event.defaultPrevented);
+
+    div.onclick = null;
+    div.click();
+    assert.equal(calls, 1);
+
+    function g(e) {
+      calls++;
+      event = e;
+      return false;
+    }
+
+    div.onclick = g;
+    assert.equal(div.onclick, g);
+
+    div.click();
+    assert.equal(calls, 2);
+    assert.isTrue(event.defaultPrevented);
+  });
+
 });

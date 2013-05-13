@@ -21,6 +21,7 @@
   var eventPhaseTable = new SideTable();
   var stopPropagationTable = new SideTable();
   var stopImmediatePropagationTable = new SideTable();
+  var eventHandlersTable = new SideTable();
 
   function isShadowRoot(node) {
     return node instanceof wrappers.ShadowRoot;
@@ -618,8 +619,61 @@
     return null;
   }
 
+  /**
+   * Returns a function that is to be used as a getter for `onfoo` properties.
+   * @param {string} name
+   * @return {Function}
+   */
+  function getEventHandlerGetter(name) {
+    return function() {
+      var inlineEventHandlers = eventHandlersTable.get(this);
+      return inlineEventHandlers && inlineEventHandlers[name] &&
+          inlineEventHandlers[name].value || null;
+     };
+  }
+
+  /**
+   * Returns a function that is to be used as a setter for `onfoo` properties.
+   * @param {string} name
+   * @return {Function}
+   */
+  function getEventHandlerSetter(name) {
+    var eventType = name.slice(2);
+    return function(value) {
+      var inlineEventHandlers = eventHandlersTable.get(this);
+      if (!inlineEventHandlers) {
+        inlineEventHandlers = Object.create(null);
+        eventHandlersTable.set(this, inlineEventHandlers);
+      }
+
+      var old = inlineEventHandlers[name];
+      if (old)
+        this.removeEventListener(eventType, old.wrapped, false);
+
+      if (typeof value === 'function') {
+        var wrapped = function(e) {
+          var rv = value.call(this, e);
+          if (rv === false)
+            e.preventDefault();
+          else if (name === 'onbeforeunload' && typeof rv === 'string')
+            e.returnValue = rv;
+          // mouseover uses true for preventDefault but preventDefault for
+          // mouseover is ignored by browsers these day.
+        };
+
+        this.addEventListener(eventType, wrapped, false);
+        inlineEventHandlers[name] = {
+          value: value,
+          wrapped: wrapped
+        };
+      }
+    };
+  }
+
   scope.adjustRelatedTarget = adjustRelatedTarget;
   scope.elementFromPoint = elementFromPoint;
+  scope.getEventHandlerGetter = getEventHandlerGetter;
+  scope.getEventHandlerSetter = getEventHandlerSetter;
   scope.wrapEventTargetMethods = wrapEventTargetMethods;
   scope.wrappers.CustomEvent = CustomEvent;
   scope.wrappers.Event = Event;
