@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 The Toolkitchen Authors. All rights reserved.
+ * Copyright 2013 The Polymer Authors. All rights reserved.
  * Use of this source code is goverened by a BSD-style
  * license that can be found in the LICENSE file.
  */
@@ -10,9 +10,18 @@ suite('MutationObserver', function() {
   var addedNodes = [], removedNodes = [];
   var div;
 
-  teardown(function() {
+  function newValue() {
+    return Date.now();
+  }
+
+  setup(function() {
     addedNodes = [];
     removedNodes = [];
+  });
+
+  teardown(function() {
+    addedNodes = undefined;
+    removedNodes = undefined;
     if (div) {
       if (div.parentNode)
         div.parentNode.removeChild(div);
@@ -42,12 +51,13 @@ suite('MutationObserver', function() {
       assert.equal(observer, mo);
       assert.equal(records[0].type, 'attributes');
       assert.equal(records[0].target, div);
+      mo.disconnect();
       done();
     });
     mo.observe(div, {
       attributes: true
     });
-    div.setAttribute('a', 'b');
+    div.setAttribute('a', newValue());
   });
 
   test('addedNodes', function(done) {
@@ -65,6 +75,7 @@ suite('MutationObserver', function() {
       assert.equal(addedNodes.length, 2);
       assert.equal(addedNodes[0], a);
       assert.equal(addedNodes[1], b);
+      mo.disconnect();
       done();
     });
     mo.observe(div, {
@@ -92,7 +103,7 @@ suite('MutationObserver', function() {
       assert.equal(addedNodes[0], c);
       assert.equal(records[0].previousSibling, a);
       assert.equal(records[0].nextSibling, b);
-
+      mo.disconnect();
       done();
     });
     div.innerHTML = '<a></a><b></b>';
@@ -126,6 +137,7 @@ suite('MutationObserver', function() {
       assert.equal(removedNodes.length, 2);
       assert.equal(removedNodes[0], a);
       assert.equal(removedNodes[1], b);
+      mo.disconnect();
       done();
     });
 
@@ -157,6 +169,7 @@ suite('MutationObserver', function() {
       assert.equal(removedNodes.length, 1);
       assert.equal(records[0].previousSibling, a);
       assert.equal(records[0].nextSibling, c);
+      mo.disconnect();
       done();
     });
 
@@ -191,7 +204,7 @@ suite('MutationObserver', function() {
       subtree: true
     });
 
-    document.body.setAttribute('a', 'b');
+    document.body.setAttribute('a', newValue());
   });
 
   test('observe document.body', function(done) {
@@ -212,7 +225,7 @@ suite('MutationObserver', function() {
       attributes: true
     });
 
-    document.body.setAttribute('a', 'b');
+    document.body.setAttribute('a', newValue());
   });
 
   test('observe document.head', function(done) {
@@ -233,7 +246,7 @@ suite('MutationObserver', function() {
       attributes: true
     });
 
-    document.head.setAttribute('a', 'b');
+    document.head.setAttribute('a', newValue());
   });
 
 });

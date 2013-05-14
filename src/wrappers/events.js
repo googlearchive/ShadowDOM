@@ -1,4 +1,4 @@
-// Copyright 2013 The Toolkitchen Authors. All rights reserved.
+// Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -440,6 +440,12 @@
   var MouseEvent = registerGenericEvent('MouseEvent', UIEvent, mouseEventProto);
   var FocusEvent = registerGenericEvent('FocusEvent', UIEvent, focusEventProto);
 
+  var MutationEvent = registerGenericEvent('MutationEvent', Event, {
+    initMutationEvent: getInitFunction('initMutationEvent', 3),
+    get relatedNode() {
+      return wrap(this.impl.relatedNode);
+    },
+  });
 
   // In case the browser does not support event constructors we polyfill that
   // by calling `createEvent('Foo')` and `initFooEvent` where the arguments to
@@ -626,6 +632,7 @@
   scope.wrappers.EventTarget = EventTarget;
   scope.wrappers.FocusEvent = FocusEvent;
   scope.wrappers.MouseEvent = MouseEvent;
+  scope.wrappers.MutationEvent = MutationEvent;
   scope.wrappers.UIEvent = UIEvent;
 
 })(this.ShadowDOMPolyfill);

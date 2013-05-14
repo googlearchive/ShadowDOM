@@ -1,4 +1,4 @@
-// Copyright 2013 The Toolkitchen Authors. All rights reserved.
+// Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -6,9 +6,6 @@
   'use strict';
 
   var NodeList = scope.wrappers.NodeList;
-  var mixin = scope.mixin;
-  var wrap = scope.wrap;
-  var wrapNodeList = scope.wrapNodeList;
 
   function forwardElement(node) {
     while (node && node.nodeType !== Node.ELEMENT_NODE) {

@@ -1,4 +1,4 @@
-// Copyright 2013 The Toolkitchen Authors. All rights reserved.
+// Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -8,8 +8,7 @@
   var defineGetter = scope.defineGetter;
   var defineWrapGetter = scope.defineWrapGetter;
   var registerWrapper = scope.registerWrapper;
-  var unwrap = scope.unwrap;
-  var wrap = scope.wrap;
+  var unwrapIfNeeded = scope.unwrapIfNeeded;
   var wrapNodeList = scope.wrapNodeList;
   var wrappers = scope.wrappers;
 
@@ -72,9 +71,7 @@
 
   MutationObserver.prototype = {
     observe: function(target, options) {
-      if (target instanceof wrappers.Node)
-        target = unwrap(target);
-      this.impl.observe(target, options);
+      this.impl.observe(unwrapIfNeeded(target), options);
     },
     disconnect: function() {
       this.impl.disconnect();

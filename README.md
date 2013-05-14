@@ -57,11 +57,9 @@ The light DOM and the shadow DOM is referred to as the logical DOM. This is the 
 
 The polyfill is implemented using _wrappers_. A wrapper wraps the native DOM node in a wrapper node. The wrapper node looks and behaves identical to the native node (minus bugs and known limitations). For example:
 
-```js
-var div = document.createElement('div');
-div.innerHTML = '<b>Hello world</b>';
-assert(div.firstChild instanceof HTMLElement);
-```
+    var div = document.createElement('div');
+    div.innerHTML = '<b>Hello world</b>';
+    assert(div.firstChild instanceof HTMLElement);
 
 But `div` is actually a wrapper of the element that the browser normally gives you. This wrapper just happen to have the same interface as the browser provided element.
 
@@ -87,19 +85,16 @@ There are bound to be cases where we haven't done the wrapping for you. In those
 
 An important aspect of the shadow DOM is that events are retargetted to never expose the shadow DOM to the light DOM. For example.
 
-```js
-var div = document.createElement('div');
-div.innerHTML = 'Click me';
-var sr = div.createShadowRoot();
-sr.innerHTML = '<b><content></content></b>';
-```
+    var div = document.createElement('div');
+    div.innerHTML = 'Click me';
+    var shadow = div.createShadowRoot();
+    shadow.innerHTML = '<b><content></content></b>';
 
 If the user clicks on the `div` the real `target` of the click event is the `<b>` element. But that element is not visible in the light DOM so the target is therefore retargetted to the `div` element itself. However, if there is an event listener on the `<content>`, `<b>` or the shadow root, the target should be visible to the event listener.
 
 Similar issues occur with `relatedTarget` in `mouseover` and `mouseout` events.
 
 To support this kind of behavior the event dispatching in the browser has to be reimplemented by the polyfill.
-
 
 #### Known issues
 
