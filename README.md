@@ -59,7 +59,7 @@ The polyfill is implemented using _wrappers_. A wrapper wraps the native DOM nod
 
     var div = document.createElement('div');
     div.innerHTML = '<b>Hello world</b>';
-    assert(div.firstChild instanceof HTMLElement);\
+    assert(div.firstChild instanceof HTMLElement);
 
 But `div` is actually a wrapper of the element that the browser normally gives you. This wrapper just happen to have the same interface as the browser provided element.
 
