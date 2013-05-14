@@ -1,4 +1,4 @@
-// Copyright 2012 The Toolkitchen Authors. All rights reserved.
+// Copyright 2012 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -76,10 +76,10 @@
       assert(childWrapper.parentNode === wrapper);
       var nextSibling = childWrapper.nextSibling;
       var childNode = unwrap(childWrapper);
-      childWrapper.previousSibling_ = childWrapper.nextSibling_ = childWrapper.parentNode_ = null;
       var parentNode = childNode.parentNode;
       if (parentNode)
         originalRemoveChild.call(parentNode, childNode);
+      childWrapper.previousSibling_ = childWrapper.nextSibling_ = childWrapper.parentNode_ = null;
       childWrapper = nextSibling;
     }
     wrapper.firstChild_ = wrapper.lastChild_ = null;
@@ -207,21 +207,29 @@
 
       this.invalidateShadowRenderer();
 
-      if (this.firstChild === childWrapper)
-        this.firstChild_ = childWrapper.nextSibling;
-      if (this.lastChild === childWrapper)
-        this.lastChild_ = childWrapper.previousSibling;
-      if (childWrapper.previousSibling)
-        childWrapper.previousSibling.nextSibling_ = childWrapper.nextSibling;
-      if (childWrapper.nextSibling)
-        childWrapper.nextSibling.previousSibling_ = childWrapper.previousSibling;
-
-      childWrapper.previousSibling_ = childWrapper.nextSibling_ = childWrapper.parentNode_ = null;
+      // We need to remove the real node from the DOM before updating the
+      // pointers. This is so that that mutation event is dispatched before
+      // the pointers have changed.
+      var thisFirstChild = this.firstChild;
+      var thisLastChild = this.lastChild;
+      var childWrapperNextSibling = childWrapper.nextSibling;
+      var childWrapperPreviousSibling = childWrapper.previousSibling;
 
       var childNode = unwrap(childWrapper);
       var parentNode = childNode.parentNode;
       if (parentNode)
         originalRemoveChild.call(parentNode, childNode);
+
+      if (thisFirstChild === childWrapper)
+        this.firstChild_ = childWrapperNextSibling;
+      if (thisLastChild === childWrapper)
+        this.lastChild_ = childWrapperPreviousSibling;
+      if (childWrapperPreviousSibling)
+        childWrapperPreviousSibling.nextSibling_ = childWrapperNextSibling;
+      if (childWrapperNextSibling)
+        childWrapperNextSibling.previousSibling_ = childWrapperPreviousSibling;
+
+      childWrapper.previousSibling_ = childWrapper.nextSibling_ = childWrapper.parentNode_ = null;
 
       return childWrapper;
     },

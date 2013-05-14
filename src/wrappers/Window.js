@@ -1,4 +1,4 @@
-// Copyright 2013 The Toolkitchen Authors. All rights reserved.
+// Copyright 2013 The Polymer Authors. All rights reserved.
 // Use of this source code is goverened by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -9,6 +9,7 @@
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
   var unwrap = scope.unwrap;
+  var unwrapIfNeeded = scope.unwrapIfNeeded;
   var wrap = scope.wrap;
 
   var OriginalWindow = window.Window;
@@ -20,7 +21,8 @@
 
   var originalGetComputedStyle = window.getComputedStyle;
   OriginalWindow.prototype.getComputedStyle = function(el, pseudo) {
-    return originalGetComputedStyle.call(this || window, unwrap(el), pseudo);
+    return originalGetComputedStyle.call(this || window, unwrapIfNeeded(el),
+                                         pseudo);
   };
 
   ['addEventListener', 'removeEventListener', 'dispatchEvent'].forEach(
@@ -33,7 +35,8 @@
 
   mixin(Window.prototype, {
     getComputedStyle: function(el, pseudo) {
-      return originalGetComputedStyle.call(unwrap(this), unwrap(el), pseudo);
+      return originalGetComputedStyle.call(unwrap(this), unwrapIfNeeded(el),
+                                           pseudo);
     }
   });
 
