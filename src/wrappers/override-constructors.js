@@ -7,10 +7,6 @@
 
   var isWrapperFor = scope.isWrapperFor;
 
-  Object.getOwnPropertyNames(scope.wrappers).forEach(function(name) {
-    window[name] = scope.wrappers[name]
-  });
-
   // This is a list of the elements we currently override the global constructor
   // for.
   var elements = {
@@ -98,6 +94,10 @@
   }
 
   Object.keys(elements).forEach(overrideConstructor);
+
+  Object.getOwnPropertyNames(scope.wrappers).forEach(function(name) {
+    window[name] = scope.wrappers[name]
+  });
 
   // Export for testing.
   scope.knownElements = elements;
