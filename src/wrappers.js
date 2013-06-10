@@ -79,6 +79,10 @@ var ShadowDOMPolyfill = {};
     enumerable: true
   };
 
+  function isEventHandlerName(name) {
+    return /^on[a-z]+$/.test(name);
+  }
+
   function installProperty(source, target, allowMethod) {
     Object.getOwnPropertyNames(source).forEach(function(name) {
       if (name in target)
@@ -92,8 +96,8 @@ var ShadowDOMPolyfill = {};
       try {
         descriptor = Object.getOwnPropertyDescriptor(source, name);
       } catch (ex) {
-        // JSC and V8 both use data properties instead accessors which can cause
-        // getting the property desciptor throw an exception.
+        // JSC and V8 both use data properties instead of accessors which can
+        // cause getting the property desciptor to throw an exception.
         // https://bugs.webkit.org/show_bug.cgi?id=49739
         descriptor = dummyDescriptor;
       }
@@ -105,14 +109,23 @@ var ShadowDOMPolyfill = {};
         return;
       }
 
-      getter = function() {
-        return this.impl[name];
-      };
+      var isEvent = isEventHandlerName(name);
+      if (isEvent) {
+        getter = scope.getEventHandlerGetter(name);
+      } else {
+        getter = function() {
+          return this.impl[name];
+        };
+      }
 
       if (descriptor.writable || descriptor.set) {
-        setter = function(value) {
-          this.impl[name] = value;
-        };
+        if (isEvent) {
+          setter = scope.getEventHandlerSetter(name);
+        } else {
+          setter = function(value) {
+            this.impl[name] = value;
+          };
+        }
       }
 
       Object.defineProperty(target, name, {
