@@ -120,7 +120,7 @@
 
   function distributeChildToInsertionPoint(child, insertionPoint) {
     getDistributedChildNodes(insertionPoint).push(child);
-    insertionParentTable.set(child, insertionPoint);
+    assignToInsertionPoint(child, insertionPoint);
 
     var eventParents = eventParentsTable.get(child);
     if (!eventParents)
@@ -372,8 +372,7 @@
     renderShadowInsertionPoint: function(visualParent, tree, shadowInsertionPoint) {
       var nextOlderTree = getNextOlderTree(tree);
       if (nextOlderTree) {
-        // This makes ShadowRoot have its insertionParent be the <shadow>.
-        insertionParentTable.set(nextOlderTree, shadowInsertionPoint);
+        assignToInsertionPoint(nextOlderTree, shadowInsertionPoint);
         shadowInsertionPoint.olderShadowRoot_ = nextOlderTree;
         this.remove(shadowInsertionPoint);
         var shadowDOMChildNodes = getChildNodesSnapshot(nextOlderTree);
@@ -427,7 +426,7 @@
             break;  // 4.3.1.1.
           } else {
             tree = nextOlderTree;  // 4.3.2.2.
-            assignShadowTreeToShadowInsertionPoint(tree, point);  // 4.3.2.2.
+            assignToInsertionPoint(tree, point);  // 4.3.2.2.
             continue;  // 4.3.2.3.
           }
         } else {
@@ -499,7 +498,7 @@
     return trees;
   }
 
-  function assignShadowTreeToShadowInsertionPoint(tree, point) {
+  function assignToInsertionPoint(tree, point) {
     insertionParentTable.set(tree, point);
   }
 
@@ -533,17 +532,12 @@
     return getDistributedChildNodes(this);
   };
 
-  mixin(Node.prototype, {
-    get insertionParent() {
-      return insertionParentTable.get(this) || null;
-    }
-  });
-
   scope.eventParentsTable = eventParentsTable;
   scope.getRendererForHost = getRendererForHost;
   scope.getShadowTrees = getShadowTrees;
   scope.nextOlderShadowTreeTable = nextOlderShadowTreeTable;
   scope.renderAllPending = renderAllPending;
+  scope.insertionParentTable = insertionParentTable;
 
   // Exposed for testing
   scope.visual = {

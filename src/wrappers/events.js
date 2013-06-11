@@ -48,7 +48,7 @@
 
     // 1.
     if (isShadowRoot(node))
-      return node.insertionParent || scope.getHostForShadowRoot(node);
+      return getInsertionParent(node) || scope.getHostForShadowRoot(node);
 
     // 2.
     var eventParents = scope.eventParentsTable.get(node);
@@ -65,7 +65,7 @@
       var parentNode = node.parentNode;
       if (parentNode && isShadowHost(parentNode)) {
         var trees = scope.getShadowTrees(parentNode);
-        var p = context.insertionParent;
+        var p = getInsertionParent(context);
         for (var i = 0; i < trees.length; i++) {
           if (trees[i].contains(p))
             return p;
@@ -150,8 +150,12 @@
     }
   }
 
+  function getInsertionParent(node) {
+    return scope.insertionParentTable.get(node);
+  }
+
   function isDistributed(node) {
-    return node.insertionParent;
+    return getInsertionParent(node);
   }
 
   function rootOfNode(node) {
