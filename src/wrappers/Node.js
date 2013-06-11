@@ -358,8 +358,6 @@
       return clone;
     },
 
-    // insertionParent is added in ShadowRender.js
-
     contains: function(child) {
       if (!child)
         return false;
