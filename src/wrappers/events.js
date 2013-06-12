@@ -22,6 +22,7 @@
   var stopPropagationTable = new SideTable();
   var stopImmediatePropagationTable = new SideTable();
   var eventHandlersTable = new SideTable();
+  var eventPathTable = new SideTable();
 
   function isShadowRoot(node) {
     return node instanceof wrappers.ShadowRoot;
@@ -211,12 +212,14 @@
     //
     // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-end.html#the-end
     //
-    // TODO(arv): Find a loess hacky way to do this.
+    // TODO(arv): Find a less hacky way to do this.
     if (event.type === 'load' &&
         eventPath.length === 2 &&
         eventPath[0].target instanceof wrappers.Document) {
       eventPath.shift();
     }
+
+    eventPathTable.set(event, eventPath);
 
     if (dispatchCapturing(event, eventPath)) {
       if (dispatchAtTarget(event, eventPath)) {
@@ -380,6 +383,28 @@
     },
     get eventPhase() {
       return eventPhaseTable.get(this);
+    },
+    get path() {
+      var nodeList = new wrappers.NodeList();
+      var eventPath = eventPathTable.get(this);
+      if (eventPath) {
+        var index = 0;
+        var found = false;
+        var currentTarget = currentTargetTable.get(this);
+        var lastIndex = eventPath.length - 1;
+        for (var i = 0; i <= lastIndex; i++) {
+          if (!found)
+            found = eventPath[i].currentTarget === currentTarget;
+          if (found) {
+            var node = eventPath[i].currentTarget;
+            // Do not include the top Window.
+            if (i !== lastIndex || node instanceof wrappers.Node)
+              nodeList[index++] = node;
+          }
+        }
+        nodeList.length = index;
+      }
+      return nodeList;
     },
     stopPropagation: function() {
       stopPropagationTable.set(this, true);
