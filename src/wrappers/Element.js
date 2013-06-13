@@ -57,6 +57,11 @@
     }
   });
 
+  if (OriginalElement.prototype.webkitCreateShadowRoot) {
+    Element.prototype.webkitCreateShadowRoot =
+        Element.prototype.createShadowRoot;
+  }
+
   mixin(Element.prototype, ChildNodeInterface);
   mixin(Element.prototype, GetElementsByInterface);
   mixin(Element.prototype, ParentNodeInterface);
