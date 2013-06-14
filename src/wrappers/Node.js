@@ -63,7 +63,7 @@
     if (nodes.length === 1)
       return unwrap(nodes[0]);
 
-    var df = unwrap(document.createDocumentFragment());
+    var df = unwrap(nodes[0].ownerDocument.createDocumentFragment());
     for (var i = 0; i < nodes.length; i++) {
       df.appendChild(unwrap(nodes[i]));
     }
@@ -180,7 +180,6 @@
       var nextNode = refWrapper;
       var nodes = collectNodes(childWrapper, this,
                                previousNode, nextNode);
-
 
       if (this.firstChild === refWrapper)
         this.firstChild_ = nodes[0];
