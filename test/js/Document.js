@@ -186,6 +186,21 @@ htmlSuite('Document', function() {
     assert.equal(div.ownerDocument, doc2);
   });
 
+  test('adoptNode with shadowRoot', function() {
+    var doc = wrap(document);
+    var doc2 = doc.implementation.createHTMLDocument('');
+    var div = doc2.createElement('div');
+    var sr = div.createShadowRoot();
+
+    assert.equal(div.ownerDocument, doc2);
+    assert.equal(sr.ownerDocument, doc2);
+
+    doc.adoptNode(div);
+
+    assert.equal(div.ownerDocument, doc);
+    assert.equal(sr.ownerDocument, doc);
+  });
+
   test('elementFromPoint', function() {
     div = document.body.appendChild(document.createElement('div'));
     div.style.cssText = 'position: fixed; background: green; ' +
