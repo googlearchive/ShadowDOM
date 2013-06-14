@@ -59,6 +59,10 @@
   mixin(Document.prototype, {
     adoptNode: function(node) {
       originalAdoptNode.call(this.impl, unwrap(node));
+      if (node.parentNode)
+        node.parentNode.removeChild(node);
+      if (node.shadowRoot)
+        this.adoptNode(node.shadowRoot);
       return node;
     },
     elementFromPoint: function(x, y) {
