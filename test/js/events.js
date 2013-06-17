@@ -57,9 +57,8 @@ htmlSuite('Events', function() {
   }
 
   teardown(function() {
-    if (div) {
+    if (div && div.parentNode)
       div.parentNode.removeChild(div);
-    }
     div = a = b = c = d = e = f = content = sr = undefined;
   });
 
@@ -1184,6 +1183,9 @@ test('retarget order (multiple shadow roots)', function() {
     tree.e.addEventListener('x', function f(e) {
       assertArrayEqual(
           [
+            tree.c,
+            tree.content,
+            tree.content2,
             tree.e,
             tree.sr2,
             tree.d,
@@ -1200,6 +1202,9 @@ test('retarget order (multiple shadow roots)', function() {
     tree.sr.addEventListener('x', function f(e) {
       assertArrayEqual(
           [
+            tree.c,
+            tree.content,
+            tree.d,
             tree.sr,
             tree.b,
             tree.a,
@@ -1210,13 +1215,25 @@ test('retarget order (multiple shadow roots)', function() {
       tree.sr.removeEventListener('x', f);
     });
 
+    tree.c.addEventListener('x', function f(e) {
+      assertArrayEqual(
+          [
+            tree.c,
+            tree.b,
+            tree.a,
+            tree.div,
+          ],
+          e.path);
+
+      tree.c.removeEventListener('x', f);
+    });
+
     tree.c.dispatchEvent(e);
   });
 
   test('event.path on body (bubbles)', function() {
     var e = new Event('x', {bubbles: true});
     var doc = wrap(document);
-    var win = wrap(window);
 
     doc.body.addEventListener('x', function f(e) {
       assertArrayEqual(
@@ -1233,6 +1250,7 @@ test('retarget order (multiple shadow roots)', function() {
     doc.documentElement.addEventListener('x', function f(e) {
       assertArrayEqual(
           [
+            doc.body,
             doc.documentElement,
             doc,
           ],
