@@ -271,7 +271,36 @@ suite('Parallel Trees', function() {
         parentNode: div,
         previousSibling: b
       });
+    });
 
+    test('appendChild with empty document fragment', function() {
+      var div = document.createElement('div');
+      div.innerHTML = '<a></a>';
+      var a = div.lastChild;
+      var df = document.createDocumentFragment();
+      div.appendChild(df);
+
+      expectStructure(df, {});
+
+      expectStructure(div, {
+        firstChild: a,
+        lastChild: a
+      });
+
+      expectStructure(a, {
+        parentNode: div
+      });
+
+      unwrapAndExpectStructure(df, {});
+
+      unwrapAndExpectStructure(div, {
+        firstChild: a,
+        lastChild: a
+      });
+
+      unwrapAndExpectStructure(a, {
+        parentNode: div
+      });
     });
 
     test('removeChild, start with one child', function() {
