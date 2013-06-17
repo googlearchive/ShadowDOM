@@ -1137,4 +1137,111 @@ test('retarget order (multiple shadow roots)', function() {
     assertArrayEqual(expected, log);
   });
 
+  test('onclick', function() {
+    div = document.createElement('div');
+    wrap(document).body.appendChild(div);
+
+    var calls = 0;
+    var event;
+
+    function f(e) {
+      event = e;
+      calls++;
+      assert.equal(this, div);
+      assert.equal(e.target, div);
+    }
+
+    div.onclick = f;
+
+    assert.equal(div.onclick, f);
+
+    div.click();
+    assert.equal(calls, 1);
+    assert.isFalse(event.defaultPrevented);
+
+    div.onclick = null;
+    div.click();
+    assert.equal(calls, 1);
+
+    function g(e) {
+      calls++;
+      event = e;
+      return false;
+    }
+
+    div.onclick = g;
+    assert.equal(div.onclick, g);
+
+    div.click();
+    assert.equal(calls, 2);
+    assert.isTrue(event.defaultPrevented);
+  });
+
+  test('event.path (bubbles)', function() {
+    var tree = getPropagationTree();
+    var e = new Event('x', {bubbles: true});
+
+    tree.e.addEventListener('x', function f(e) {
+      assertArrayEqual(
+          [
+            tree.e,
+            tree.sr2,
+            tree.d,
+            tree.sr,
+            tree.b,
+            tree.a,
+            tree.div,
+          ],
+          e.path);
+
+      tree.e.removeEventListener('x', f);
+    });
+
+    tree.sr.addEventListener('x', function f(e) {
+      assertArrayEqual(
+          [
+            tree.sr,
+            tree.b,
+            tree.a,
+            tree.div,
+          ],
+          e.path);
+
+      tree.sr.removeEventListener('x', f);
+    });
+
+    tree.c.dispatchEvent(e);
+  });
+
+  test('event.path on body (bubbles)', function() {
+    var e = new Event('x', {bubbles: true});
+    var doc = wrap(document);
+    var win = wrap(window);
+
+    doc.body.addEventListener('x', function f(e) {
+      assertArrayEqual(
+          [
+            doc.body,
+            doc.documentElement,
+            doc,
+          ],
+          e.path);
+
+      doc.body.removeEventListener('x', f);
+    });
+
+    doc.documentElement.addEventListener('x', function f(e) {
+      assertArrayEqual(
+          [
+            doc.documentElement,
+            doc,
+          ],
+          e.path);
+
+      doc.documentElement.removeEventListener('x', f);
+    });
+
+    doc.body.dispatchEvent(e);
+  });
+
 });
