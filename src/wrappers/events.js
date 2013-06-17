@@ -171,6 +171,19 @@
     return rootOfNode(a) === rootOfNode(b);
   }
 
+  function enclosedBy(a, b) {
+    if (a === b)
+      return true;
+    if (a instanceof wrappers.ShadowRoot) {
+      var host = scope.getHostForShadowRoot(a);
+      if (!host)
+        return false;
+      return enclosedBy(rootOfNode(host), b);
+    }
+    return false;
+
+  }
+
   function isMutationEvent(type) {
     switch (type) {
       case 'DOMAttrModified':
@@ -389,17 +402,16 @@
       var eventPath = eventPathTable.get(this);
       if (eventPath) {
         var index = 0;
-        var found = false;
-        var currentTarget = currentTargetTable.get(this);
         var lastIndex = eventPath.length - 1;
+        var baseRoot = rootOfNode(currentTargetTable.get(this));
+
         for (var i = 0; i <= lastIndex; i++) {
-          if (!found)
-            found = eventPath[i].currentTarget === currentTarget;
-          if (found) {
-            var node = eventPath[i].currentTarget;
-            // Do not include the top Window.
-            if (i !== lastIndex || node instanceof wrappers.Node)
-              nodeList[index++] = node;
+          var currentTarget = eventPath[i].currentTarget;
+          var currentRoot = rootOfNode(currentTarget);
+          if (enclosedBy(baseRoot, currentRoot) &&
+              // Make sure we do not add Window to the path.
+              (i !== lastIndex || currentTarget instanceof wrappers.Node)) {
+            nodeList[index++] = currentTarget;
           }
         }
         nodeList.length = index;
