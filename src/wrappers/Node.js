@@ -59,12 +59,14 @@
     return nodes;
   }
 
-  function unwrapNodesForInsertion(nodes) {
-    if (nodes.length === 1)
+  function unwrapNodesForInsertion(owner, nodes) {
+    var length = nodes.length;
+
+    if (length === 1)
       return unwrap(nodes[0]);
 
-    var df = unwrap(nodes[0].ownerDocument.createDocumentFragment());
-    for (var i = 0; i < nodes.length; i++) {
+    var df = unwrap(owner.ownerDocument.createDocumentFragment());
+    for (var i = 0; i < length; i++) {
       df.appendChild(unwrap(nodes[i]));
     }
     return df;
@@ -160,7 +162,7 @@
       // A better aproach might be to make sure we only get here for nodes that
       // are related to a shadow host and then invalidate that and re-render
       // the host (on reflow?).
-      originalAppendChild.call(this.impl, unwrapNodesForInsertion(nodes));
+      originalAppendChild.call(this.impl, unwrapNodesForInsertion(this, nodes));
 
       return childWrapper;
     },
@@ -190,7 +192,7 @@
       if (parentNode) {
         originalInsertBefore.call(
             parentNode,
-            unwrapNodesForInsertion(nodes),
+            unwrapNodesForInsertion(this, nodes),
             refNode);
       }
 
@@ -265,7 +267,7 @@
       if (oldChildNode.parentNode) {
         originalReplaceChild.call(
             oldChildNode.parentNode,
-            unwrapNodesForInsertion(nodes),
+            unwrapNodesForInsertion(this, nodes),
             oldChildNode);
       }
 
