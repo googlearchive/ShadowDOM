@@ -114,4 +114,12 @@ suite('Element', function() {
     assert.equal(as[0], a3);
     assert.equal(as[1], a4);
   });
+
+  test('webkitCreateShadowRoot', function() {
+    var div = document.createElement('div');
+    if (!div.webkitCreateShadowRoot)
+      return;
+    var sr = div.webkitCreateShadowRoot();
+    assert.instanceOf(sr, ShadowRoot);
+  });
 });

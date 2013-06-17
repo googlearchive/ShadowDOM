@@ -186,6 +186,41 @@ htmlSuite('Document', function() {
     assert.equal(div.ownerDocument, doc2);
   });
 
+  test('adoptNode with shadowRoot', function() {
+    var doc = wrap(document);
+    var doc2 = doc.implementation.createHTMLDocument('');
+    var div = doc2.createElement('div');
+    var sr = div.createShadowRoot();
+    sr.innerHTML = '<a></a>';
+    var a = sr.firstChild;
+
+    var sr2 = div.createShadowRoot();
+    sr2.innerHTML = '<b><shadow></shadow></b>';
+    var b = sr2.firstChild;
+
+    var sr3 = a.createShadowRoot();
+    sr3.innerHTML = '<c></c>';
+    var c = sr3.firstChild;
+
+    assert.equal(div.ownerDocument, doc2);
+    assert.equal(sr.ownerDocument, doc2);
+    assert.equal(sr2.ownerDocument, doc2);
+    assert.equal(sr3.ownerDocument, doc2);
+    assert.equal(a.ownerDocument, doc2);
+    assert.equal(b.ownerDocument, doc2);
+    assert.equal(c.ownerDocument, doc2);
+
+    doc.adoptNode(div);
+
+    assert.equal(div.ownerDocument, doc);
+    assert.equal(sr.ownerDocument, doc);
+    assert.equal(sr2.ownerDocument, doc);
+    assert.equal(sr3.ownerDocument, doc);
+    assert.equal(a.ownerDocument, doc);
+    assert.equal(b.ownerDocument, doc);
+    assert.equal(c.ownerDocument, doc);
+  });
+
   test('elementFromPoint', function() {
     div = document.body.appendChild(document.createElement('div'));
     div.style.cssText = 'position: fixed; background: green; ' +

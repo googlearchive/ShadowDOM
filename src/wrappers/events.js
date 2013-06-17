@@ -21,6 +21,8 @@
   var eventPhaseTable = new SideTable();
   var stopPropagationTable = new SideTable();
   var stopImmediatePropagationTable = new SideTable();
+  var eventHandlersTable = new SideTable();
+  var eventPathTable = new SideTable();
 
   function isShadowRoot(node) {
     return node instanceof wrappers.ShadowRoot;
@@ -47,7 +49,7 @@
 
     // 1.
     if (isShadowRoot(node))
-      return node.insertionParent || scope.getHostForShadowRoot(node);
+      return getInsertionParent(node) || scope.getHostForShadowRoot(node);
 
     // 2.
     var eventParents = scope.eventParentsTable.get(node);
@@ -64,7 +66,7 @@
       var parentNode = node.parentNode;
       if (parentNode && isShadowHost(parentNode)) {
         var trees = scope.getShadowTrees(parentNode);
-        var p = context.insertionParent;
+        var p = getInsertionParent(context);
         for (var i = 0; i < trees.length; i++) {
           if (trees[i].contains(p))
             return p;
@@ -149,8 +151,12 @@
     }
   }
 
+  function getInsertionParent(node) {
+    return scope.insertionParentTable.get(node);
+  }
+
   function isDistributed(node) {
-    return node.insertionParent;
+    return getInsertionParent(node);
   }
 
   function rootOfNode(node) {
@@ -206,12 +212,14 @@
     //
     // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-end.html#the-end
     //
-    // TODO(arv): Find a loess hacky way to do this.
+    // TODO(arv): Find a less hacky way to do this.
     if (event.type === 'load' &&
         eventPath.length === 2 &&
         eventPath[0].target instanceof wrappers.Document) {
       eventPath.shift();
     }
+
+    eventPathTable.set(event, eventPath);
 
     if (dispatchCapturing(event, eventPath)) {
       if (dispatchAtTarget(event, eventPath)) {
@@ -375,6 +383,28 @@
     },
     get eventPhase() {
       return eventPhaseTable.get(this);
+    },
+    get path() {
+      var nodeList = new wrappers.NodeList();
+      var eventPath = eventPathTable.get(this);
+      if (eventPath) {
+        var index = 0;
+        var found = false;
+        var currentTarget = currentTargetTable.get(this);
+        var lastIndex = eventPath.length - 1;
+        for (var i = 0; i <= lastIndex; i++) {
+          if (!found)
+            found = eventPath[i].currentTarget === currentTarget;
+          if (found) {
+            var node = eventPath[i].currentTarget;
+            // Do not include the top Window.
+            if (i !== lastIndex || node instanceof wrappers.Node)
+              nodeList[index++] = node;
+          }
+        }
+        nodeList.length = index;
+      }
+      return nodeList;
     },
     stopPropagation: function() {
       stopPropagationTable.set(this, true);
@@ -624,8 +654,61 @@
     return null;
   }
 
+  /**
+   * Returns a function that is to be used as a getter for `onfoo` properties.
+   * @param {string} name
+   * @return {Function}
+   */
+  function getEventHandlerGetter(name) {
+    return function() {
+      var inlineEventHandlers = eventHandlersTable.get(this);
+      return inlineEventHandlers && inlineEventHandlers[name] &&
+          inlineEventHandlers[name].value || null;
+     };
+  }
+
+  /**
+   * Returns a function that is to be used as a setter for `onfoo` properties.
+   * @param {string} name
+   * @return {Function}
+   */
+  function getEventHandlerSetter(name) {
+    var eventType = name.slice(2);
+    return function(value) {
+      var inlineEventHandlers = eventHandlersTable.get(this);
+      if (!inlineEventHandlers) {
+        inlineEventHandlers = Object.create(null);
+        eventHandlersTable.set(this, inlineEventHandlers);
+      }
+
+      var old = inlineEventHandlers[name];
+      if (old)
+        this.removeEventListener(eventType, old.wrapped, false);
+
+      if (typeof value === 'function') {
+        var wrapped = function(e) {
+          var rv = value.call(this, e);
+          if (rv === false)
+            e.preventDefault();
+          else if (name === 'onbeforeunload' && typeof rv === 'string')
+            e.returnValue = rv;
+          // mouseover uses true for preventDefault but preventDefault for
+          // mouseover is ignored by browsers these day.
+        };
+
+        this.addEventListener(eventType, wrapped, false);
+        inlineEventHandlers[name] = {
+          value: value,
+          wrapped: wrapped
+        };
+      }
+    };
+  }
+
   scope.adjustRelatedTarget = adjustRelatedTarget;
   scope.elementFromPoint = elementFromPoint;
+  scope.getEventHandlerGetter = getEventHandlerGetter;
+  scope.getEventHandlerSetter = getEventHandlerSetter;
   scope.wrapEventTargetMethods = wrapEventTargetMethods;
   scope.wrappers.CustomEvent = CustomEvent;
   scope.wrappers.Event = Event;

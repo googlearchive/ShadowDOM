@@ -9,6 +9,7 @@
   var Node = scope.wrappers.Node;
   var ParentNodeInterface = scope.ParentNodeInterface;
   var SelectorsInterface = scope.SelectorsInterface;
+  var ShadowRoot = scope.wrappers.ShadowRoot;
   var defineWrapGetter = scope.defineWrapGetter;
   var elementFromPoint = scope.elementFromPoint;
   var forwardMethodsToWrapper = scope.forwardMethodsToWrapper;
@@ -56,9 +57,28 @@
   var originalAdoptNode = document.adoptNode;
   var originalWrite = document.write;
 
+  function adoptSubtree(node, doc) {
+    if (node.shadowRoot)
+      doc.adoptNode(node.shadowRoot);
+    if (node instanceof ShadowRoot)
+      adoptOlderShadowRoots(node, doc);
+    for (var child = node.firstChild; child; child = child.nextSibling) {
+      adoptSubtree(child, doc);
+    }
+  }
+
+  function adoptOlderShadowRoots(shadowRoot, doc) {
+    var oldShadowRoot = scope.nextOlderShadowTreeTable.get(shadowRoot);
+    if (oldShadowRoot)
+      doc.adoptNode(oldShadowRoot);
+  }
+
   mixin(Document.prototype, {
     adoptNode: function(node) {
+      if (node.parentNode)
+        node.parentNode.removeChild(node);
       originalAdoptNode.call(this.impl, unwrap(node));
+      adoptSubtree(node, this);
       return node;
     },
     elementFromPoint: function(x, y) {
