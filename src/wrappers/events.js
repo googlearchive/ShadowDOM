@@ -447,10 +447,17 @@
     GenericEvent.prototype = Object.create(SuperEvent.prototype);
     if (prototype)
       mixin(GenericEvent.prototype, prototype);
-    // Firefox does not support FocusEvent
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=855741
-    if (OriginalEvent)
-      registerWrapper(OriginalEvent, GenericEvent, document.createEvent(name));
+    if (OriginalEvent) {
+      // IE does not support event constructors but FocusEvent can only be
+      // created using new FocusEvent in Firefox.
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=882165
+      if (OriginalEvent.prototype['init' + name]) {
+        registerWrapper(OriginalEvent, GenericEvent,
+                        document.createEvent(name));
+      } else {
+        registerWrapper(OriginalEvent, GenericEvent, new OriginalEvent('temp'));
+      }
+    }
     return GenericEvent;
   }
 
