@@ -1266,4 +1266,15 @@ test('retarget order (multiple shadow roots)', function() {
     doc.body.dispatchEvent(e);
   });
 
+  test('dispatch on text node', function() {
+    var text = document.createTextNode('x');
+    text.addEventListener('x', function f(e) {
+      assert.equal(e.target, text);
+      assert.equal(e.currentTarget, text);
+      assert.equal(this, text);
+      text.removeEventListener('x', f);
+    });
+    text.dispatchEvent(new Event('x'));
+  });
+
 });
