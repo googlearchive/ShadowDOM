@@ -45,13 +45,14 @@
   }
 
   [
-    'getElementById',
+    'createDocumentFragment',
     'createElement',
     'createElementNS',
-    'createTextNode',
-    'createDocumentFragment',
     'createEvent',
     'createEventNS',
+    'createRange',
+    'createTextNode',
+    'getElementById',
   ].forEach(wrapMethod);
 
   var originalAdoptNode = document.adoptNode;
@@ -125,6 +126,7 @@
     'createElementNS',
     'createEvent',
     'createEventNS',
+    'createRange',
     'createTextNode',
     'elementFromPoint',
     'getElementById',
