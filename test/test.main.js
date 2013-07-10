@@ -50,6 +50,7 @@ mocha.setup({
 })
 
 var modules = [
+  'ChildNodeInterface.js',
   'Comment.js',
   'Document.js',
   'Element.js',

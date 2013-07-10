@@ -59,7 +59,7 @@
     },
 
     get previousElementSibling() {
-      return backwardsElement(this.nextSibling);
+      return backwardsElement(this.previousSibling);
     }
   };
 
