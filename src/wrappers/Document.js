@@ -68,7 +68,7 @@
   }
 
   function adoptOlderShadowRoots(shadowRoot, doc) {
-    var oldShadowRoot = scope.nextOlderShadowTreeTable.get(shadowRoot);
+    var oldShadowRoot = shadowRoot.olderShadowRoot;
     if (oldShadowRoot)
       doc.adoptNode(oldShadowRoot);
   }
