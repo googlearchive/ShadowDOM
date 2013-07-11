@@ -249,4 +249,29 @@ suite('MutationObserver', function() {
     document.head.setAttribute('a', newValue());
   });
 
+  test('observe text node', function(done) {
+    if (!window.MutationObserver) {
+      done();
+      return;
+    }
+
+    div = document.body.appendChild(document.createElement('div'));
+    var a = document.createTextNode('');
+    div.appendChild(a);
+
+    var mo = new MutationObserver(function(records, observer) {
+      mergeRecords(records);
+      assert.equal(this, mo);
+      assert.equal(observer, mo);
+      assert.equal(records[0].type, 'childList');
+      assert.equal(records[0].target, div);
+      assert.equal(removedNodes.length, 1);
+      assert.equal(removedNodes[0], a);
+      done();
+    });
+    mo.observe(div, {childList: true});
+
+    div.removeChild(a);
+  });
+
 });

@@ -57,9 +57,8 @@ htmlSuite('Events', function() {
   }
 
   teardown(function() {
-    if (div) {
+    if (div && div.parentNode)
       div.parentNode.removeChild(div);
-    }
     div = a = b = c = d = e = f = content = sr = undefined;
   });
 
@@ -1174,7 +1173,11 @@ test('retarget order (multiple shadow roots)', function() {
 
     div.click();
     assert.equal(calls, 2);
-    assert.isTrue(event.defaultPrevented);
+
+    // defaultPrevented is broken in IE.
+    // https://connect.microsoft.com/IE/feedback/details/790389/event-defaultprevented-returns-false-after-preventdefault-was-called 
+    if (!/IE/.test(navigator.userAgent))
+      assert.isTrue(event.defaultPrevented);
   });
 
   test('event.path (bubbles)', function() {
@@ -1184,6 +1187,9 @@ test('retarget order (multiple shadow roots)', function() {
     tree.e.addEventListener('x', function f(e) {
       assertArrayEqual(
           [
+            tree.c,
+            tree.content,
+            tree.content2,
             tree.e,
             tree.sr2,
             tree.d,
@@ -1200,6 +1206,9 @@ test('retarget order (multiple shadow roots)', function() {
     tree.sr.addEventListener('x', function f(e) {
       assertArrayEqual(
           [
+            tree.c,
+            tree.content,
+            tree.d,
             tree.sr,
             tree.b,
             tree.a,
@@ -1210,13 +1219,25 @@ test('retarget order (multiple shadow roots)', function() {
       tree.sr.removeEventListener('x', f);
     });
 
+    tree.c.addEventListener('x', function f(e) {
+      assertArrayEqual(
+          [
+            tree.c,
+            tree.b,
+            tree.a,
+            tree.div,
+          ],
+          e.path);
+
+      tree.c.removeEventListener('x', f);
+    });
+
     tree.c.dispatchEvent(e);
   });
 
   test('event.path on body (bubbles)', function() {
     var e = new Event('x', {bubbles: true});
     var doc = wrap(document);
-    var win = wrap(window);
 
     doc.body.addEventListener('x', function f(e) {
       assertArrayEqual(
@@ -1233,6 +1254,7 @@ test('retarget order (multiple shadow roots)', function() {
     doc.documentElement.addEventListener('x', function f(e) {
       assertArrayEqual(
           [
+            doc.body,
             doc.documentElement,
             doc,
           ],
@@ -1242,6 +1264,17 @@ test('retarget order (multiple shadow roots)', function() {
     });
 
     doc.body.dispatchEvent(e);
+  });
+
+  test('dispatch on text node', function() {
+    var text = document.createTextNode('x');
+    text.addEventListener('x', function f(e) {
+      assert.equal(e.target, text);
+      assert.equal(e.currentTarget, text);
+      assert.equal(this, text);
+      text.removeEventListener('x', f);
+    });
+    text.dispatchEvent(new Event('x'));
   });
 
 });
