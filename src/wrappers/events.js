@@ -171,6 +171,19 @@
     return rootOfNode(a) === rootOfNode(b);
   }
 
+  function enclosedBy(a, b) {
+    if (a === b)
+      return true;
+    if (a instanceof wrappers.ShadowRoot) {
+      var host = scope.getHostForShadowRoot(a);
+      if (!host)
+        return false;
+      return enclosedBy(rootOfNode(host), b);
+    }
+    return false;
+
+  }
+
   function isMutationEvent(type) {
     switch (type) {
       case 'DOMAttrModified':
@@ -389,17 +402,16 @@
       var eventPath = eventPathTable.get(this);
       if (eventPath) {
         var index = 0;
-        var found = false;
-        var currentTarget = currentTargetTable.get(this);
         var lastIndex = eventPath.length - 1;
+        var baseRoot = rootOfNode(currentTargetTable.get(this));
+
         for (var i = 0; i <= lastIndex; i++) {
-          if (!found)
-            found = eventPath[i].currentTarget === currentTarget;
-          if (found) {
-            var node = eventPath[i].currentTarget;
-            // Do not include the top Window.
-            if (i !== lastIndex || node instanceof wrappers.Node)
-              nodeList[index++] = node;
+          var currentTarget = eventPath[i].currentTarget;
+          var currentRoot = rootOfNode(currentTarget);
+          if (enclosedBy(baseRoot, currentRoot) &&
+              // Make sure we do not add Window to the path.
+              (i !== lastIndex || currentTarget instanceof wrappers.Node)) {
+            nodeList[index++] = currentTarget;
           }
         }
         nodeList.length = index;
@@ -435,10 +447,17 @@
     GenericEvent.prototype = Object.create(SuperEvent.prototype);
     if (prototype)
       mixin(GenericEvent.prototype, prototype);
-    // Firefox does not support FocusEvent
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=855741
-    if (OriginalEvent)
-      registerWrapper(OriginalEvent, GenericEvent, document.createEvent(name));
+    if (OriginalEvent) {
+      // IE does not support event constructors but FocusEvent can only be
+      // created using new FocusEvent in Firefox.
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=882165
+      if (OriginalEvent.prototype['init' + name]) {
+        registerWrapper(OriginalEvent, GenericEvent,
+                        document.createEvent(name));
+      } else {
+        registerWrapper(OriginalEvent, GenericEvent, new OriginalEvent('temp'));
+      }
+    }
     return GenericEvent;
   }
 
@@ -568,7 +587,7 @@
     'dispatchEvent'
   ];
 
-  [Element, Window, Document].forEach(function(constructor) {
+  [Node, Window].forEach(function(constructor) {
     var p = constructor.prototype;
     methodNames.forEach(function(name) {
       Object.defineProperty(p, name + '_', {value: p[name]});

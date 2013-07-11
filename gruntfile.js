@@ -4,32 +4,7 @@
  * license that can be found in the LICENSE file.
  */
 module.exports = function(grunt) {
-  ShadowDOM = [
-    'sidetable.js',
-    'wrappers.js',
-    'wrappers/events.js',
-    'wrappers/NodeList.js',
-    'wrappers/Node.js',
-    'querySelector.js',
-    'wrappers/node-interfaces.js',
-    'wrappers/CharacterData.js',
-    'wrappers/Element.js',
-    'wrappers/HTMLElement.js',
-    'wrappers/HTMLContentElement.js',
-    'wrappers/HTMLShadowElement.js',
-    'wrappers/HTMLTemplateElement.js',
-    'wrappers/HTMLUnknownElement.js',
-    'wrappers/generic.js',
-    'wrappers/ShadowRoot.js',
-    'ShadowRenderer.js',
-    'wrappers/Document.js',
-    'wrappers/Window.js',
-    'wrappers/MutationObserver.js',
-    'wrappers/override-constructors.js'
-  ];
-  ShadowDOM = ShadowDOM.map(function(p) {
-    return 'src/' + p;
-  });
+  ShadowDOM = grunt.file.readJSON('build.json');
   // karma setup
   var browsers;
   (function() {
@@ -72,7 +47,8 @@ module.exports = function(grunt) {
             // TODO(sjmiles): should be false by default (?)
             // https://github.com/mishoo/UglifyJS2/issues/165
             unsafe: false
-          }
+          },
+          banner: grunt.file.read('LICENSE')
           //compress: true, Xmangle: true, beautify: true, unsafe: false
         },
         files: {
@@ -103,7 +79,7 @@ module.exports = function(grunt) {
   // plugins
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-yuidoc');
-  grunt.loadNpmTasks('grunt-karma-0.9.1');
+  grunt.loadNpmTasks('grunt-karma');
 
   // tasks
   grunt.registerTask('default', ['uglify']);
