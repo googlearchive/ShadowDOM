@@ -14,6 +14,7 @@
   var unwrap = scope.unwrap;
 
   var shadowHostTable = new SideTable();
+  var nextOlderShadowTreeTable = new SideTable();
 
   function ShadowRoot(hostWrapper) {
     var node = unwrap(hostWrapper.impl.ownerDocument.createDocumentFragment());
@@ -24,7 +25,7 @@
     rewrap(node, this);
 
     var oldShadowRoot = hostWrapper.shadowRoot;
-    scope.nextOlderShadowTreeTable.set(this, oldShadowRoot);
+    nextOlderShadowTreeTable.set(this, oldShadowRoot);
 
     shadowHostTable.set(this, hostWrapper);
   }
@@ -36,6 +37,10 @@
     set innerHTML(value) {
       setInnerHTML(this, value);
       this.invalidateShadowRenderer();
+    },
+
+    get olderShadowRoot() {
+      return nextOlderShadowTreeTable.get(this) || null;
     },
 
     invalidateShadowRenderer: function() {

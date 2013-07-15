@@ -106,7 +106,6 @@
   var distributedChildNodesTable = new SideTable();
   var eventParentsTable = new SideTable();
   var insertionParentTable = new SideTable();
-  var nextOlderShadowTreeTable = new SideTable();
   var rendererForHostTable = new SideTable();
   var shadowDOMRendererTable = new SideTable();
 
@@ -370,10 +369,9 @@
     },
 
     renderShadowInsertionPoint: function(visualParent, tree, shadowInsertionPoint) {
-      var nextOlderTree = getNextOlderTree(tree);
+      var nextOlderTree = tree.olderShadowRoot;
       if (nextOlderTree) {
         assignToInsertionPoint(nextOlderTree, shadowInsertionPoint);
-        shadowInsertionPoint.olderShadowRoot_ = nextOlderTree;
         this.remove(shadowInsertionPoint);
         var shadowDOMChildNodes = getChildNodesSnapshot(nextOlderTree);
         shadowDOMChildNodes.forEach(function(node) {
@@ -421,7 +419,7 @@
 
         pool = distribute(tree, pool);  // 4.2.
         if (point) {  // 4.3.
-          var nextOlderTree = getNextOlderTree(tree);  // 4.3.1.
+          var nextOlderTree = tree.olderShadowRoot;  // 4.3.1.
           if (!nextOlderTree) {
             break;  // 4.3.1.1.
           } else {
@@ -480,19 +478,10 @@
     return !!shadowHost.shadowRoot;
   }
 
-  /**
-   * @param {WrapperShadowRoot} tree
-   */
-  function getNextOlderTree(tree) {
-    return nextOlderShadowTreeTable.get(tree);
-  }
-
   function getShadowTrees(host) {
     var trees = [];
 
-    for (var tree = host.shadowRoot;
-         tree;
-         tree = nextOlderShadowTreeTable.get(tree)) {
+    for (var tree = host.shadowRoot; tree; tree = tree.olderShadowRoot) {
       trees.push(tree);
     }
     return trees;
@@ -535,9 +524,8 @@
   scope.eventParentsTable = eventParentsTable;
   scope.getRendererForHost = getRendererForHost;
   scope.getShadowTrees = getShadowTrees;
-  scope.nextOlderShadowTreeTable = nextOlderShadowTreeTable;
-  scope.renderAllPending = renderAllPending;
   scope.insertionParentTable = insertionParentTable;
+  scope.renderAllPending = renderAllPending;
 
   // Exposed for testing
   scope.visual = {
