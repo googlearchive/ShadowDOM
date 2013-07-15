@@ -37,4 +37,23 @@ suite('ShadowRoot', function() {
     assert.equal(sr.getElementById('b'), b);
   });
 
+  test('olderShadowRoot', function() {
+    var host = document.createElement('div');
+    host.innerHTML = '<a>a</a><b>b</b>';
+    var a = host.firstChild;
+    var b = host.lastChild;
+
+    var sr = host.createShadowRoot();
+    sr.innerHTML = 'a';
+
+    host.offsetWidth;
+    assert.isNull(sr.olderShadowRoot);
+
+    var sr2 = host.createShadowRoot();
+    sr2.innerHTML = 'b';
+
+    host.offsetWidth;
+    assert.equal(sr2.olderShadowRoot, sr);
+  });
+
 });

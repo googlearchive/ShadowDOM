@@ -8,7 +8,7 @@ suite('HTMLShadowElement', function() {
 
   var unwrap = ShadowDOMPolyfill.unwrap;
 
-  test('olderShadowRoot', function() {
+  test('instanceof HTMLShadowElement', function() {
     var host = document.createElement('div');
     host.innerHTML = '<a>a</a><b>b</b>';
     var a = host.firstChild;
@@ -20,7 +20,6 @@ suite('HTMLShadowElement', function() {
 
     host.offsetWidth;
     assert.isTrue(shadow instanceof HTMLShadowElement);
-    assert.isNull(shadow.olderShadowRoot);
 
     var sr2 = host.createShadowRoot();
     sr2.innerHTML = 'd<shadow>e</shadow>f';
@@ -28,10 +27,8 @@ suite('HTMLShadowElement', function() {
 
     host.offsetWidth;
     assert.isTrue(shadow instanceof HTMLShadowElement);
-    assert.isNull(shadow.olderShadowRoot);
 
     assert.isTrue(shadow2 instanceof HTMLShadowElement);
-    assert.equal(shadow2.olderShadowRoot, sr);
 
     assert.equal(unwrap(host).innerHTML, 'dabcf');
   });
