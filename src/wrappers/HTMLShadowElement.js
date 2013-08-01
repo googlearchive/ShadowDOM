@@ -13,14 +13,9 @@
 
   function HTMLShadowElement(node) {
     HTMLElement.call(this, node);
-    this.olderShadowRoot_ = null;
   }
   HTMLShadowElement.prototype = Object.create(HTMLElement.prototype);
   mixin(HTMLShadowElement.prototype, {
-    get olderShadowRoot() {
-      return this.olderShadowRoot_;
-    },
-
     invalidateShadowRenderer: function() {
       HTMLElement.prototype.invalidateShadowRenderer.call(this, true);
     },
