@@ -76,6 +76,7 @@ var modules = [
   'ShadowRoot.js',
   'Text.js',
   'Window.js',
+  'Range.js',
   'custom-element.js',
   'events.js',
   'paralleltrees.js',
