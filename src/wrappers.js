@@ -199,10 +199,12 @@ var ShadowDOMPolyfill = {};
   var OriginalEvent = Event;
   var OriginalNode = Node;
   var OriginalWindow = Window;
+  var OriginalRange = Range;
 
   function isWrapper(object) {
     return object instanceof wrappers.EventTarget ||
            object instanceof wrappers.Event ||
+           object instanceof wrappers.Range ||
            object instanceof wrappers.DOMImplementation;
   }
 
@@ -210,6 +212,7 @@ var ShadowDOMPolyfill = {};
     return object instanceof OriginalNode ||
            object instanceof OriginalEvent ||
            object instanceof OriginalWindow ||
+           object instanceof OriginalRange ||
            object instanceof OriginalDOMImplementation;
   }
 
