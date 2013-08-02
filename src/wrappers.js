@@ -140,9 +140,8 @@ var ShadowDOMPolyfill = {};
   /**
    * @param {Function} nativeConstructor
    * @param {Function} wrapperConstructor
-   * @param {string|Object=} opt_instance If present, this is used to extract
-   *     properties from an instance object. If this is a string
-   *     |document.createElement| is used to create an instance.
+   * @param {Object=} opt_instance If present, this is used to extract
+   *     properties from an instance object.
    */
   function register(nativeConstructor, wrapperConstructor, opt_instance) {
     var nativePrototype = nativeConstructor.prototype;
