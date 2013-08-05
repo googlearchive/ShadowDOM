@@ -248,5 +248,16 @@ htmlSuite('Document', function() {
     assert.equal(doc.elementFromPoint(5, 5), div);
   });
 
+  test('document.contains', function() {
+    assert.isTrue(document.contains(document.body));
+    assert.isTrue(document.contains(document.querySelector('body')));
+
+    assert.isTrue(document.contains(document.head));
+    assert.isTrue(document.contains(document.querySelector('head')));
+
+    assert.isTrue(document.contains(document.documentElement));
+    assert.isTrue(document.contains(document.querySelector('html')));
+  });
+
   htmlTest('html/document-write.html');
 });
