@@ -45,6 +45,7 @@
   }
 
   [
+    'createComment',
     'createDocumentFragment',
     'createElement',
     'createElementNS',
@@ -175,6 +176,7 @@
     window.HTMLBodyElement,
     window.HTMLDocument || window.Document,  // Gecko adds these to HTMLDocument
     window.HTMLHeadElement,
+    window.HTMLHtmlElement,
   ], [
     'appendChild',
     'compareDocumentPosition',
@@ -194,6 +196,7 @@
   ], [
     'adoptNode',
     'contains',
+    'createComment',
     'createDocumentFragment',
     'createElement',
     'createElementNS',
