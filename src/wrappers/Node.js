@@ -13,6 +13,7 @@
   var registerWrapper = scope.registerWrapper;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
+  var wrapIfNeeded = scope.wrapIfNeeded;
 
   function assertIsNodeWrapper(node) {
     assert(node instanceof Node);
@@ -362,6 +363,8 @@
     contains: function(child) {
       if (!child)
         return false;
+
+      child = wrapIfNeeded(child);
 
       // TODO(arv): Optimize using ownerDocument etc.
       if (child === this)

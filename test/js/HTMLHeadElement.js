@@ -85,4 +85,12 @@ suite('HTMLHeadElement', function() {
     doc.body.removeChild(div);
     assert.isNull(div.parentNode);
   });
+
+  test('document.head.contains', function() {
+    var doc = wrap(document);
+    assert.isTrue(doc.head.contains(doc.head.firstChild));
+    assert.isTrue(doc.head.contains(document.head.firstChild));
+    assert.isTrue(document.head.contains(doc.head.firstChild));
+    assert.isTrue(document.head.contains(document.head.firstChild));
+  });
 });
