@@ -107,6 +107,7 @@
   ], [
     'appendChild',
     'compareDocumentPosition',
+    'contains',
     'getElementsByClassName',
     'getElementsByTagName',
     'getElementsByTagNameNS',
@@ -121,6 +122,7 @@
     window.HTMLDocument || window.Document,  // Gecko adds these to HTMLDocument
   ], [
     'adoptNode',
+    'contains',
     'createDocumentFragment',
     'createElement',
     'createElementNS',
