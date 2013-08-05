@@ -9,6 +9,7 @@ var ShadowDOMPolyfill = {};
 
   var wrapperTable = new SideTable();
   var constructorTable = new SideTable();
+  var nativePrototypeTable = new SideTable();
   var wrappers = Object.create(null);
 
   function assert(b) {
@@ -152,7 +153,10 @@ var ShadowDOMPolyfill = {};
   function registerInternal(nativePrototype, wrapperConstructor, opt_instance) {
     var wrapperPrototype = wrapperConstructor.prototype;
     assert(constructorTable.get(nativePrototype) === undefined);
+
     constructorTable.set(nativePrototype, wrapperConstructor);
+    nativePrototypeTable.set(wrapperPrototype, nativePrototype);
+
     addForwardingProperties(nativePrototype, wrapperPrototype);
     if (opt_instance)
       registerInstanceProperties(wrapperPrototype, opt_instance);
@@ -312,11 +316,13 @@ var ShadowDOMPolyfill = {};
   }
 
   scope.assert = assert;
+  scope.constructorTable = constructorTable;
   scope.defineGetter = defineGetter;
   scope.defineWrapGetter = defineWrapGetter;
   scope.forwardMethodsToWrapper = forwardMethodsToWrapper;
   scope.isWrapperFor = isWrapperFor;
   scope.mixin = mixin;
+  scope.nativePrototypeTable = nativePrototypeTable;
   scope.registerObject = registerObject;
   scope.registerWrapper = register;
   scope.rewrap = rewrap;

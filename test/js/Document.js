@@ -259,5 +259,56 @@ htmlSuite('Document', function() {
     assert.isTrue(document.contains(document.querySelector('html')));
   });
 
+  test('document.register', function() {
+    if (!document.register)
+      return;
+
+    var aPrototype = Object.create(HTMLElement.prototype);
+    aPrototype.getName = function() {
+      return 'a';
+    };
+
+    var A = document.register('x-a', {prototype: aPrototype});
+
+    var a1 = document.createElement('x-a');
+    assert.equal('x-a', a1.localName);
+    assert.equal(Object.getPrototypeOf(a1), aPrototype);
+    assert.instanceOf(a1, A);
+    assert.instanceOf(a1, HTMLElement);
+    assert.equal(a1.getName(), 'a');
+
+    var a2 = new A();
+    assert.equal('x-a', a2.localName);
+    assert.equal(Object.getPrototypeOf(a2), aPrototype);
+    assert.instanceOf(a2, A);
+    assert.instanceOf(a2, HTMLElement);
+    assert.equal(a2.getName(), 'a');
+
+    //////////////////////////////////////////////////////////////////////
+
+    var bPrototype = Object.create(A.prototype);
+    bPrototype.getName = function() {
+      return 'b';
+    };
+
+    var B = document.register('x-b', {prototype: bPrototype});
+
+    var b1 = document.createElement('x-b');
+    assert.equal('x-b', b1.localName);
+    assert.equal(Object.getPrototypeOf(b1), bPrototype);
+    assert.instanceOf(b1, B);
+    assert.instanceOf(b1, A);
+    assert.instanceOf(b1, HTMLElement);
+    assert.equal(b1.getName(), 'b');
+
+    var b2 = new B();
+    assert.equal('x-b', b2.localName);
+    assert.equal(Object.getPrototypeOf(b2), bPrototype);
+    assert.instanceOf(b2, B);
+    assert.instanceOf(b2, A);
+    assert.instanceOf(b2, HTMLElement);
+    assert.equal(b2.getName(), 'b');
+  });
+
   htmlTest('html/document-write.html');
 });
