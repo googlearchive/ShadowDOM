@@ -127,11 +127,31 @@
 
       var newPrototype = Object.create(nativePrototype);
 
+      // Add callbacks if present.
+      // Names are taken from:
+      //   https://code.google.com/p/chromium/codesearch#chromium/src/third_party/WebKit/Source/bindings/v8/CustomElementConstructorBuilder.cpp&sq=package:chromium&type=cs&l=156
+      // and not from the spec since the spec is out of date.
+      [
+        'createdCallback',
+        'enteredDocumentCallback',
+        'leftDocumentCallback',
+        'attributeChangedCallback',
+      ].forEach(function(name) {
+        var f = prototype[name];
+        if (!f)
+          return;
+        newPrototype[name] = function() {
+          f.apply(wrap(this), arguments);
+        };
+      });
+
       var nativeConstructor = originalRegister.call(unwrap(this), tagName,
           {prototype: newPrototype});
 
       function GeneratedWrapper(node) {
-        this.impl = node || unwrap(document.createElement(tagName));
+        if (!node)
+          return document.createElement(tagName);
+        this.impl = node;
       }
       GeneratedWrapper.prototype = prototype;
       GeneratedWrapper.prototype.constructor = GeneratedWrapper;

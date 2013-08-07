@@ -310,5 +310,105 @@ htmlSuite('Document', function() {
     assert.equal(b2.getName(), 'b');
   });
 
+  test('document.register createdCallback', function() {
+    if (!document.register)
+      return;
+
+    var self;
+    var createdCalls = 0;
+
+    function A() {}
+    A.prototype = {
+      __proto__: HTMLElement.prototype,
+      createdCallback: function() {
+        createdCalls++;
+        assert.isUndefined(a);
+        assert.instanceOf(this, A);
+        self = this;
+      }
+    }
+
+    A = document.register('x-aa', A);
+
+    var a = new A;
+    assert.equal(createdCalls, 1);
+    assert.equal(self, a);
+  });
+
+  test('document.register enteredDocumentCallback, leftDocumentCallback',
+      function() {
+    if (!document.register)
+      return;
+
+    var enteredDocumentCalls = 0;
+    var leftDocumentCalls = 0;
+
+    function A() {}
+    A.prototype = {
+      __proto__: HTMLElement.prototype,
+      enteredDocumentCallback: function() {
+        enteredDocumentCalls++;
+        assert.instanceOf(this, A);
+        assert.equal(a, this);
+      },
+      leftDocumentCallback: function() {
+        leftDocumentCalls++;
+        assert.instanceOf(this, A);
+        assert.equal(a, this);
+      }
+    }
+
+    A = document.register('x-aaa', A);
+
+    var a = new A;
+    document.body.appendChild(a);
+    assert.equal(enteredDocumentCalls, 1);
+    document.body.removeChild(a);
+    assert.equal(leftDocumentCalls, 1);
+  });
+
+  test('document.register attributeChangedCallback',
+      function() {
+    if (!document.register)
+      return;
+
+    var attributeChangedCalls = 0;
+
+    function A() {}
+    A.prototype = {
+      __proto__: HTMLElement.prototype,
+      attributeChangedCallback: function(name, oldValue, newValue) {
+        attributeChangedCalls++;
+        assert.equal(name, 'foo');
+        switch (attributeChangedCalls) {
+          case 1:
+            assert.isNull(oldValue);
+            assert.equal(newValue, 'bar');
+            break;
+          case 2:
+            assert.equal(oldValue, 'bar');
+            assert.equal(newValue, 'baz');
+            break;
+          case 3:
+            assert.equal(oldValue, 'baz');
+            assert.isNull(newValue);
+            break;
+        }
+        console.log(arguments);
+      }
+    }
+
+    A = document.register('x-aaaa', A);
+
+    var a = new A;
+    assert.equal(attributeChangedCalls, 0);
+    a.setAttribute('foo', 'bar');
+    assert.equal(attributeChangedCalls, 1);
+    a.setAttribute('foo', 'baz');
+    assert.equal(attributeChangedCalls, 2);
+    a.removeAttribute('foo');
+    assert.equal(attributeChangedCalls, 3);
+  });
+
   htmlTest('html/document-write.html');
 });
