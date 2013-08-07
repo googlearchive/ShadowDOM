@@ -98,6 +98,77 @@
     }
   });
 
+  if (document.register) {
+    var originalRegister = document.register;
+    Document.prototype.register = function(tagName, object) {
+      var prototype = object.prototype;
+
+      // If we already used the object as a prototype for another custom
+      // element.
+      if (scope.nativePrototypeTable.get(prototype)) {
+        // TODO(arv): DOMException
+        throw new Error('NotSupportedError');
+      }
+
+      // This is a simplification. We require that the proto is an element
+      // that has already been registered.
+
+      var proto = Object.getPrototypeOf(prototype);
+      var nativePrototype = scope.nativePrototypeTable.get(proto);
+
+      if (!nativePrototype) {
+        // TODO(arv): DOMException
+        throw new Error('NotSupportedError');
+      }
+
+      // This works by creating a new prototype object that is empty, but has
+      // the native prototype as its proto. The original prototype object
+      // passed into register is used as the wrapper prototype.
+
+      var newPrototype = Object.create(nativePrototype);
+
+      // Add callbacks if present.
+      // Names are taken from:
+      //   https://code.google.com/p/chromium/codesearch#chromium/src/third_party/WebKit/Source/bindings/v8/CustomElementConstructorBuilder.cpp&sq=package:chromium&type=cs&l=156
+      // and not from the spec since the spec is out of date.
+      [
+        'createdCallback',
+        'enteredDocumentCallback',
+        'leftDocumentCallback',
+        'attributeChangedCallback',
+      ].forEach(function(name) {
+        var f = prototype[name];
+        if (!f)
+          return;
+        newPrototype[name] = function() {
+          f.apply(wrap(this), arguments);
+        };
+      });
+
+      var nativeConstructor = originalRegister.call(unwrap(this), tagName,
+          {prototype: newPrototype});
+
+      function GeneratedWrapper(node) {
+        if (!node)
+          return document.createElement(tagName);
+        this.impl = node;
+      }
+      GeneratedWrapper.prototype = prototype;
+      GeneratedWrapper.prototype.constructor = GeneratedWrapper;
+
+      scope.constructorTable.set(newPrototype, GeneratedWrapper);
+      scope.nativePrototypeTable.set(prototype, newPrototype);
+
+      return GeneratedWrapper;
+    };
+
+    forwardMethodsToWrapper([
+      window.HTMLDocument || window.Document,  // Gecko adds these to HTMLDocument
+    ], [
+      'register',
+    ]);
+  }
+
   // We also override some of the methods on document.body and document.head
   // for convenience.
   forwardMethodsToWrapper([
