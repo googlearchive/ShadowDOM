@@ -259,5 +259,156 @@ htmlSuite('Document', function() {
     assert.isTrue(document.contains(document.querySelector('html')));
   });
 
+  test('document.register', function() {
+    if (!document.register)
+      return;
+
+    var aPrototype = Object.create(HTMLElement.prototype);
+    aPrototype.getName = function() {
+      return 'a';
+    };
+
+    var A = document.register('x-a', {prototype: aPrototype});
+
+    var a1 = document.createElement('x-a');
+    assert.equal('x-a', a1.localName);
+    assert.equal(Object.getPrototypeOf(a1), aPrototype);
+    assert.instanceOf(a1, A);
+    assert.instanceOf(a1, HTMLElement);
+    assert.equal(a1.getName(), 'a');
+
+    var a2 = new A();
+    assert.equal('x-a', a2.localName);
+    assert.equal(Object.getPrototypeOf(a2), aPrototype);
+    assert.instanceOf(a2, A);
+    assert.instanceOf(a2, HTMLElement);
+    assert.equal(a2.getName(), 'a');
+
+    //////////////////////////////////////////////////////////////////////
+
+    var bPrototype = Object.create(A.prototype);
+    bPrototype.getName = function() {
+      return 'b';
+    };
+
+    var B = document.register('x-b', {prototype: bPrototype});
+
+    var b1 = document.createElement('x-b');
+    assert.equal('x-b', b1.localName);
+    assert.equal(Object.getPrototypeOf(b1), bPrototype);
+    assert.instanceOf(b1, B);
+    assert.instanceOf(b1, A);
+    assert.instanceOf(b1, HTMLElement);
+    assert.equal(b1.getName(), 'b');
+
+    var b2 = new B();
+    assert.equal('x-b', b2.localName);
+    assert.equal(Object.getPrototypeOf(b2), bPrototype);
+    assert.instanceOf(b2, B);
+    assert.instanceOf(b2, A);
+    assert.instanceOf(b2, HTMLElement);
+    assert.equal(b2.getName(), 'b');
+  });
+
+  test('document.register createdCallback', function() {
+    if (!document.register)
+      return;
+
+    var self;
+    var createdCalls = 0;
+
+    function A() {}
+    A.prototype = {
+      __proto__: HTMLElement.prototype,
+      createdCallback: function() {
+        createdCalls++;
+        assert.isUndefined(a);
+        assert.instanceOf(this, A);
+        self = this;
+      }
+    }
+
+    A = document.register('x-aa', A);
+
+    var a = new A;
+    assert.equal(createdCalls, 1);
+    assert.equal(self, a);
+  });
+
+  test('document.register enteredDocumentCallback, leftDocumentCallback',
+      function() {
+    if (!document.register)
+      return;
+
+    var enteredDocumentCalls = 0;
+    var leftDocumentCalls = 0;
+
+    function A() {}
+    A.prototype = {
+      __proto__: HTMLElement.prototype,
+      enteredDocumentCallback: function() {
+        enteredDocumentCalls++;
+        assert.instanceOf(this, A);
+        assert.equal(a, this);
+      },
+      leftDocumentCallback: function() {
+        leftDocumentCalls++;
+        assert.instanceOf(this, A);
+        assert.equal(a, this);
+      }
+    }
+
+    A = document.register('x-aaa', A);
+
+    var a = new A;
+    document.body.appendChild(a);
+    assert.equal(enteredDocumentCalls, 1);
+    document.body.removeChild(a);
+    assert.equal(leftDocumentCalls, 1);
+  });
+
+  test('document.register attributeChangedCallback',
+      function() {
+    if (!document.register)
+      return;
+
+    var attributeChangedCalls = 0;
+
+    function A() {}
+    A.prototype = {
+      __proto__: HTMLElement.prototype,
+      attributeChangedCallback: function(name, oldValue, newValue) {
+        attributeChangedCalls++;
+        assert.equal(name, 'foo');
+        switch (attributeChangedCalls) {
+          case 1:
+            assert.isNull(oldValue);
+            assert.equal(newValue, 'bar');
+            break;
+          case 2:
+            assert.equal(oldValue, 'bar');
+            assert.equal(newValue, 'baz');
+            break;
+          case 3:
+            assert.equal(oldValue, 'baz');
+            assert.isNull(newValue);
+            break;
+        }
+        console.log(arguments);
+      }
+    }
+
+    A = document.register('x-aaaa', A);
+
+    var a = new A;
+    assert.equal(attributeChangedCalls, 0);
+    a.setAttribute('foo', 'bar');
+    assert.equal(attributeChangedCalls, 1);
+    a.setAttribute('foo', 'baz');
+    assert.equal(attributeChangedCalls, 2);
+    a.removeAttribute('foo');
+    assert.equal(attributeChangedCalls, 3);
+  });
+
   htmlTest('html/document-write.html');
 });
