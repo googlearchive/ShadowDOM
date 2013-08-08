@@ -310,6 +310,44 @@ htmlSuite('Document', function() {
     assert.equal(b2.getName(), 'b');
   });
 
+  test('document.register deeper', function() {
+    if (!document.register)
+      return;
+
+    function C() {}
+    C.prototype = {
+      __proto__: HTMLElement.prototype
+    };
+
+    function B() {}
+    B.prototype = {
+      __proto__: C.prototype
+    };
+
+    function A() {}
+    A.prototype = {
+      __proto__: B.prototype
+    };
+
+    A = document.register('x-a5', A);
+
+    var a1 = document.createElement('x-a5');
+    assert.equal('x-a5', a1.localName);
+    assert.equal(a1.__proto__, A.prototype);
+    assert.equal(a1.__proto__.__proto__, B.prototype);
+    assert.equal(a1.__proto__.__proto__.__proto__, C.prototype);
+     assert.equal(a1.__proto__.__proto__.__proto__.__proto__,
+                  HTMLElement.prototype);
+
+    var a2 = new A();
+    assert.equal('x-a5', a2.localName);
+    assert.equal(a2.__proto__, A.prototype);
+    assert.equal(a2.__proto__.__proto__, B.prototype);
+    assert.equal(a2.__proto__.__proto__.__proto__, C.prototype);
+    assert.equal(a2.__proto__.__proto__.__proto__.__proto__,
+                 HTMLElement.prototype);
+  });
+
   test('document.register createdCallback', function() {
     if (!document.register)
       return;
@@ -328,7 +366,7 @@ htmlSuite('Document', function() {
       }
     }
 
-    A = document.register('x-aa', A);
+    A = document.register('x-a2', A);
 
     var a = new A;
     assert.equal(createdCalls, 1);
@@ -358,7 +396,7 @@ htmlSuite('Document', function() {
       }
     }
 
-    A = document.register('x-aaa', A);
+    A = document.register('x-a3', A);
 
     var a = new A;
     document.body.appendChild(a);
@@ -367,8 +405,7 @@ htmlSuite('Document', function() {
     assert.equal(leftDocumentCalls, 1);
   });
 
-  test('document.register attributeChangedCallback',
-      function() {
+  test('document.register attributeChangedCallback', function() {
     if (!document.register)
       return;
 
@@ -398,7 +435,7 @@ htmlSuite('Document', function() {
       }
     }
 
-    A = document.register('x-aaaa', A);
+    A = document.register('x-a4', A);
 
     var a = new A;
     assert.equal(attributeChangedCalls, 0);
