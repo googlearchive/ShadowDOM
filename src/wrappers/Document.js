@@ -111,11 +111,19 @@
         throw new Error('NotSupportedError');
       }
 
-      // This is a simplification. We require that the proto is an element
-      // that has already been registered.
-
+      // Find first object on the prototype chain that already have a native
+      // prototype. Keep track of all the objects before that so we can create
+      // a similar structure for the native case.
       var proto = Object.getPrototypeOf(prototype);
-      var nativePrototype = scope.nativePrototypeTable.get(proto);
+      var nativePrototype;
+      var prototypes = [];
+      while (proto) {
+        nativePrototype = scope.nativePrototypeTable.get(proto);
+        if (nativePrototype)
+          break;
+        prototypes.push(proto);
+        proto = Object.getPrototypeOf(proto);
+      }
 
       if (!nativePrototype) {
         // TODO(arv): DOMException
@@ -127,6 +135,9 @@
       // passed into register is used as the wrapper prototype.
 
       var newPrototype = Object.create(nativePrototype);
+      for (var i = prototypes.length - 1; i >= 0; i--) {
+        newPrototype = Object.create(newPrototype);
+      }
 
       // Add callbacks if present.
       // Names are taken from:
