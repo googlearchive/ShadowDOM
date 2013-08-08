@@ -19,5 +19,7 @@
     "src/wrappers/Document.js",
     "src/wrappers/Window.js",
     "src/wrappers/MutationObserver.js",
+    "src/wrappers/Range.js",
+    "src/wrappers/elements-with-form-property.js",
     "src/wrappers/override-constructors.js"
 ]

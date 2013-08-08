@@ -105,5 +105,13 @@ htmlSuite('HTMLBodyElement', function() {
     assert.equal(calls, 2);
   });
 
+  test('document.body.contains', function() {
+    var doc = wrap(document);
+    assert.isTrue(doc.body.contains(doc.body.firstChild));
+    assert.isTrue(doc.body.contains(document.body.firstChild));
+    assert.isTrue(document.body.contains(doc.body.firstChild));
+    assert.isTrue(document.body.contains(document.body.firstChild));
+  });
+
   htmlTest('html/document-body-inner-html.html');
 });

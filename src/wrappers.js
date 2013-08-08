@@ -9,6 +9,7 @@ var ShadowDOMPolyfill = {};
 
   var wrapperTable = new SideTable();
   var constructorTable = new SideTable();
+  var nativePrototypeTable = new SideTable();
   var wrappers = Object.create(null);
 
   function assert(b) {
@@ -140,9 +141,8 @@ var ShadowDOMPolyfill = {};
   /**
    * @param {Function} nativeConstructor
    * @param {Function} wrapperConstructor
-   * @param {string|Object=} opt_instance If present, this is used to extract
-   *     properties from an instance object. If this is a string
-   *     |document.createElement| is used to create an instance.
+   * @param {Object=} opt_instance If present, this is used to extract
+   *     properties from an instance object.
    */
   function register(nativeConstructor, wrapperConstructor, opt_instance) {
     var nativePrototype = nativeConstructor.prototype;
@@ -153,7 +153,10 @@ var ShadowDOMPolyfill = {};
   function registerInternal(nativePrototype, wrapperConstructor, opt_instance) {
     var wrapperPrototype = wrapperConstructor.prototype;
     assert(constructorTable.get(nativePrototype) === undefined);
+
     constructorTable.set(nativePrototype, wrapperConstructor);
+    nativePrototypeTable.set(wrapperPrototype, nativePrototype);
+
     addForwardingProperties(nativePrototype, wrapperPrototype);
     if (opt_instance)
       registerInstanceProperties(wrapperPrototype, opt_instance);
@@ -199,10 +202,12 @@ var ShadowDOMPolyfill = {};
   var OriginalEvent = Event;
   var OriginalNode = Node;
   var OriginalWindow = Window;
+  var OriginalRange = Range;
 
   function isWrapper(object) {
     return object instanceof wrappers.EventTarget ||
            object instanceof wrappers.Event ||
+           object instanceof wrappers.Range ||
            object instanceof wrappers.DOMImplementation;
   }
 
@@ -210,6 +215,7 @@ var ShadowDOMPolyfill = {};
     return object instanceof OriginalNode ||
            object instanceof OriginalEvent ||
            object instanceof OriginalWindow ||
+           object instanceof OriginalRange ||
            object instanceof OriginalDOMImplementation;
   }
 
@@ -310,11 +316,13 @@ var ShadowDOMPolyfill = {};
   }
 
   scope.assert = assert;
+  scope.constructorTable = constructorTable;
   scope.defineGetter = defineGetter;
   scope.defineWrapGetter = defineWrapGetter;
   scope.forwardMethodsToWrapper = forwardMethodsToWrapper;
   scope.isWrapperFor = isWrapperFor;
   scope.mixin = mixin;
+  scope.nativePrototypeTable = nativePrototypeTable;
   scope.registerObject = registerObject;
   scope.registerWrapper = register;
   scope.rewrap = rewrap;
