@@ -6,6 +6,8 @@
 
 suite('Node', function() {
 
+  var wrap = ShadowDOMPolyfill.wrap;
+
   var DOCUMENT_POSITION_DISCONNECTED = Node.DOCUMENT_POSITION_DISCONNECTED;
   var DOCUMENT_POSITION_PRECEDING = Node.DOCUMENT_POSITION_PRECEDING;
   var DOCUMENT_POSITION_FOLLOWING = Node.DOCUMENT_POSITION_FOLLOWING;
@@ -57,4 +59,30 @@ suite('Node', function() {
         DOCUMENT_POSITION_DISCONNECTED, 0)
   });
 
+  test('ownerDocument with template and shadow root', function() {
+    var div = document.createElement('div');
+    div.innerHTML = '<template><span></span></template>';
+
+    var content1 = div.firstChild.content;
+    var host = content1.firstChild;
+
+    div.innerHTML = '<template>hello world</template>';
+    var content2 = div.firstChild.content;
+    var x = content2.firstChild;
+
+    var sr = host.createShadowRoot();
+    sr.appendChild(content2);
+
+    assert.equal(x.parentNode, sr);
+    assert.equal(x.ownerDocument, sr.ownerDocument);
+    assert.equal(sr.ownerDocument, host.ownerDocument);
+
+    var doc = wrap(document);
+    doc.body.appendChild(host);
+    assert.equal(host.ownerDocument, doc);
+    assert.equal(sr.ownerDocument, doc);
+    assert.equal(x.ownerDocument, doc);
+
+    doc.body.removeChild(host);
+  });
 });

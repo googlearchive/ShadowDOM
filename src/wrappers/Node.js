@@ -60,15 +60,26 @@
     return nodes;
   }
 
+  function adoptIfNeeded(node, doc) {
+    if (doc !== node.ownerDocument)
+      scope.adoptNodeNoRemove(node, doc);
+  }
+
   function unwrapNodesForInsertion(owner, nodes) {
     var length = nodes.length;
 
-    if (length === 1)
-      return unwrap(nodes[0]);
+    if (length === 1) {
+      var node = nodes[0];
+      adoptIfNeeded(node, owner.ownerDocument);
+      return unwrap(node);
+    }
 
-    var df = unwrap(owner.ownerDocument.createDocumentFragment());
+    var ownerDoc = owner.ownerDocument;
+    var df = unwrap(ownerDoc.createDocumentFragment());
     for (var i = 0; i < length; i++) {
-      df.appendChild(unwrap(nodes[i]));
+      var node = nodes[i];
+      adoptIfNeeded(node, ownerDoc);
+      df.appendChild(unwrap(node));
     }
     return df;
   }
