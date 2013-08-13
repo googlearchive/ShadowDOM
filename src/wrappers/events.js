@@ -645,6 +645,7 @@
       }
     },
     dispatchEvent: function(event) {
+      scope.renderAllPending();
       var target = getTargetToListenAt(this);
       return target.dispatchEvent_(unwrap(event));
     }
