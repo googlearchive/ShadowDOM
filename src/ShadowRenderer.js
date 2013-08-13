@@ -164,33 +164,6 @@
     }
   }
 
-  // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#dfn-distribution-algorithm
-  function distribute(tree, pool) {
-    var anyRemoved = false;
-
-    visit(tree, isActiveInsertionPoint,
-        function(insertionPoint) {
-          resetDistributedChildNodes(insertionPoint);
-          for (var i = 0; i < pool.length; i++) {  // 1.2
-            var node = pool[i];  // 1.2.1
-            if (node === undefined)  // removed
-              continue;
-            if (matchesCriteria(node, insertionPoint)) {  // 1.2.2
-              distributeChildToInsertionPoint(node, insertionPoint);  // 1.2.2.1
-              pool[i] = undefined;  // 1.2.2.2
-              anyRemoved = true;
-            }
-          }
-        });
-
-    if (!anyRemoved)
-      return pool;
-
-    return pool.filter(function(item) {
-      return item !== undefined;
-    });
-  }
-
   // Matching Insertion Points
   // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#matching-insertion-points
 
@@ -278,6 +251,7 @@
   function ShadowRenderer(host) {
     this.host = host;
     this.dirty = false;
+    this.invalidateAttributes();
     this.associateNode(host);
   }
 
@@ -290,14 +264,18 @@
     return renderer;
   }
 
+
   ShadowRenderer.prototype = {
+
     // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#rendering-shadow-trees
     render: function() {
       if (!this.dirty)
         return;
 
-      var host = this.host;
+      this.invalidateAttributes();
       this.treeComposition();
+
+      var host = this.host;
       var shadowDOM = host.shadowRoot;
       if (!shadowDOM)
         return;
@@ -389,6 +367,76 @@
       }, this);
     },
 
+
+    /**
+     * Invalidates the attributes used to keep track of which attributes may
+     * cause the renderer to be invalidated.
+     */
+    invalidateAttributes: function() {
+      this.attributes = Object.create(null);
+    },
+
+    /**
+     * Parses the selector and makes this renderer dependent on the attribute
+     * being used in the selector.
+     * @param {string} selector
+     */
+    updateDependentAttributes: function(selector) {
+      if (!selector)
+        return;
+
+      var attributes = this.attributes;
+
+      // .class
+      if (/\.\w+/.test(selector))
+        attributes['class'] = true;
+
+      // #id
+      if (/#\w+/.test(selector))
+        attributes['id'] = true;
+
+      selector.replace(/\[\s*([^\s=\|~\]]+)/g, function(_, name) {
+        attributes[name] = true;
+      });
+
+      // Pseudo selectors have been removed from the spec.
+    },
+
+    dependsOnAttribute: function(name) {
+      return this.attributes[name];
+    },
+
+    // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#dfn-distribution-algorithm
+    distribute: function(tree, pool) {
+      var anyRemoved = false;
+      var self = this;
+
+      visit(tree, isActiveInsertionPoint,
+          function(insertionPoint) {
+            resetDistributedChildNodes(insertionPoint);
+            self.updateDependentAttributes(
+                insertionPoint.getAttribute('select'));
+
+            for (var i = 0; i < pool.length; i++) {  // 1.2
+              var node = pool[i];  // 1.2.1
+              if (node === undefined)  // removed
+                continue;
+              if (matchesCriteria(node, insertionPoint)) {  // 1.2.2
+                distributeChildToInsertionPoint(node, insertionPoint);  // 1.2.2.1
+                pool[i] = undefined;  // 1.2.2.2
+                anyRemoved = true;
+              }
+            }
+          });
+
+      if (!anyRemoved)
+        return pool;
+
+      return pool.filter(function(item) {
+        return item !== undefined;
+      });
+    },
+
     // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#dfn-tree-composition
     treeComposition: function () {
       var shadowHost = this.host;
@@ -417,7 +465,7 @@
         });
         point = shadowInsertionPoint;
 
-        pool = distribute(tree, pool);  // 4.2.
+        pool = this.distribute(tree, pool);  // 4.2.
         if (point) {  // 4.3.
           var nextOlderTree = tree.olderShadowRoot;  // 4.3.1.
           if (!nextOlderTree) {
