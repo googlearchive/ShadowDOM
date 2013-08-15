@@ -24,6 +24,21 @@
       OriginalElement.prototype.msMatchesSelector ||
       OriginalElement.prototype.webkitMatchesSelector;
 
+
+  function invalidateRendererBasedOnAttribute(element, name) {
+    // Only invalidate if parent node is a shadow host.
+    var p = element.parentNode;
+    if (!p)
+      return;
+
+    var renderer = scope.getRendererForHost(p);
+    if (!renderer)
+      return;
+
+    if (renderer.dependsOnAttribute(name))
+      renderer.invalidate();
+  }
+
   function Element(node) {
     Node.call(this, node);
   }
@@ -46,10 +61,12 @@
 
     setAttribute: function(name, value) {
       this.impl.setAttribute(name, value);
-      // This is a bit agressive. We need to invalidate if it affects
-      // the rendering content[select] or if it effects the value of a content
-      // select.
-      this.invalidateShadowRenderer();
+      invalidateRendererBasedOnAttribute(this, name);
+    },
+
+    removeAttribute: function(name) {
+      this.impl.removeAttribute(name);
+      invalidateRendererBasedOnAttribute(this, name);
     },
 
     matches: function(selector) {
@@ -62,6 +79,28 @@
         Element.prototype.createShadowRoot;
   }
 
+  /**
+   * Useful for generating the accessor pair for a property that reflects an
+   * attribute.
+   */
+  function setterDirtiesAttribute(prototype, propertyName, opt_attrName) {
+    var attrName = opt_attrName || propertyName;
+    Object.defineProperty(prototype, propertyName, {
+      get: function() {
+        return this.impl[propertyName];
+      },
+      set: function(v) {
+        this.impl[propertyName] = v;
+        invalidateRendererBasedOnAttribute(this, attrName);
+      },
+      configurable: true,
+      enumerable: true
+    });
+  }
+
+  setterDirtiesAttribute(Element.prototype, 'id');
+  setterDirtiesAttribute(Element.prototype, 'className', 'class');
+
   mixin(Element.prototype, ChildNodeInterface);
   mixin(Element.prototype, GetElementsByInterface);
   mixin(Element.prototype, ParentNodeInterface);
@@ -69,5 +108,7 @@
 
   registerWrapper(OriginalElement, Element);
 
+  // TODO(arv): Export setterDirtiesAttribute and apply it to more bindings
+  // that reflect attributes.
   scope.wrappers.Element = Element;
 })(this.ShadowDOMPolyfill);

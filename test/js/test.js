@@ -6,6 +6,7 @@
 
 suite('Shadow DOM', function() {
 
+  var getRendererForHost = ShadowDOMPolyfill.getRendererForHost;
   var unwrap = ShadowDOMPolyfill.unwrap;
 
   function getVisualInnerHtml(el) {
@@ -254,6 +255,134 @@ suite('Shadow DOM', function() {
       aShadowRoot.innerHTML = '2<content></content>4';
 
       assert.strictEqual(getVisualInnerHtml(host), '1<a>234</a>567');
+    });
+
+  });
+
+  suite('Tracking attributes', function() {
+
+    test('attribute selector', function() {
+      var host = document.createElement('div');
+      host.innerHTML = '<a></a>';
+      var a = host.firstChild;
+
+      var sr = host.createShadowRoot();
+      sr.innerHTML = '<content select="[foo]"></content>';
+
+      var calls = 0;
+      var renderer = getRendererForHost(host);
+      var originalRender = renderer.render;
+      renderer.render = function() {
+        calls++;
+        originalRender.call(this);
+      };
+
+      assert.equal(getVisualInnerHtml(host), '');
+      assert.equal(calls, 1);
+
+      a.setAttribute('foo', 'bar');
+      assert.equal(getVisualInnerHtml(host), '<a foo="bar"></a>');
+      assert.equal(calls, 2);
+
+      a.setAttribute('foo', '');
+      assert.equal(getVisualInnerHtml(host), '<a foo=""></a>');
+      assert.equal(calls, 3);
+
+      a.removeAttribute('foo');
+      assert.equal(getVisualInnerHtml(host), '');
+      assert.equal(calls, 4);
+
+      a.setAttribute('bar', '');
+      assert.equal(getVisualInnerHtml(host), '');
+      assert.equal(calls, 4);
+    });
+
+    test('id selector', function() {
+      var host = document.createElement('div');
+      host.innerHTML = '<a></a>';
+      var a = host.firstChild;
+
+      var sr = host.createShadowRoot();
+      sr.innerHTML = '<content select="#a"></content>';
+
+      var calls = 0;
+      var renderer = getRendererForHost(host);
+      var originalRender = renderer.render;
+      renderer.render = function() {
+        calls++;
+        originalRender.call(this);
+      };
+
+      assert.equal(getVisualInnerHtml(host), '');
+      assert.equal(calls, 1);
+
+      a.setAttribute('foo', 'bar');
+      assert.equal(getVisualInnerHtml(host), '');
+      assert.equal(calls, 1);
+
+      a.setAttribute('id', 'a');
+      assert.equal(getVisualInnerHtml(host), '<a foo="bar" id="a"></a>');
+      assert.equal(calls, 2);
+
+      a.removeAttribute('foo');
+      assert.equal(getVisualInnerHtml(host), '<a id="a"></a>');
+      assert.equal(calls, 2);
+
+      a.id = 'b';
+      assert.equal(getVisualInnerHtml(host), '');
+      assert.equal(calls, 3);
+
+      a.id = 'a';
+      assert.equal(getVisualInnerHtml(host), '<a id="a"></a>');
+      assert.equal(calls, 4);
+
+      a.id = null;
+      assert.equal(getVisualInnerHtml(host), '');
+      assert.equal(calls, 5);
+    });
+
+    test('class selector', function() {
+      var host = document.createElement('div');
+      host.innerHTML = '<a></a>';
+      var a = host.firstChild;
+
+      var sr = host.createShadowRoot();
+      sr.innerHTML = '<content select=".a"></content>';
+
+      var calls = 0;
+      var renderer = getRendererForHost(host);
+      var originalRender = renderer.render;
+      renderer.render = function() {
+        calls++;
+        originalRender.call(this);
+      };
+
+      assert.equal(getVisualInnerHtml(host), '');
+      assert.equal(calls, 1);
+
+      a.setAttribute('foo', 'bar');
+      assert.equal(getVisualInnerHtml(host), '');
+      assert.equal(calls, 1);
+
+      a.setAttribute('class', 'a');
+      assert.equal(getVisualInnerHtml(host), '<a foo="bar" class="a"></a>');
+      assert.equal(calls, 2);
+
+      a.removeAttribute('foo');
+      assert.equal(getVisualInnerHtml(host), '<a class="a"></a>');
+      assert.equal(calls, 2);
+
+      a.className = 'b';
+      assert.equal(getVisualInnerHtml(host), '');
+      assert.equal(calls, 3);
+
+      a.className = 'a';
+      assert.equal(getVisualInnerHtml(host), '<a class="a"></a>');
+      assert.equal(calls, 4);
+
+      a.className = null;
+      assert.equal(getVisualInnerHtml(host), '');
+      assert.equal(calls, 5);
     });
 
   });
