@@ -201,7 +201,7 @@ suite('Shadow DOM', function() {
       testRender(':checked',
                  '<input type=checkbox><input type=checkbox checked>',
                  '<content select=":checked"></content>',
-                 /Firefox/.test(navigator.userAgent) ?
+                 /Firefox|MSIE 9/.test(navigator.userAgent) ?
                      '<input checked="" type="checkbox">' :
                      '<input type="checkbox" checked="">');
       testRender(':indeterminate',
@@ -321,7 +321,10 @@ suite('Shadow DOM', function() {
       assert.equal(calls, 1);
 
       a.setAttribute('id', 'a');
-      assert.equal(getVisualInnerHtml(host), '<a foo="bar" id="a"></a>');
+      var visHTML = getVisualInnerHtml(host);
+      // IE orders the attributes differently.
+      assert.isTrue(visHTML === '<a foo="bar" id="a"></a>' ||
+                    visHTML === '<a id="a" foo="bar"></a>');
       assert.equal(calls, 2);
 
       a.removeAttribute('foo');
@@ -365,7 +368,10 @@ suite('Shadow DOM', function() {
       assert.equal(calls, 1);
 
       a.setAttribute('class', 'a');
-      assert.equal(getVisualInnerHtml(host), '<a foo="bar" class="a"></a>');
+      var visHTML = getVisualInnerHtml(host);
+      // IE orders the attributes differently.
+      assert.isTrue(visHTML === '<a foo="bar" class="a"></a>' ||
+                    visHTML === '<a class="a" foo="bar"></a>');
       assert.equal(calls, 2);
 
       a.removeAttribute('foo');
