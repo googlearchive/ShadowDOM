@@ -27,4 +27,16 @@ suite('HTMLHtmlElement', function() {
     assert.equal(doc.documentElement.lastChild, b);
   });
 
+  test('matches', function() {
+    // From jQuery.
+    var html = document.documentElement;
+    var matches = html.matchesSelector ||
+        html.mozMatchesSelector ||
+        html.webkitMatchesSelector ||
+        html.msMatchesSelector;
+
+    assert.isTrue(matches.call(document.body, 'body'));
+    assert.isTrue(matches.call(wrap(document.body), 'body'));
+  });
+
 });

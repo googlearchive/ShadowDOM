@@ -42,6 +42,13 @@ var ShadowDOMPolyfill = {};
     return to;
   };
 
+  function oneOf(object, propertyNames) {
+    for (var i = 0; i < propertyNames.length; i++) {
+      if (propertyNames[i] in object)
+        return propertyNames[i];
+    }
+  }
+
   // Mozilla's old DOM bindings are bretty busted:
   // https://bugzilla.mozilla.org/show_bug.cgi?id=855844
   // Make sure they are create before we start modifying things.
@@ -308,7 +315,7 @@ var ShadowDOMPolyfill = {};
     constructors.forEach(function(constructor) {
       names.forEach(function(name) {
         constructor.prototype[name] = function() {
-          var w = wrap(this);
+          var w = wrapIfNeeded(this);
           return w[name].apply(w, arguments);
         };
       });
@@ -323,6 +330,7 @@ var ShadowDOMPolyfill = {};
   scope.isWrapperFor = isWrapperFor;
   scope.mixin = mixin;
   scope.nativePrototypeTable = nativePrototypeTable;
+  scope.oneOf = oneOf;
   scope.registerObject = registerObject;
   scope.registerWrapper = register;
   scope.rewrap = rewrap;
