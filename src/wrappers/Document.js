@@ -13,6 +13,7 @@
   var defineWrapGetter = scope.defineWrapGetter;
   var elementFromPoint = scope.elementFromPoint;
   var forwardMethodsToWrapper = scope.forwardMethodsToWrapper;
+  var matchesName = scope.matchesName;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
   var unwrap = scope.unwrap;
@@ -59,6 +60,11 @@
   var originalAdoptNode = document.adoptNode;
   var originalWrite = document.write;
 
+  function adoptNodeNoRemove(node, doc) {
+    originalAdoptNode.call(doc.impl, unwrap(node));
+    adoptSubtree(node, doc);
+  }
+
   function adoptSubtree(node, doc) {
     if (node.shadowRoot)
       doc.adoptNode(node.shadowRoot);
@@ -79,8 +85,7 @@
     adoptNode: function(node) {
       if (node.parentNode)
         node.parentNode.removeChild(node);
-      originalAdoptNode.call(this.impl, unwrap(node));
-      adoptSubtree(node, this);
+      adoptNodeNoRemove(node, this);
       return node;
     },
     elementFromPoint: function(x, y) {
@@ -200,6 +205,7 @@
     'querySelectorAll',
     'removeChild',
     'replaceChild',
+    matchesName,
   ]);
 
   forwardMethodsToWrapper([
@@ -284,7 +290,8 @@
     'hasFeature',
   ]);
 
-  scope.wrappers.Document = Document;
+  scope.adoptNodeNoRemove = adoptNodeNoRemove;
   scope.wrappers.DOMImplementation = DOMImplementation;
+  scope.wrappers.Document = Document;
 
 })(this.ShadowDOMPolyfill);

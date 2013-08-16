@@ -9,6 +9,7 @@
   var Node = scope.wrappers.Node;
   var assert = scope.assert;
   var mixin = scope.mixin;
+  var oneOf = scope.oneOf;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
 
@@ -189,13 +190,6 @@
     'only-of-type',
   ].join('|') + ')');
 
-
-  function oneOf(object, propertyNames) {
-    for (var i = 0; i < propertyNames.length; i++) {
-      if (propertyNames[i] in object)
-        return propertyNames[i];
-    }
-  }
 
   /**
    * @param {Element} node

@@ -12,18 +12,22 @@
   var SelectorsInterface = scope.SelectorsInterface;
   var addWrapNodeListMethod = scope.addWrapNodeListMethod;
   var mixin = scope.mixin;
+  var oneOf = scope.oneOf;
   var registerWrapper = scope.registerWrapper;
   var wrappers = scope.wrappers;
 
   var shadowRootTable = new SideTable();
   var OriginalElement = window.Element;
 
-  var originalMatches =
-      OriginalElement.prototype.matches ||
-      OriginalElement.prototype.mozMatchesSelector ||
-      OriginalElement.prototype.msMatchesSelector ||
-      OriginalElement.prototype.webkitMatchesSelector;
 
+  var matchesName = oneOf(OriginalElement.prototype, [
+    'matches',
+    'mozMatchesSelector',
+    'msMatchesSelector',
+    'webkitMatchesSelector',
+  ]);
+
+  var originalMatches = OriginalElement.prototype[matchesName];
 
   function invalidateRendererBasedOnAttribute(element, name) {
     // Only invalidate if parent node is a shadow host.
@@ -74,6 +78,10 @@
     }
   });
 
+  Element.prototype[matchesName] = function(selector) {
+    return this.matches(selector);
+  };
+
   if (OriginalElement.prototype.webkitCreateShadowRoot) {
     Element.prototype.webkitCreateShadowRoot =
         Element.prototype.createShadowRoot;
@@ -110,5 +118,6 @@
 
   // TODO(arv): Export setterDirtiesAttribute and apply it to more bindings
   // that reflect attributes.
+  scope.matchesName = matchesName;
   scope.wrappers.Element = Element;
 })(this.ShadowDOMPolyfill);

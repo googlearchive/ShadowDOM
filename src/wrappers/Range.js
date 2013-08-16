@@ -10,6 +10,8 @@
   var unwrapIfNeeded = scope.unwrapIfNeeded;
   var wrap = scope.wrap;
 
+  var OriginalRange = window.Range;
+
   function Range(impl) {
     this.impl = impl;
   }
@@ -73,11 +75,15 @@
     },
     intersectsNode: function(node) {
       return this.impl.intersectsNode(unwrapIfNeeded(node));
-    },
-    createContextualFragment: function(html) {
-      return wrap(this.impl.createContextualFragment(html));
     }
   };
+
+  // IE9 does not have createContextualFragment.
+  if (OriginalRange.prototype.createContextualFragment) {
+    Range.prototype.createContextualFragment = function(html) {
+      return wrap(this.impl.createContextualFragment(html));
+    };
+  }
 
   registerWrapper(window.Range, Range);
 
