@@ -17,15 +17,20 @@ suite('Range', function() {
   });
 
   test('createContextualFragment', function() {
-      var range = document.createRange();
-      var container = document.body || document.head;
+    // IE9 does not support createContextualFragment.
+    if (!Range.prototype.createContextualFragment)
+      return;
 
-      range.selectNode(container);
-      var fragment = range.createContextualFragment('<b></b>');
+    var range = document.createRange();
+    var container = document.body || document.head;
 
-      assert.instanceOf(fragment, DocumentFragment);
-      assert.equal(fragment.firstChild.localName, 'b');
-      assert.equal(fragment.childNodes.length, 1);
+    range.selectNode(container);
+
+    var fragment = range.createContextualFragment('<b></b>');
+
+    assert.instanceOf(fragment, DocumentFragment);
+    assert.equal(fragment.firstChild.localName, 'b');
+    assert.equal(fragment.childNodes.length, 1);
   });
 
 });
