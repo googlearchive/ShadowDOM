@@ -1,1 +1,1 @@
-mocha.setup({ui:'tdd',htmlbase: '/base/test/'});
+mocha.setup({ui:'tdd',htmlbase: '/base/test/',ignoreLeaks: true});
