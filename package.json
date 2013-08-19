@@ -9,6 +9,7 @@
     "grunt-contrib-yuidoc": "~0.4.0",
     "grunt-karma": "*",
     "karma-mocha": "*",
+    "karma-ie-launcher": "*",
     "karma-script-launcher": "*",
     "karma-crbot-reporter": "*"
   }
