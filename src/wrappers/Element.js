@@ -32,13 +32,10 @@
   function invalidateRendererBasedOnAttribute(element, name) {
     // Only invalidate if parent node is a shadow host.
     var p = element.parentNode;
-    if (!p)
+    if (!p || !p.shadowRoot)
       return;
 
     var renderer = scope.getRendererForHost(p);
-    if (!renderer)
-      return;
-
     if (renderer.dependsOnAttribute(name))
       renderer.invalidate();
   }
@@ -52,9 +49,8 @@
       var newShadowRoot = new wrappers.ShadowRoot(this);
       shadowRootTable.set(this, newShadowRoot);
 
-      scope.getRendererForHost(this);
-
-      this.invalidateShadowRenderer(true);
+      var renderer = scope.getRendererForHost(this);
+      renderer.invalidate();
 
       return newShadowRoot;
     },
