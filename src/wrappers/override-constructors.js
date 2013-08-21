@@ -5,6 +5,7 @@
 (function(scope) {
   'use strict';
 
+  var ignoreInternalPointers = scope.ignoreInternalPointers;
   var isWrapperFor = scope.isWrapperFor;
 
   // This is a list of the elements we currently override the global constructor
@@ -98,6 +99,10 @@
   Object.getOwnPropertyNames(scope.wrappers).forEach(function(name) {
     window[name] = scope.wrappers[name]
   });
+
+  ignoreInternalPointers(window.HTMLHtmlElement);
+  ignoreInternalPointers(window.HTMLHeadElement);
+  ignoreInternalPointers(window.HTMLBodyElement);
 
   // Export for testing.
   scope.knownElements = elements;

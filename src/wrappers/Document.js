@@ -13,6 +13,7 @@
   var defineWrapGetter = scope.defineWrapGetter;
   var elementFromPoint = scope.elementFromPoint;
   var forwardMethodsToWrapper = scope.forwardMethodsToWrapper;
+  var ignoreInternalPointers = scope.ignoreInternalPointers;
   var matchesName = scope.matchesName;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
@@ -34,6 +35,8 @@
   // overkill at this point.
   defineWrapGetter(Document, 'body');
   defineWrapGetter(Document, 'head');
+
+  ignoreInternalPointers(Document);
 
   // document cannot be overridden so we override a bunch of its methods
   // directly on the instance.

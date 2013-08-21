@@ -403,6 +403,21 @@
   delete Node.prototype.querySelectorAll;
   Node.prototype = mixin(Object.create(EventTarget.prototype), Node.prototype);
 
+  var nodePointerNames = [
+    'parentNode',
+    'firstChild',
+    'lastChild',
+    'nextSibling',
+    'previousSibling',
+  ];
+
+  function ignoreInternalPointers(ctor) {
+    nodePointerNames.forEach(function(name) {
+      defineWrapGetter(ctor, name);
+    });
+  }
+
+  scope.ignoreInternalPointers = ignoreInternalPointers
   scope.wrappers.Node = Node;
 
 })(this.ShadowDOMPolyfill);
