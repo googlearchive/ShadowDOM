@@ -186,6 +186,25 @@ htmlSuite('Document', function() {
     assert.equal(div.ownerDocument, doc2);
   });
 
+  test('adoptNode with child', function() {
+    var doc = wrap(document);
+    var doc2 = doc.implementation.createHTMLDocument('');
+    var div = doc2.createElement('div');
+    var a = div.appendChild(document.createElement('a'));
+    assert.equal(div.ownerDocument, doc2);
+    assert.equal(a.ownerDocument, doc2);
+
+    var div2 = document.adoptNode(div);
+    assert.equal(div, div2);
+    assert.equal(div.ownerDocument, doc);
+    assert.equal(a.ownerDocument, doc);
+
+    var div3 = doc2.adoptNode(div);
+    assert.equal(div, div3);
+    assert.equal(div.ownerDocument, doc2);
+    assert.equal(a.ownerDocument, doc2);
+  });
+
   test('adoptNode with shadowRoot', function() {
     var doc = wrap(document);
     var doc2 = doc.implementation.createHTMLDocument('');

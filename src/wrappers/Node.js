@@ -26,12 +26,14 @@
    * This updates the internal pointers for node, previousNode and nextNode.
    */
   function collectNodes(node, parentNode, previousNode, nextNode) {
+    var ownerDocument = parentNode.ownerDocument;
     if (node.nodeType !== Node.DOCUMENT_FRAGMENT_NODE) {
       if (node.parentNode)
         node.parentNode.removeChild(node);
       node.parentNode_ = parentNode;
       node.previousSibling_ = previousNode;
       node.nextSibling_ = nextNode;
+      setOwnerDocument(node, ownerDocument);
       if (previousNode)
         previousNode.nextSibling_ = node;
       if (nextNode)
@@ -48,6 +50,7 @@
     }
 
     for (var i = 0; i < nodes.length; i++) {
+      setOwnerDocument(nodes[i], ownerDocument);
       nodes[i].previousSibling_ = nodes[i - 1] || previousNode;
       nodes[i].nextSibling_ = nodes[i + 1] || nextNode;
     }
@@ -60,9 +63,21 @@
     return nodes;
   }
 
-  function adoptIfNeeded(node, doc) {
-    if (doc !== node.ownerDocument)
-      scope.adoptNodeNoRemove(node, doc);
+  function setOwnerDocument(node, document) {
+    var oldOwnerDocument = node.ownerDocument;
+    if (oldOwnerDocument !== document)
+      setOwnerDocumentRecursively(node, document);
+  }
+
+  function setOwnerDocumentRecursively(node, document) {
+    node.ownerDocument_ = document;
+    if (node.shadowRoot)
+      setOwnerDocumentRecursively(node.shadowRoot, document);
+    if (node.olderShadowRoot)
+      setOwnerDocumentRecursively(node.olderShadowRoot, document);
+    for (var child = node.firstChild; child; child = child.nextSibling) {
+      setOwnerDocumentRecursively(child, document);
+    }
   }
 
   function unwrapNodesForInsertion(owner, nodes) {
@@ -70,7 +85,6 @@
 
     if (length === 1) {
       var node = nodes[0];
-      adoptIfNeeded(node, owner.ownerDocument);
       return unwrap(node);
     }
 
@@ -78,7 +92,6 @@
     var df = unwrap(ownerDoc.createDocumentFragment());
     for (var i = 0; i < length; i++) {
       var node = nodes[i];
-      adoptIfNeeded(node, ownerDoc);
       df.appendChild(unwrap(node));
     }
     return df;
@@ -145,6 +158,12 @@
      * @private
      */
     this.previousSibling_ = undefined;
+
+    /**
+     * @type {!Document|undefined}
+     * @private
+     */
+    this.ownerDocument_ = undefined;
   };
 
   var originalAppendChild = OriginalNode.prototype.appendChild;
@@ -321,6 +340,12 @@
           this.previousSibling_ : wrap(this.impl.previousSibling);
     },
 
+    /** @type {!Document} */
+    get ownerDocument() {
+      return this.ownerDocument_ !== undefined ?
+          this.ownerDocument_ : wrap(this.impl.ownerDocument);
+    },
+
     get parentElement() {
       var p = this.parentNode;
       while (p && p.nodeType !== Node.ELEMENT_NODE) {
@@ -393,7 +418,7 @@
     }
   });
 
-  defineWrapGetter(Node, 'ownerDocument');
+  // defineWrapGetter(Node, 'ownerDocument');
 
   // We use a DocumentFragment as a base and then delete the properties of
   // DocumentFragment.prototype from the wrapper Node. Since delete makes
@@ -403,6 +428,7 @@
   delete Node.prototype.querySelectorAll;
   Node.prototype = mixin(Object.create(EventTarget.prototype), Node.prototype);
 
+  scope.setOwnerDocument = setOwnerDocument;
   scope.wrappers.Node = Node;
 
 })(this.ShadowDOMPolyfill);
