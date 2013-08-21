@@ -393,4 +393,42 @@ suite('Shadow DOM', function() {
 
   });
 
+  test('invalidation', function() {
+    var host = document.createElement('a');
+    host.innerHTML = '<b></b> ';
+    var b = host.firstChild;
+    var text = host.lastChild;
+
+    var sr = host.createShadowRoot();
+    sr.innerHTML = '<content select="*"></content>';
+    var content = sr.firstChild;
+
+    var count = 0;
+    var renderer = ShadowDOMPolyfill.getRendererForHost(host);
+    var originalInvalidate = renderer.invalidate;
+    renderer.invalidate = function() {
+      count++;
+      return originalInvalidate.apply(this, arguments);
+    };
+
+    assert.equal(getVisualInnerHtml(host), '<b></b>');
+
+    b.appendChild(document.createElement('d'));
+    assert.equal(count, 0);
+    assert.equal(getVisualInnerHtml(host), '<b><d></d></b>');
+
+    var e = sr.appendChild(document.createElement('e'));
+    assert.equal(count, 1);
+    assert.equal(getVisualInnerHtml(host), '<b><d></d></b><e></e>');
+
+    e.appendChild(document.createElement('f'));
+    assert.equal(count, 1);
+    assert.equal(getVisualInnerHtml(host), '<b><d></d></b><e><f></f></e>');
+
+    host.insertBefore(document.createElement('g'), text);
+    assert.equal(count, 2);
+    assert.equal(getVisualInnerHtml(host),
+                 '<b><d></d></b><g></g><e><f></f></e>');
+  });
+
 });
