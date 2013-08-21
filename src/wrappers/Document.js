@@ -16,6 +16,7 @@
   var matchesName = scope.matchesName;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
+  var setOwnerDocument = scope.setOwnerDocument;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
   var wrapEventTargetMethods = scope.wrapEventTargetMethods;
@@ -85,6 +86,7 @@
     adoptNode: function(node) {
       if (node.parentNode)
         node.parentNode.removeChild(node);
+      setOwnerDocument(node, this);
       adoptNodeNoRemove(node, this);
       return node;
     },

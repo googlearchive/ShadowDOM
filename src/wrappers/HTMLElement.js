@@ -119,10 +119,10 @@
       return getOuterHTML(this);
     },
     set outerHTML(value) {
-      if (!this.invalidateShadowRenderer()) {
+      var p = this.parentNode;
+      if (p) {
+        p.invalidateShadowRenderer();
         this.impl.outerHTML = value;
-      } else {
-        throw new Error('not implemented');
       }
     }
   });
