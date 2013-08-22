@@ -249,6 +249,11 @@
     this.associateNode(host);
   }
 
+  /**
+   * Returns existing shadow renderer for a host or creates it if it is needed.
+   * @params {!Element} host
+   * @return {!ShadowRenderer}
+   */
   function getRendererForHost(host) {
     var renderer = rendererForHostTable.get(host);
     if (!renderer) {
@@ -539,21 +544,15 @@
   };
 
   Node.prototype.invalidateShadowRenderer = function(force) {
-    // TODO: If this is in light DOM we only need to invalidate renderer if this
-    // is a direct child of a ShadowRoot.
-    // Maybe we should only associate renderers with direct child nodes of a
-    // shadow root (and all nodes in the shadow dom).
-    var renderer = shadowDOMRendererTable.get(this);
-    if (!renderer)
-      return false;
-
-    var p;
-    if (force || this.shadowRoot ||
-        (p = this.parentNode) && (p.shadowRoot || p instanceof ShadowRoot)) {
-      renderer.invalidate();
+    if (force || this.shadowRoot) {
+      var renderer = shadowDOMRendererTable.get(this);
+      if (renderer) {
+        renderer.invalidate();
+        return true;
+      }
     }
 
-    return true;
+    return false;
   };
 
   HTMLContentElement.prototype.getDistributedNodes = function() {

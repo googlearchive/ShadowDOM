@@ -71,7 +71,6 @@
     },
     set innerHTML(value) {
       setInnerHTML(this.content, value);
-      this.invalidateShadowRenderer();
     }
 
     // TODO(arv): cloneNode needs to clone content.
