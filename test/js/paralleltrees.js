@@ -926,6 +926,60 @@ suite('Parallel Trees', function() {
       });
     });
 
+    test('insertBefore with different documents', function() {
+      var doc = document.implementation.createHTMLDocument('');
+      var div = doc.createElement('div');
+      div.innerHTML = '<a></a><b></b>';
+      var a = div.firstChild;
+      var b = div.lastChild;
+
+      visual.removeAllChildNodes(div);
+
+      expectStructure(div, {
+        firstChild: a,
+        lastChild: b
+      });
+
+      expectStructure(a, {
+        parentNode: div,
+        nextSibling: b
+      });
+
+      expectStructure(b, {
+        parentNode: div,
+        previousSibling: a
+      });
+
+      var c = document.createElement('c');
+      div.insertBefore(c, b);
+
+      expectStructure(div, {
+        firstChild: a,
+        lastChild: b
+      });
+
+      expectStructure(a, {
+        parentNode: div,
+        nextSibling: c
+      });
+
+      expectStructure(b, {
+        parentNode: div,
+        previousSibling: c
+      });
+
+      expectStructure(c, {
+        parentNode: div,
+        previousSibling: a,
+        nextSibling: b,
+      });
+
+      assert.equal(div.ownerDocument, doc);
+      assert.equal(a.ownerDocument, div.ownerDocument);
+      assert.equal(b.ownerDocument, div.ownerDocument);
+      assert.equal(c.ownerDocument, div.ownerDocument);
+    });
+
     suite('replaceChild', function() {
       test('simple', function() {
         var div = document.createElement('div');

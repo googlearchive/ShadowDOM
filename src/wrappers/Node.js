@@ -60,26 +60,31 @@
     return nodes;
   }
 
-  function adoptIfNeeded(node, doc) {
-    if (doc !== node.ownerDocument)
-      scope.adoptNodeNoRemove(node, doc);
+  function adoptNodesIfNeeded(owner, nodes) {
+    if (!nodes.length)
+      return;
+
+    var ownerDoc = owner.ownerDocument;
+
+    // All nodes have the same ownerDocument when we get here.
+    if (ownerDoc === nodes[0].ownerDocument)
+      return;
+
+    for (var i = 0; i < nodes.length; i++) {
+      scope.adoptNodeNoRemove(nodes[i], ownerDoc);
+    }
   }
 
   function unwrapNodesForInsertion(owner, nodes) {
+    adoptNodesIfNeeded(owner, nodes);
     var length = nodes.length;
 
-    if (length === 1) {
-      var node = nodes[0];
-      adoptIfNeeded(node, owner.ownerDocument);
-      return unwrap(node);
-    }
+    if (length === 1)
+      return unwrap(nodes[0]);
 
-    var ownerDoc = owner.ownerDocument;
-    var df = unwrap(ownerDoc.createDocumentFragment());
+    var df = unwrap(owner.ownerDocument.createDocumentFragment());
     for (var i = 0; i < length; i++) {
-      var node = nodes[i];
-      adoptIfNeeded(node, ownerDoc);
-      df.appendChild(unwrap(node));
+      df.appendChild(unwrap(nodes[i]));
     }
     return df;
   }
@@ -170,10 +175,6 @@
       if (!previousNode)
         this.firstChild_ = nodes[0];
 
-      // TODO(arv): It is unclear if we need to update the visual DOM here.
-      // A better aproach might be to make sure we only get here for nodes that
-      // are related to a shadow host and then invalidate that and re-render
-      // the host (on reflow?).
       originalAppendChild.call(this.impl, unwrapNodesForInsertion(this, nodes));
 
       return childWrapper;
@@ -201,11 +202,14 @@
       // insertBefore refWrapper no matter what the parent is?
       var refNode = unwrap(refWrapper);
       var parentNode = refNode.parentNode;
+
       if (parentNode) {
         originalInsertBefore.call(
             parentNode,
             unwrapNodesForInsertion(this, nodes),
             refNode);
+      } else {
+        adoptNodesIfNeeded(this, nodes);
       }
 
       return childWrapper;
