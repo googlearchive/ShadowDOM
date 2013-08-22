@@ -10,6 +10,7 @@
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
   var setInnerHTML = scope.setInnerHTML;
+  var unwrap = scope.unwrap;
   var wrap = scope.wrap;
 
   var contentTable = new SideTable();
@@ -33,9 +34,9 @@
   }
 
   function extractContent(templateElement) {
+    // templateElement is not a wrapper here.
     var doc = getTemplateContentsOwner(templateElement.ownerDocument);
-    var df = doc.createDocumentFragment();
-    var nextSibling;
+    var df = unwrap(doc.createDocumentFragment());
     var child;
     while (child = templateElement.firstChild) {
       df.appendChild(child);
@@ -47,6 +48,10 @@
 
   function HTMLTemplateElement(node) {
     HTMLElement.call(this, node);
+    if (!OriginalHTMLTemplateElement) {
+      var content = extractContent(node);
+      contentTable.set(this, wrap(content));
+    }
   }
   HTMLTemplateElement.prototype = Object.create(HTMLElement.prototype);
 
@@ -54,16 +59,7 @@
     get content() {
       if (OriginalHTMLTemplateElement)
         return wrap(this.impl.content);
-
-      // TODO(arv): This should be done in createCallback. I initially tried to
-      // do this in the constructor but the wrapper is not yet created at that
-      // point in time so we hit an iloop.
-      var content = contentTable.get(this);
-      if (!content) {
-        content = extractContent(this);
-        contentTable.set(this, content);
-      }
-      return content;
+      return contentTable.get(this);
     },
 
     get innerHTML() {
