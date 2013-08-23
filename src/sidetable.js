@@ -13,8 +13,7 @@ if (typeof WeakMap !== 'undefined' && navigator.userAgent.indexOf('Firefox/') < 
 } else {
   (function() {
     var defineProperty = Object.defineProperty;
-    var hasOwnProperty = Object.hasOwnProperty;
-    var counter = new Date().getTime() % 1e9;
+    var counter = Date.now() % 1e9;
 
     SideTable = function() {
       this.name = '__st' + (Math.random() * 1e9 >>> 0) + (counter++ + '__');
@@ -22,10 +21,16 @@ if (typeof WeakMap !== 'undefined' && navigator.userAgent.indexOf('Firefox/') < 
 
     SideTable.prototype = {
       set: function(key, value) {
-        defineProperty(key, this.name, {value: value, writable: true});
+        var entry = key[this.name];
+        if (entry && entry[0] === key)
+          entry[1] = value;
+        else
+          defineProperty(key, this.name, {value: [key, value], writable: true});
       },
       get: function(key) {
-        return hasOwnProperty.call(key, this.name) ? key[this.name] : undefined;
+        var entry;
+        return (entry = key[this.name]) && entry[0] === key ?
+            entry[1] : undefined;
       },
       delete: function(key) {
         this.set(key, undefined);
