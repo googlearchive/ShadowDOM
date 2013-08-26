@@ -17,7 +17,7 @@
   HTMLShadowElement.prototype = Object.create(HTMLElement.prototype);
   mixin(HTMLShadowElement.prototype, {
     invalidateShadowRenderer: function() {
-      HTMLElement.prototype.invalidateShadowRenderer.call(this, true);
+      return HTMLElement.prototype.invalidateShadowRenderer.call(this, true);
     },
 
     // TODO: attribute boolean resetStyleInheritance;

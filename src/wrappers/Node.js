@@ -60,6 +60,12 @@
     return nodes;
   }
 
+  function ensureSameOwnerDocument(parent, child) {
+    var ownerDoc = parent.ownerDocument;
+    if (ownerDoc !== child.ownerDocument)
+      ownerDoc.adoptNode(child);
+  }
+
   function adoptNodesIfNeeded(owner, nodes) {
     if (!nodes.length)
       return;
@@ -90,18 +96,30 @@
   }
 
   function removeAllChildNodes(wrapper) {
-    var childWrapper = wrapper.firstChild;
-    while (childWrapper) {
-      assert(childWrapper.parentNode === wrapper);
-      var nextSibling = childWrapper.nextSibling;
-      var childNode = unwrap(childWrapper);
-      var parentNode = childNode.parentNode;
-      if (parentNode)
-        originalRemoveChild.call(parentNode, childNode);
-      childWrapper.previousSibling_ = childWrapper.nextSibling_ = childWrapper.parentNode_ = null;
-      childWrapper = nextSibling;
+    if (wrapper.invalidateShadowRenderer()) {
+      var childWrapper = wrapper.firstChild;
+      while (childWrapper) {
+        assert(childWrapper.parentNode === wrapper);
+        var nextSibling = childWrapper.nextSibling;
+        var childNode = unwrap(childWrapper);
+        var parentNode = childNode.parentNode;
+        if (parentNode)
+          originalRemoveChild.call(parentNode, childNode);
+        childWrapper.previousSibling_ = childWrapper.nextSibling_ =
+            childWrapper.parentNode_ = null;
+        childWrapper = nextSibling;
+      }
+      wrapper.firstChild_ = wrapper.lastChild_ = null;
+    } else {
+      var node = unwrap(wrapper);
+      var child = node.firstChild;
+      var nextSibling;
+      while (child) {
+        nextSibling = child.nextSibling;
+        originalRemoveChild.call(node, child);
+        child = nextSibling;
+      }
     }
-    wrapper.firstChild_ = wrapper.lastChild_ = null;
   }
 
   var OriginalNode = window.Node;
@@ -164,18 +182,22 @@
     appendChild: function(childWrapper) {
       assertIsNodeWrapper(childWrapper);
 
-      this.invalidateShadowRenderer();
+      // if (this.invalidateShadowRenderer() ||
+      //     childWrapper/invalidateShadowRenderer()) {
+      if (this.invalidateShadowRenderer()) {
+        var previousNode = this.lastChild;
+        var nextNode = null;
+        var nodes = collectNodes(childWrapper, this, previousNode, nextNode);
 
-      var previousNode = this.lastChild;
-      var nextNode = null;
-      var nodes = collectNodes(childWrapper, this,
-                               previousNode, nextNode);
+        this.lastChild_ = nodes[nodes.length - 1];
+        if (!previousNode)
+          this.firstChild_ = nodes[0];
 
-      this.lastChild_ = nodes[nodes.length - 1];
-      if (!previousNode)
-        this.firstChild_ = nodes[0];
-
-      originalAppendChild.call(this.impl, unwrapNodesForInsertion(this, nodes));
+        originalAppendChild.call(this.impl, unwrapNodesForInsertion(this, nodes));
+      } else {
+        ensureSameOwnerDocument(this, childWrapper);
+        originalAppendChild.call(this.impl, unwrap(childWrapper));
+      }
 
       return childWrapper;
     },
@@ -189,27 +211,32 @@
       assertIsNodeWrapper(refWrapper);
       assert(refWrapper.parentNode === this);
 
-      this.invalidateShadowRenderer();
+      var childParent = childWrapper.parentNode;
+      if (this.invalidateShadowRenderer() ||
+          childParent && childParent.invalidateShadowRenderer()) {
+        var previousNode = refWrapper.previousSibling;
+        var nextNode = refWrapper;
+        var nodes = collectNodes(childWrapper, this, previousNode, nextNode);
 
-      var previousNode = refWrapper.previousSibling;
-      var nextNode = refWrapper;
-      var nodes = collectNodes(childWrapper, this,
-                               previousNode, nextNode);
+        if (this.firstChild === refWrapper)
+          this.firstChild_ = nodes[0];
 
-      if (this.firstChild === refWrapper)
-        this.firstChild_ = nodes[0];
+        // insertBefore refWrapper no matter what the parent is?
+        var refNode = unwrap(refWrapper);
+        var parentNode = refNode.parentNode;
 
-      // insertBefore refWrapper no matter what the parent is?
-      var refNode = unwrap(refWrapper);
-      var parentNode = refNode.parentNode;
-
-      if (parentNode) {
-        originalInsertBefore.call(
-            parentNode,
-            unwrapNodesForInsertion(this, nodes),
-            refNode);
+        if (parentNode) {
+          originalInsertBefore.call(
+              parentNode,
+              unwrapNodesForInsertion(this, nodes),
+              refNode);
+        } else {
+          adoptNodesIfNeeded(this, nodes);
+        }
       } else {
-        adoptNodesIfNeeded(this, nodes);
+        ensureSameOwnerDocument(this, childWrapper);
+        originalInsertBefore.call(this.impl, unwrap(childWrapper),
+                                  unwrap(refWrapper));
       }
 
       return childWrapper;
@@ -222,31 +249,38 @@
         throw new Error('NotFoundError');
       }
 
-      this.invalidateShadowRenderer();
-
-      // We need to remove the real node from the DOM before updating the
-      // pointers. This is so that that mutation event is dispatched before
-      // the pointers have changed.
-      var thisFirstChild = this.firstChild;
-      var thisLastChild = this.lastChild;
-      var childWrapperNextSibling = childWrapper.nextSibling;
-      var childWrapperPreviousSibling = childWrapper.previousSibling;
-
       var childNode = unwrap(childWrapper);
-      var parentNode = childNode.parentNode;
-      if (parentNode)
-        originalRemoveChild.call(parentNode, childNode);
+      if (this.invalidateShadowRenderer()) {
 
-      if (thisFirstChild === childWrapper)
-        this.firstChild_ = childWrapperNextSibling;
-      if (thisLastChild === childWrapper)
-        this.lastChild_ = childWrapperPreviousSibling;
-      if (childWrapperPreviousSibling)
-        childWrapperPreviousSibling.nextSibling_ = childWrapperNextSibling;
-      if (childWrapperNextSibling)
-        childWrapperNextSibling.previousSibling_ = childWrapperPreviousSibling;
+        // We need to remove the real node from the DOM before updating the
+        // pointers. This is so that that mutation event is dispatched before
+        // the pointers have changed.
+        var thisFirstChild = this.firstChild;
+        var thisLastChild = this.lastChild;
+        var childWrapperNextSibling = childWrapper.nextSibling;
+        var childWrapperPreviousSibling = childWrapper.previousSibling;
 
-      childWrapper.previousSibling_ = childWrapper.nextSibling_ = childWrapper.parentNode_ = null;
+        var parentNode = childNode.parentNode;
+        if (parentNode)
+          originalRemoveChild.call(parentNode, childNode);
+
+        if (thisFirstChild === childWrapper)
+          this.firstChild_ = childWrapperNextSibling;
+        if (thisLastChild === childWrapper)
+          this.lastChild_ = childWrapperPreviousSibling;
+        if (childWrapperPreviousSibling)
+          childWrapperPreviousSibling.nextSibling_ = childWrapperNextSibling;
+        if (childWrapperNextSibling) {
+          childWrapperNextSibling.previousSibling_ =
+              childWrapperPreviousSibling;
+        }
+
+        childWrapper.previousSibling_ = childWrapper.nextSibling_ =
+            childWrapper.parentNode_ = undefined;
+      } else {
+        ensureSameOwnerDocument(this, childWrapper);
+        originalRemoveChild.call(this.impl, childNode);
+      }
 
       return childWrapper;
     },
@@ -260,31 +294,37 @@
         throw new Error('NotFoundError');
       }
 
-      this.invalidateShadowRenderer();
-
-      var previousNode = oldChildWrapper.previousSibling;
-      var nextNode = oldChildWrapper.nextSibling;
-      if (nextNode === newChildWrapper)
-        nextNode = newChildWrapper.nextSibling;
-      var nodes = collectNodes(newChildWrapper, this,
-                               previousNode, nextNode);
-
-      if (this.firstChild === oldChildWrapper)
-        this.firstChild_ = nodes[0];
-      if (this.lastChild === oldChildWrapper)
-        this.lastChild_ = nodes[nodes.length - 1];
-
-      oldChildWrapper.previousSibling_ = null;
-      oldChildWrapper.nextSibling_ = null;
-      oldChildWrapper.parentNode_ = null;
-
-      // replaceChild no matter what the parent is?
       var oldChildNode = unwrap(oldChildWrapper);
-      if (oldChildNode.parentNode) {
-        originalReplaceChild.call(
-            oldChildNode.parentNode,
-            unwrapNodesForInsertion(this, nodes),
-            oldChildNode);
+      var newChildParent = newChildWrapper.parentNode;
+
+      if (this.invalidateShadowRenderer() ||
+          newChildParent && newChildParent.invalidateShadowRenderer()) {
+        var previousNode = oldChildWrapper.previousSibling;
+        var nextNode = oldChildWrapper.nextSibling;
+        if (nextNode === newChildWrapper)
+          nextNode = newChildWrapper.nextSibling;
+        var nodes = collectNodes(newChildWrapper, this,
+                                 previousNode, nextNode);
+
+        if (this.firstChild === oldChildWrapper)
+          this.firstChild_ = nodes[0];
+        if (this.lastChild === oldChildWrapper)
+          this.lastChild_ = nodes[nodes.length - 1];
+
+        oldChildWrapper.previousSibling_ = oldChildWrapper.nextSibling_ =
+            oldChildWrapper.parentNode_ = undefined;
+
+        // replaceChild no matter what the parent is?
+        if (oldChildNode.parentNode) {
+          originalReplaceChild.call(
+              oldChildNode.parentNode,
+              unwrapNodesForInsertion(this, nodes),
+              oldChildNode);
+        }
+      } else {
+        ensureSameOwnerDocument(this, newChildWrapper);
+        originalReplaceChild.call(this.impl, unwrap(newChildWrapper),
+                                  oldChildNode);
       }
 
       return oldChildWrapper;
@@ -343,11 +383,14 @@
       return s;
     },
     set textContent(textContent) {
-      removeAllChildNodes(this);
-      this.invalidateShadowRenderer();
-      if (textContent !== '') {
-        var textNode = this.impl.ownerDocument.createTextNode(textContent);
-        this.appendChild(textNode);
+      if (this.invalidateShadowRenderer()) {
+        removeAllChildNodes(this);
+        if (textContent !== '') {
+          var textNode = this.impl.ownerDocument.createTextNode(textContent);
+          this.appendChild(textNode);
+        }
+      } else {
+        this.impl.textContent = textContent;
       }
     },
 
