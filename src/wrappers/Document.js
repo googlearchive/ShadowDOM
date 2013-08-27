@@ -58,7 +58,6 @@
   ].forEach(wrapMethod);
 
   var originalAdoptNode = document.adoptNode;
-  var originalWrite = document.write;
 
   function adoptNodeNoRemove(node, doc) {
     originalAdoptNode.call(doc.impl, unwrap(node));
@@ -90,17 +89,6 @@
     },
     elementFromPoint: function(x, y) {
       return elementFromPoint(this, this, x, y);
-    },
-    write: function(s) {
-      var all = this.querySelectorAll('*');
-      var last = all[all.length - 1];
-      while (last.nextSibling) {
-        last = last.nextSibling;
-      }
-      var p = last.parentNode;
-      p.lastChild_ = undefined;
-      last.nextSibling_ = undefined;
-      originalWrite.call(this.impl, s);
     }
   });
 
@@ -223,7 +211,6 @@
     'createTextNode',
     'elementFromPoint',
     'getElementById',
-    'write',
   ]);
 
   mixin(Document.prototype, GetElementsByInterface);

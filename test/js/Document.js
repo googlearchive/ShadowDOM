@@ -448,4 +448,6 @@ htmlSuite('Document', function() {
   });
 
   htmlTest('html/document-write.html');
+
+  htmlTest('html/head-then-body.html');
 });

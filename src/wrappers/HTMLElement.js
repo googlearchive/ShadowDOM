@@ -89,7 +89,7 @@
   function setInnerHTML(node, value, opt_tagName) {
     var tagName = opt_tagName || 'div';
     node.textContent = '';
-    var tempElement =unwrap(node.ownerDocument.createElement(tagName));
+    var tempElement = unwrap(node.ownerDocument.createElement(tagName));
     tempElement.innerHTML = value;
     var firstChild;
     while (firstChild = tempElement.firstChild) {
@@ -110,7 +110,10 @@
       return getInnerHTML(this);
     },
     set innerHTML(value) {
-      setInnerHTML(this, value, this.tagName);
+      if (this.invalidateShadowRenderer())
+        setInnerHTML(this, value, this.tagName);
+      else
+        this.impl.innerHTML = value;
     },
 
     get outerHTML() {
