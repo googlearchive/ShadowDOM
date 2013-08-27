@@ -6,6 +6,7 @@
   'use strict';
 
   var HTMLContentElement = scope.wrappers.HTMLContentElement;
+  var HTMLShadowElement = scope.wrappers.HTMLShadowElement;
   var Node = scope.wrappers.Node;
   var assert = scope.assert;
   var mixin = scope.mixin;
