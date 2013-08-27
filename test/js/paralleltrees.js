@@ -10,6 +10,17 @@ suite('Parallel Trees', function() {
   var unwrap = ShadowDOMPolyfill.unwrap;
   var visual = ShadowDOMPolyfill.visual;
 
+  var NodeInvalidate = Node.prototype.invalidateShadowRenderer;
+  setup(function() {
+    Node.prototype.invalidateShadowRenderer = function() {
+      return true;
+    };
+  });
+
+  teardown(function() {
+    Node.prototype.invalidateShadowRenderer = NodeInvalidate;
+  });
+
   suite('Visual', function() {
 
     test('removeAllChildNodes wrapper', function() {

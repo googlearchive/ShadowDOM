@@ -562,6 +562,17 @@
     return getDistributedChildNodes(this);
   };
 
+  HTMLShadowElement.prototype.invalidateShadowRenderer =
+  HTMLContentElement.prototype.invalidateShadowRenderer = function(force) {
+    var renderer = shadowDOMRendererTable.get(this);
+    if (renderer) {
+      renderer.invalidate();
+      return true;
+    }
+
+    return false;
+  };
+
   scope.eventParentsTable = eventParentsTable;
   scope.getRendererForHost = getRendererForHost;
   scope.getShadowTrees = getShadowTrees;

@@ -85,4 +85,94 @@ suite('Node', function() {
 
     doc.body.removeChild(host);
   });
+
+  test('removeChild resets pointers', function() {
+    var host = document.createElement('div');
+    host.innerHTML = '<a></a>';
+    var a = host.firstChild;
+    var sr = host.createShadowRoot();
+
+    host.offsetHeight;
+
+    host.removeChild(a);
+
+    expectStructure(a, {});
+
+    var div = document.createElement('div');
+    div.appendChild(a);
+
+    expectStructure(div, {
+      firstChild: a,
+      lastChild: a
+    });
+
+    expectStructure(a, {
+      parentNode: div
+    });
+  });
+
+  test('replaceChild resets pointers', function() {
+    var host = document.createElement('div');
+    host.innerHTML = '<a></a>';
+    var a = host.firstChild;
+    var sr = host.createShadowRoot();
+
+    host.offsetHeight;
+
+    var b = document.createElement('b');
+
+    host.replaceChild(b, a);
+
+    expectStructure(a, {});
+
+    expectStructure(b, {
+      parentNode: host
+    });
+
+    var div = document.createElement('div');
+    div.appendChild(a);
+
+    expectStructure(div, {
+      firstChild: a,
+      lastChild: a
+    });
+
+    expectStructure(a, {
+      parentNode: div
+    });
+  });
+
+  test('appendChild resets pointers', function() {
+    var host1 = document.createElement('div');
+    host1.innerHTML = '<a></a>';
+    var a = host1.firstChild;
+    var sr1 = host1.createShadowRoot();
+
+    var host2 = document.createElement('div');
+    host2.innerHTML = '<b></b>';
+    var b = host2.firstChild;
+    var sr2 = host2.createShadowRoot();
+
+    host1.offsetHeight;
+    host2.offsetHeight;
+
+    host1.appendChild(b);
+
+    expectStructure(host1, {
+      firstChild: a,
+      lastChild: b
+    });
+
+    expectStructure(a, {
+      parentNode: host1,
+      nextSibling: b
+    });
+
+    expectStructure(b, {
+      parentNode: host1,
+      previousSibling: a
+    });
+
+    expectStructure(host2, {});
+  });
 });
