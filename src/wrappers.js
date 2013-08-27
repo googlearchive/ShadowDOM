@@ -238,11 +238,8 @@ var ShadowDOMPolyfill = {};
 
     assert(isNative(impl));
     var wrapper = wrapperTable.get(impl);
-    if (!wrapper) {
-      var wrapperConstructor = getWrapperConstructor(impl);
-      wrapper = new wrapperConstructor(impl);
-      wrapperTable.set(impl, wrapper);
-    }
+    if (!wrapper)
+      wrapperTable.set(impl, wrapper = new (getWrapperConstructor(impl))(impl));
     return wrapper;
   }
 
