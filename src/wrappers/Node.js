@@ -123,6 +123,11 @@
     }
   }
 
+  function invalidateParent(node) {
+    var p = node.parentNode;
+    return p && p.invalidateShadowRenderer();
+  }
+
   var OriginalNode = window.Node;
 
   /**
@@ -183,9 +188,7 @@
     appendChild: function(childWrapper) {
       assertIsNodeWrapper(childWrapper);
 
-      // if (this.invalidateShadowRenderer() ||
-      //     childWrapper/invalidateShadowRenderer()) {
-      if (this.invalidateShadowRenderer()) {
+      if (this.invalidateShadowRenderer() || invalidateParent(childWrapper)) {
         var previousNode = this.lastChild;
         var nextNode = null;
         var nodes = collectNodes(childWrapper, this, previousNode, nextNode);
@@ -200,6 +203,8 @@
         originalAppendChild.call(this.impl, unwrap(childWrapper));
       }
 
+      childWrapper.nodeWasAdded_();
+
       return childWrapper;
     },
 
@@ -212,9 +217,7 @@
       assertIsNodeWrapper(refWrapper);
       assert(refWrapper.parentNode === this);
 
-      var childParent = childWrapper.parentNode;
-      if (this.invalidateShadowRenderer() ||
-          childParent && childParent.invalidateShadowRenderer()) {
+      if (this.invalidateShadowRenderer() || invalidateParent(childWrapper)) {
         var previousNode = refWrapper.previousSibling;
         var nextNode = refWrapper;
         var nodes = collectNodes(childWrapper, this, previousNode, nextNode);
@@ -239,6 +242,8 @@
         originalInsertBefore.call(this.impl, unwrap(childWrapper),
                                   unwrap(refWrapper));
       }
+
+      childWrapper.nodeWasAdded_();
 
       return childWrapper;
     },
@@ -295,10 +300,9 @@
       }
 
       var oldChildNode = unwrap(oldChildWrapper);
-      var newChildParent = newChildWrapper.parentNode;
 
       if (this.invalidateShadowRenderer() ||
-          newChildParent && newChildParent.invalidateShadowRenderer()) {
+          invalidateParent(newChildWrapper)) {
         var previousNode = oldChildWrapper.previousSibling;
         var nextNode = oldChildWrapper.nextSibling;
         if (nextNode === newChildWrapper)
@@ -327,8 +331,17 @@
                                   oldChildNode);
       }
 
+      newChildWrapper.nodeWasAdded_();
+
       return oldChildWrapper;
     },
+
+    /**
+     * Called after a node was added. Subclasses override this to invalidate
+     * the renderer as needed.
+     * @private
+     */
+    nodeWasAdded_: function() {},
 
     hasChildNodes: function() {
       return this.firstChild === null;

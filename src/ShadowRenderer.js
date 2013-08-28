@@ -8,7 +8,9 @@
   var HTMLContentElement = scope.wrappers.HTMLContentElement;
   var HTMLShadowElement = scope.wrappers.HTMLShadowElement;
   var Node = scope.wrappers.Node;
+  var ShadowRoot = scope.wrappers.ShadowRoot;
   var assert = scope.assert;
+  var getHostForShadowRoot = scope.getHostForShadowRoot;
   var mixin = scope.mixin;
   var oneOf = scope.oneOf;
   var unwrap = scope.unwrap;
@@ -53,7 +55,8 @@
   function removeAllChildNodes(parentNodeWrapper) {
     var parentNode = unwrap(parentNodeWrapper);
     updateAllChildNodes(parentNodeWrapper);
-    parentNode.textContent = '';
+    if (parentNode.firstChild)
+      parentNode.textContent = '';
   }
 
   function appendChild(parentNodeWrapper, childWrapper) {
@@ -264,6 +267,17 @@
     return renderer;
   }
 
+  function getShadowRootAncestor(node) {
+    for (; node; node = node.parentNode) {
+      if (node instanceof ShadowRoot)
+        return node;
+    }
+    return null;
+  }
+
+  function getRendererForShadowRoot(shadowRoot) {
+    return getRendererForHost(getHostForShadowRoot(shadowRoot));
+  }
 
   ShadowRenderer.prototype = {
 
@@ -277,8 +291,6 @@
 
       var host = this.host;
       var shadowDOM = host.shadowRoot;
-      if (!shadowDOM)
-        return;
 
       this.removeAllChildNodes(this.host);
 
@@ -315,14 +327,18 @@
       }
     },
 
-    renderAsAnyDomTree: function(visualParent, tree, child, isNested) {
-      this.appendChild(visualParent, child);
+    renderAsAnyDomTree: function(visualParent, tree, node, isNested) {
+      this.appendChild(visualParent, node);
 
-      if (isShadowHost(child)) {
-        render(child);
+      if (isShadowHost(node)) {
+        render(node);
       } else {
-        var parent = child;
+        var parent = node;
         var logicalChildNodes = getChildNodesSnapshot(parent);
+        // We associate the parent of a content/shadow with the renderer
+        // because we may need to remove stale childNodes.
+        if (shadowDOMRendererTable.get(parent))
+          this.removeAllChildNodes(parent);
         logicalChildNodes.forEach(function(node) {
           this.renderNode(parent, tree, node, isNested);
         }, this);
@@ -362,11 +378,12 @@
 
     renderFallbackContent: function (visualParent, fallbackHost) {
       var logicalChildNodes = getChildNodesSnapshot(fallbackHost);
+      this.associateNode(fallbackHost);
+      this.remove(fallbackHost);
       logicalChildNodes.forEach(function(node) {
         this.appendChild(visualParent, node);
       }, this);
     },
-
 
     /**
      * Invalidates the attributes used to keep track of which attributes may
@@ -481,24 +498,24 @@
       }
     },
 
-    // Visual DOM mutation.
     appendChild: function(parent, child) {
+      // this.associateNode(child);
+      this.associateNode(parent);
       appendChild(parent, child);
-      this.associateNode(child);
     },
 
     remove: function(node) {
+      // this.associateNode(node);
+      this.associateNode(node.parentNode);
       remove(node);
-      this.associateNode(node);
     },
 
     removeAllChildNodes: function(parent) {
+      this.associateNode(parent);
       removeAllChildNodes(parent);
-      // TODO(arv): Does this need to associate all the nodes with this renderer?
     },
 
     associateNode: function(node) {
-      // TODO: Clear when moved out of shadow tree.
       shadowDOMRendererTable.set(node, this);
     }
   };
@@ -523,7 +540,7 @@
   }
 
   function isShadowHost(shadowHost) {
-    return !!shadowHost.shadowRoot;
+    return shadowHost.shadowRoot;
   }
 
   function getShadowTrees(host) {
@@ -544,27 +561,20 @@
     new ShadowRenderer(host).render();
   };
 
+  // Need to rerender shadow host when:
+  //
+  // - a direct child to the ShadowRoot is added or removed
+  // - a direct child to the host is added or removed
+  // - a new shadow root is created
+  // - a direct child to a content/shadow element is added or removed
+  // - a sibling to a content/shadow element is added or removed
+  // - content[select] is changed
+  // - an attribute in a direct child to a host is modified
+
+  /**
+   * This gets called when a node was added or removed to it.
+   */
   Node.prototype.invalidateShadowRenderer = function(force) {
-    if (force || this.shadowRoot) {
-      var renderer = shadowDOMRendererTable.get(this);
-      if (renderer) {
-        renderer.invalidate();
-        return true;
-      }
-    }
-
-    return false;
-  };
-
-  HTMLContentElement.prototype.getDistributedNodes = function() {
-    // TODO(arv): We should associate the element with the shadow root so we
-    // only have to rerender this ShadowRenderer.
-    renderAllPending();
-    return getDistributedChildNodes(this);
-  };
-
-  HTMLShadowElement.prototype.invalidateShadowRenderer =
-  HTMLContentElement.prototype.invalidateShadowRenderer = function(force) {
     var renderer = shadowDOMRendererTable.get(this);
     if (renderer) {
       renderer.invalidate();
@@ -572,6 +582,27 @@
     }
 
     return false;
+  };
+
+  HTMLContentElement.prototype.getDistributedNodes = function() {
+    var renderer = shadowDOMRendererTable.get(this);
+    if (renderer)
+      renderer.render();
+    return getDistributedChildNodes(this);
+  };
+
+  HTMLShadowElement.prototype.nodeWasAdded_ =
+  HTMLContentElement.prototype.nodeWasAdded_ = function() {
+    // Invalidate old renderer if any.
+    this.invalidateShadowRenderer();
+
+    var shadowRoot = getShadowRootAncestor(this);
+    var renderer;
+    if (shadowRoot)
+      renderer = getRendererForShadowRoot(shadowRoot);
+    shadowDOMRendererTable.set(this, renderer);
+    if (renderer)
+      renderer.invalidate();
   };
 
   scope.eventParentsTable = eventParentsTable;
