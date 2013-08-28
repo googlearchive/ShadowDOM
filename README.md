@@ -36,7 +36,7 @@ A component user supplies the light DOM; the node has a (hidden) shadow DOM; and
 
 The following is true about this example:
 
-* The light DOM that belongs to `<my-custom-element>` is visible to the user as its normal subtree. It can expressed by `.childNodes`, `.children`, `.innerHTML` or any other property or method that gives you information about a node's subtree.
+* The light DOM that belongs to `<my-custom-element>` is visible to the user as its normal subtree. It can be expressed by `.childNodes`, `.children`, `.innerHTML` or any other property or method that gives you information about a node's subtree.
 * Nodes in light DOM or shadow DOM express parent and sibling relationships that match their respective tree structures; the relationships that exist in the rendered tree are not expressed anywhere in DOM.
 
 So, while in the final rendered tree `<span>` is a child of `<my-custom-element>` and the parent of `<q>`, interrogating those nodes will tell you that the `<span>` is a child of `<shadow-root>` and `<q>` is a child of `<my-custom-element>`, and that those two nodes are unrelated.
