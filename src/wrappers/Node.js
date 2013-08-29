@@ -61,7 +61,8 @@
   }
 
   function ensureSameOwnerDocument(parent, child) {
-    var ownerDoc = parent.ownerDocument;
+    var ownerDoc = parent.nodeType === Node.DOCUMENT_NODE ?
+        parent : parent.ownerDocument;
     if (ownerDoc !== child.ownerDocument)
       ownerDoc.adoptNode(child);
   }
@@ -278,7 +279,6 @@
         childWrapper.previousSibling_ = childWrapper.nextSibling_ =
             childWrapper.parentNode_ = undefined;
       } else {
-        ensureSameOwnerDocument(this, childWrapper);
         originalRemoveChild.call(this.impl, childNode);
       }
 

@@ -86,6 +86,17 @@ suite('Node', function() {
     doc.body.removeChild(host);
   });
 
+  test('ownerDocument when appending to document', function() {
+    var doc1 = document.implementation.createHTMLDocument('');
+    var comment = doc1.createComment('');
+    doc1.appendChild(comment);
+    assert.equal(doc1, comment.ownerDocument);
+
+    var doc2 = document.implementation.createHTMLDocument('');
+    doc2.appendChild(comment);
+    assert.equal(doc2, comment.ownerDocument);
+  });
+
   test('removeChild resets pointers', function() {
     var host = document.createElement('div');
     host.innerHTML = '<a></a>';
