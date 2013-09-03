@@ -5,53 +5,60 @@
     var el = document.createElement('div');
     var shadow = el.createShadowRoot();
     shadow.innerHTML = '<content select="h1"></content>';
+    document.body.appendChild(el);
 
 ### Shadow DOM subtrees
 
 Shadow DOM allows a single node to express three subtrees: _light DOM_, _shadow DOM_, and _composed DOM_.
 
-A component user supplies the light DOM; the node has a (hidden) shadow DOM; and the composed DOM is what is actually rendered in the browser. At render time, the light DOM is merged with the shadow DOM to produce the composed DOM. For example:
+Together, the light DOM and shadow DOM are referred to as the _logical DOM_. This is the DOM that the developer interacts with. The composed DOM is what the browser sees and uses to render the pixels on the screen.
 
 **Light DOM**
 
+The user of your custom element supplies the light DOM:
+
     <my-custom-element>
-      <!-- everything in here is my-custom-element's light DOM -->
-      <q>Hello World</q>
+      <q>Hello World</q> <!-- part of my-custom-element's light DOM -->
     </my-custom-element>
+
+The light DOM of `<my-custom-element>` is visible to the end-user of the
+element as a normal subtree. They can access `.childNodes`, `.children`, `.innerHTML`, or any other property or method that gives information about a node's subtree.
 
 **Shadow DOM**
 
-    <!-- shadow-root is attached to my-custom-element, but is not a child -->
-    <shadow-root>
+`<my-custom-element>` may define shadow DOM by attaching a shadow root to
+itself.
+
+    #document-fragment
       <!-- everything in here is my-custom-element's shadow DOM -->
       <span>People say: <content></content></span>
-    </shadow-root>
+      <footer>sometimes</footer>
+
+Shadow DOM is internal to the element and hidden from the end-user.
+Its nodes are not children of `<my-custom-element>`.
+
+**Note:** Shadow roots are represented as a `#document-fragment` in the DevTools.
+{: .alert .alert-info }
 
 **Composed (rendered) DOM**
 
-    <!-- rendered DOM -->
+The composed DOM is what the browser actually renders. For rendering, the light
+DOM is distributed into the shadow DOM to produce the composed DOM. The final output
+looks something like this:
+
     <my-custom-element>
       <span>People say: <q>Hello World</q></span>
+      <footer>sometimes</footer>
     </my-custom-element>
 
-The following is true about this example:
-
-* The light DOM that belongs to `<my-custom-element>` is visible to the user as its normal subtree. It can be expressed by `.childNodes`, `.children`, `.innerHTML` or any other property or method that gives you information about a node's subtree.
-* Nodes in light DOM or shadow DOM express parent and sibling relationships that match their respective tree structures; the relationships that exist in the rendered tree are not expressed anywhere in DOM.
-
-So, while in the final rendered tree `<span>` is a child of `<my-custom-element>` and the parent of `<q>`, interrogating those nodes will tell you that the `<span>` is a child of `<shadow-root>` and `<q>` is a child of `<my-custom-element>`, and that those two nodes are unrelated.
-
-In this way, the user can manipulate light DOM or shadow DOM directly as regular DOM subtrees, and let the system take care of keeping the render tree synchronized.
+Nodes in light DOM or shadow DOM express parent and sibling relationships that match their respective tree structures; the relationships that exist in the composed tree are not expressed anywhere in DOM. So, while the `<span>` in the final composed tree is a child of `<my-custom-element>` and the parent of `<q>`, it is actually a child of the shadow root and `<q>` is a child of `<my-custom-element>`. The two nodes are unrelated but
+Shadow DOM renders them as if they are. In this way, the user can manipulate light DOM or shadow DOM directly as regular DOM subtrees, and let the system take care of keeping the render tree synchronized.
 
 ## Polyfill details
 
 A polyfill to provide Shadow DOM functionality in browsers that don't
 support it natively. This section explains how a proper (native) implementation
 differs from our polyfill implementation.
-
-### Logical DOM
-
-The light DOM and the shadow DOM is referred to as the logical DOM. This is the DOM that the developer interacts with. The composed DOM is what the browser sees and uses to render the pixels on the screen.
 
 ### Wrappers
 
@@ -98,9 +105,9 @@ To support this kind of behavior the event dispatching in the browser has to be 
 
 #### Known issues
 
-* CSS encapsulation is not implemented.
+* CSS encapsulation is limited.
 * `Object.prototype.toString` does not return the same string as for native objects.
 * No live `NodeList`s. All node lists are snapshotted upon read.
 * `document`, `window`, `document.body`, `document.head` and others are non configurable and cannot be overridden. We are trying to make these work as seamlessly as possible but there will doubtlessly be cases where there will be problems; for those cases you can use `wrap` and `unwrap` to get unblocked.
-* `onclick` and other `on*` attribute event handler do not wrap the event object as needed.
+* `onclick` and other `on-*` event handlers do not wrap the event object as needed.
 * Cross window/frame access is not implemented.
