@@ -11,6 +11,7 @@
   var unwrap = scope.unwrap;
   var unwrapIfNeeded = scope.unwrapIfNeeded;
   var wrap = scope.wrap;
+  var renderAllPending = scope.renderAllPending;
 
   var OriginalWindow = window.Window;
 
@@ -21,6 +22,7 @@
 
   var originalGetComputedStyle = window.getComputedStyle;
   OriginalWindow.prototype.getComputedStyle = function(el, pseudo) {
+    renderAllPending();
     return originalGetComputedStyle.call(this || window, unwrapIfNeeded(el),
                                          pseudo);
   };
