@@ -56,4 +56,15 @@ suite('Window', function() {
     assert.isTrue(cs != null);
   });
 
+  test('getComputedStyleShadow', function() {
+    var host = document.createElement('div');
+    var root = host.createShadowRoot();
+    var elt = document.createElement('div');
+    root.appendChild(elt);
+    document.body.appendChild(host);
+    elt.style.padding = '4px';
+    assert.equal(getComputedStyle(elt).paddingLeft, '4px');
+    document.body.removeChild(host);
+  });
+
 });
