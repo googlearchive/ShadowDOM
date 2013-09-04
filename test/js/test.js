@@ -417,18 +417,38 @@ suite('Shadow DOM', function() {
     assert.equal(count, 0);
     assert.equal(getVisualInnerHtml(host), '<b><d></d></b>');
 
-    var e = sr.appendChild(document.createElement('e'));
-    assert.equal(count, 1);
-    assert.equal(getVisualInnerHtml(host), '<b><d></d></b><e></e>');
+    b.appendChild(document.createElement('e'));
+    assert.equal(count, 0);
+    assert.equal(getVisualInnerHtml(host), '<b><d></d><e></e></b>');
 
-    e.appendChild(document.createElement('f'));
+    var f = sr.appendChild(document.createElement('f'));
     assert.equal(count, 1);
-    assert.equal(getVisualInnerHtml(host), '<b><d></d></b><e><f></f></e>');
+    assert.equal(getVisualInnerHtml(host), '<b><d></d><e></e></b><f></f>');
 
-    host.insertBefore(document.createElement('g'), text);
+    f.appendChild(document.createElement('g'));
+    assert.equal(count, 1);
+    assert.equal(getVisualInnerHtml(host),
+        '<b><d></d><e></e></b><f><g></g></f>');
+
+    host.insertBefore(document.createElement('h'), text);
     assert.equal(count, 2);
     assert.equal(getVisualInnerHtml(host),
-                 '<b><d></d></b><g></g><e><f></f></e>');
+                 '<b><d></d><e></e></b><h></h><f><g></g></f>');
+  });
+
+  test('issue-235', function() {
+    var host = document.createElement('div');
+    var sr = host.createShadowRoot();
+    sr.innerHTML = '<a><b></b></a>';
+    var a = sr.firstChild;
+    var b = a.firstChild;
+
+    assert.equal(getVisualInnerHtml(host), '<a><b></b></a>');
+
+    var c = document.createElement('c');
+    a.appendChild(c);
+
+    assert.equal(a.childNodes.length, 2);
   });
 
 });
