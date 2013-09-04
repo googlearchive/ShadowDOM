@@ -176,8 +176,6 @@
       return true;
     if (a instanceof wrappers.ShadowRoot) {
       var host = scope.getHostForShadowRoot(a);
-      if (!host)
-        return false;
       return enclosedBy(rootOfNode(host), b);
     }
     return false;
