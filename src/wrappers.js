@@ -11,6 +11,19 @@ var ShadowDOMPolyfill = {};
   var nativePrototypeTable = new SideTable();
   var wrappers = Object.create(null);
 
+  // Don't test for eval if document has CSP securityPolicy object and we can
+  // see that eval is not supported. This avoids an error message in console
+  // even when the exception is caught
+  var hasEval = !('securityPolicy' in document) ||
+      document.securityPolicy.allowsEval;
+  if (hasEval) {
+    try {
+      var f = new Function('', 'return true;');
+      hasEval = f();
+    } catch (ex) {
+    }
+  }
+
   function assert(b) {
     if (!b)
       throw new Error('Assertion failed');
@@ -90,6 +103,25 @@ var ShadowDOMPolyfill = {};
     return /^on[a-z]+$/.test(name);
   }
 
+  function getGetter(name) {
+    return hasEval ?
+        new Function('return this.impl.' + name) :
+        function() { return this.impl[name]; };
+  }
+
+  function getSetter(name) {
+    return hasEval ?
+        new Function('v', 'this.impl.' + name + ' = v') :
+        function(v) { this.impl[name] = v; };
+  }
+
+  function getMethod(name) {
+    return hasEval ?
+        new Function('return this.impl.' + name +
+                     '.apply(this.impl, arguments)') :
+        function() { return this.impl[name].apply(this.impl, arguments); };
+  }
+
   function installProperty(source, target, allowMethod) {
     Object.getOwnPropertyNames(source).forEach(function(name) {
       if (name in target)
@@ -110,29 +142,21 @@ var ShadowDOMPolyfill = {};
       }
       var getter, setter;
       if (allowMethod && typeof descriptor.value === 'function') {
-        target[name] = function() {
-          return this.impl[name].apply(this.impl, arguments);
-        };
+        target[name] = getMethod(name);
         return;
       }
 
       var isEvent = isEventHandlerName(name);
-      if (isEvent) {
+      if (isEvent)
         getter = scope.getEventHandlerGetter(name);
-      } else {
-        getter = function() {
-          return this.impl[name];
-        };
-      }
+      else
+        getter = getGetter(name);
 
       if (descriptor.writable || descriptor.set) {
-        if (isEvent) {
+        if (isEvent)
           setter = scope.getEventHandlerSetter(name);
-        } else {
-          setter = function(value) {
-            this.impl[name] = value;
-          };
-        }
+        else
+          setter = getSetter(name);
       }
 
       Object.defineProperty(target, name, {
