@@ -7,7 +7,6 @@ var ShadowDOMPolyfill = {};
 (function(scope) {
   'use strict';
 
-  var wrapperTable = new SideTable();
   var constructorTable = new SideTable();
   var nativePrototypeTable = new SideTable();
   var wrappers = Object.create(null);
@@ -237,10 +236,8 @@ var ShadowDOMPolyfill = {};
       return null;
 
     assert(isNative(impl));
-    var wrapper = wrapperTable.get(impl);
-    if (!wrapper)
-      wrapperTable.set(impl, wrapper = new (getWrapperConstructor(impl))(impl));
-    return wrapper;
+    return impl.polymerWrapper_ ||
+        (impl.polymerWrapper_ = new (getWrapperConstructor(impl))(impl));
   }
 
   /**
@@ -284,7 +281,7 @@ var ShadowDOMPolyfill = {};
       return;
     assert(isNative(node));
     assert(wrapper === undefined || isWrapper(wrapper));
-    wrapperTable.set(node, wrapper);
+    node.polymerWrapper_ = wrapper;
   }
 
   function defineGetter(constructor, name, getter) {
