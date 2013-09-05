@@ -179,7 +179,6 @@
       return enclosedBy(rootOfNode(host), b);
     }
     return false;
-
   }
 
   function isMutationEvent(type) {
