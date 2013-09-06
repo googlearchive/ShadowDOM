@@ -13,32 +13,32 @@
       base = src.slice(0, -match[0].length);
     }
   });
-  base += 'src/';
 
   [
-    'sidetable.js',
-    'wrappers.js',
-    'wrappers/events.js',
-    'wrappers/NodeList.js',
-    'wrappers/Node.js',
-    'querySelector.js',
-    'wrappers/node-interfaces.js',
-    'wrappers/CharacterData.js',
-    'wrappers/Element.js',
-    'wrappers/HTMLElement.js',
-    'wrappers/HTMLContentElement.js',
-    'wrappers/HTMLShadowElement.js',
-    'wrappers/HTMLTemplateElement.js',
-    'wrappers/HTMLUnknownElement.js',
-    'wrappers/generic.js',
-    'wrappers/ShadowRoot.js',
-    'ShadowRenderer.js',
-    'wrappers/elements-with-form-property.js',
-    'wrappers/Document.js',
-    'wrappers/Window.js',
-    'wrappers/MutationObserver.js',
-    'wrappers/Range.js',
-    'wrappers/override-constructors.js'
+    '../observe-js/src/observe.js',
+    'src/sidetable.js',
+    'src/wrappers.js',
+    'src/wrappers/events.js',
+    'src/wrappers/NodeList.js',
+    'src/wrappers/Node.js',
+    'src/querySelector.js',
+    'src/wrappers/node-interfaces.js',
+    'src/wrappers/CharacterData.js',
+    'src/wrappers/Element.js',
+    'src/wrappers/HTMLElement.js',
+    'src/wrappers/HTMLContentElement.js',
+    'src/wrappers/HTMLShadowElement.js',
+    'src/wrappers/HTMLTemplateElement.js',
+    'src/wrappers/HTMLUnknownElement.js',
+    'src/wrappers/generic.js',
+    'src/wrappers/ShadowRoot.js',
+    'src/ShadowRenderer.js',
+    'src/wrappers/elements-with-form-property.js',
+    'src/wrappers/Document.js',
+    'src/wrappers/Window.js',
+    'src/wrappers/MutationObserver.js',
+    'src/wrappers/Range.js',
+    'src/wrappers/override-constructors.js'
   ].forEach(function(src) {
     document.write('<script src="' + base + src + '"></script>');
   });

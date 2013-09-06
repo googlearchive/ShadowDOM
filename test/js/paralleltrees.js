@@ -28,7 +28,8 @@ suite('Parallel Trees', function() {
       div.textContent = 'a';
       var textNode = div.firstChild;
 
-      visual.removeAllChildNodes(div);
+      div.createShadowRoot();
+      div.offsetWidth;
 
       expectStructure(unwrap(div), {});
       expectStructure(unwrap(textNode), {});
@@ -50,7 +51,8 @@ suite('Parallel Trees', function() {
       var b = a.nextSibling;
       var c = div.lastChild;
 
-      visual.removeAllChildNodes(div);
+      div.createShadowRoot();
+      div.offsetWidth;
 
       expectStructure(unwrap(div), {});
       expectStructure(unwrap(a), {});
@@ -88,7 +90,7 @@ suite('Parallel Trees', function() {
       unwrapAndExpectStructure(div, {});
       unwrapAndExpectStructure(textNode, {});
 
-      visual.appendChild(div, textNode);
+      visual.insertBefore(div, textNode, null);
 
       unwrapAndExpectStructure(div, {
         firstChild: textNode,
@@ -109,7 +111,7 @@ suite('Parallel Trees', function() {
       var a = div.firstChild;
       var b = document.createElement('b');
 
-      visual.appendChild(div, b);
+      visual.insertBefore(div, b, null);
 
       unwrapAndExpectStructure(div, {
         firstChild: a,
@@ -144,7 +146,7 @@ suite('Parallel Trees', function() {
       var b = div.lastChild;
       var c = document.createElement('c');
 
-      visual.appendChild(div, c);
+      visual.insertBefore(div, c, null);
 
       unwrapAndExpectStructure(div, {
         firstChild: a,
@@ -183,49 +185,6 @@ suite('Parallel Trees', function() {
       });
 
       expectStructure(c, {});
-    });
-
-    test('appendChild with document fragment', function() {
-      var div = document.createElement('div');
-      var df = document.createDocumentFragment();
-      var a = df.appendChild(document.createElement('a'));
-      var b = df.appendChild(document.createElement('b'));
-
-      visual.appendChild(div, df);
-
-      unwrapAndExpectStructure(div, {
-        firstChild: a,
-        lastChild: b
-      });
-
-      unwrapAndExpectStructure(df, {});
-
-      unwrapAndExpectStructure(a, {
-        parentNode: div,
-        nextSibling: b
-      });
-
-      unwrapAndExpectStructure(b, {
-        parentNode: div,
-        previousSibling: a
-      });
-
-      expectStructure(div, {});
-
-      expectStructure(df, {
-        firstChild: a,
-        lastChild: b
-      });
-
-      expectStructure(a, {
-        parentNode: df,
-        nextSibling: b
-      });
-
-      expectStructure(b, {
-        parentNode: df,
-        previousSibling: a
-      });
     });
 
     test('appendChild with document fragment again', function() {
@@ -314,12 +273,160 @@ suite('Parallel Trees', function() {
       });
     });
 
+    test('insertBefore', function() {
+      var a = document.createElement('a');
+      var b = document.createElement('b');
+      a.appendChild(b);
+
+      unwrapAndExpectStructure(a, {
+        firstChild: b,
+        lastChild: b
+      });
+      unwrapAndExpectStructure(b, {
+        parentNode: a
+      });
+
+      expectStructure(a, {
+        firstChild: b,
+        lastChild: b
+      });
+      expectStructure(b, {
+        parentNode: a
+      });
+
+      var c = document.createElement('c');
+      visual.insertBefore(a, c, b);
+
+      unwrapAndExpectStructure(a, {
+        firstChild: c,
+        lastChild: b
+      });
+      unwrapAndExpectStructure(b, {
+        parentNode: a,
+        previousSibling: c
+      });
+      unwrapAndExpectStructure(c, {
+        parentNode: a,
+        nextSibling: b
+      });
+
+      expectStructure(a, {
+        firstChild: b,
+        lastChild: b
+      });
+      expectStructure(b, {
+        parentNode: a
+      });
+      expectStructure(c, {});
+
+      var d = document.createElement('d');
+      visual.insertBefore(a, d, b);
+
+      unwrapAndExpectStructure(a, {
+        firstChild: c,
+        lastChild: b
+      });
+      unwrapAndExpectStructure(b, {
+        parentNode: a,
+        previousSibling: d
+      });
+      unwrapAndExpectStructure(c, {
+        parentNode: a,
+        nextSibling: d
+      });
+      unwrapAndExpectStructure(d, {
+        parentNode: a,
+        nextSibling: b,
+        previousSibling: c
+      });
+
+      expectStructure(a, {
+        firstChild: b,
+        lastChild: b
+      });
+      expectStructure(b, {
+        parentNode: a
+      });
+      expectStructure(c, {});
+      expectStructure(d, {});
+    });
+
+    test('insertBefore 2', function() {
+      var a = document.createElement('a');
+      var b = document.createElement('b');
+      var c = document.createElement('b');
+      a.appendChild(b);
+      a.appendChild(c);
+
+      unwrapAndExpectStructure(a, {
+        firstChild: b,
+        lastChild: c
+      });
+      unwrapAndExpectStructure(b, {
+        parentNode: a,
+        nextSibling: c
+      });
+      unwrapAndExpectStructure(c, {
+        parentNode: a,
+        previousSibling: b
+      });
+
+      expectStructure(a, {
+        firstChild: b,
+        lastChild: c
+      });
+      expectStructure(b, {
+        parentNode: a,
+        nextSibling: c
+      });
+      expectStructure(c, {
+        parentNode: a,
+        previousSibling: b
+      });
+
+      // b d c
+      var d = document.createElement('d');
+      visual.insertBefore(a, d, c);
+
+      unwrapAndExpectStructure(a, {
+        firstChild: b,
+        lastChild: c
+      });
+      unwrapAndExpectStructure(b, {
+        parentNode: a,
+        nextSibling: d
+      });
+      unwrapAndExpectStructure(c, {
+        parentNode: a,
+        previousSibling: d
+      });
+      unwrapAndExpectStructure(d, {
+        parentNode: a,
+        previousSibling: b,
+        nextSibling: c
+      });
+
+      expectStructure(a, {
+        firstChild: b,
+        lastChild: c
+      });
+      expectStructure(b, {
+        parentNode: a,
+        nextSibling: c
+      });
+      expectStructure(c, {
+        parentNode: a,
+        previousSibling: b
+      });
+      expectStructure(d, {});
+    });
+
     test('removeChild, start with one child', function() {
       var div = document.createElement('div');
       div.innerHTML = '<a></a>';
       var a = div.firstChild;
 
-      visual.removeChild(div, a);
+      visual.remove(a);
 
       unwrapAndExpectStructure(div, {});
       unwrapAndExpectStructure(a, {});
@@ -340,7 +447,7 @@ suite('Parallel Trees', function() {
       var a = div.firstChild;
       var b = div.lastChild;
 
-      visual.removeChild(div, a);
+      visual.remove(a);
 
       unwrapAndExpectStructure(div, {
         firstChild: b,
@@ -375,7 +482,7 @@ suite('Parallel Trees', function() {
       var a = div.firstChild;
       var b = div.lastChild;
 
-      visual.removeChild(div, b);
+      visual.remove(b);
 
       unwrapAndExpectStructure(div, {
         firstChild: a,
@@ -411,7 +518,7 @@ suite('Parallel Trees', function() {
       var b = a.nextSibling;
       var c = div.lastChild;
 
-      visual.removeChild(div, b);
+      visual.remove(b);
 
       unwrapAndExpectStructure(div, {
         firstChild: a,
@@ -503,7 +610,8 @@ suite('Parallel Trees', function() {
         var b = a.nextSibling;
         var c = div.lastChild;
 
-        visual.removeAllChildNodes(div);
+        div.createShadowRoot();
+        div.offsetWidth;
 
         unwrapAndExpectStructure(div, {});
         unwrapAndExpectStructure(a, {});
@@ -619,7 +727,8 @@ suite('Parallel Trees', function() {
         var b = a.nextSibling;
         var c = document.createElement('c');
 
-        visual.removeAllChildNodes(div);
+        div.createShadowRoot();
+        div.offsetWidth;
 
         div.appendChild(c);
 
@@ -753,7 +862,8 @@ suite('Parallel Trees', function() {
         var c = a.nextSibling;
         var b = document.createElement('b');
 
-        visual.removeAllChildNodes(div);
+        div.createShadowRoot();
+        div.offsetWidth;
 
         div.insertBefore(b, c);
 
@@ -831,8 +941,8 @@ suite('Parallel Trees', function() {
       var a = df.appendChild(document.createElement('a'));
       var b = df.appendChild(document.createElement('b'));
 
-      visual.removeAllChildNodes(div);
-      visual.removeAllChildNodes(df);
+      div.createShadowRoot();
+      div.offsetWidth;
 
       div.insertBefore(df, c);
 
@@ -944,7 +1054,8 @@ suite('Parallel Trees', function() {
       var a = div.firstChild;
       var b = div.lastChild;
 
-      visual.removeAllChildNodes(div);
+      div.createShadowRoot();
+      div.offsetWidth;
 
       expectStructure(div, {
         firstChild: a,
@@ -1075,7 +1186,8 @@ suite('Parallel Trees', function() {
         var c = a.nextSibling;
         var b = document.createElement('b');
 
-        visual.removeAllChildNodes(div);
+        div.createShadowRoot();
+        div.offsetWidth;
 
         div.replaceChild(b, c);
 
@@ -1207,7 +1319,10 @@ suite('Parallel Trees', function() {
     var doc = wrap(document);
     var div = doc.createElement('div');
     div.innerHTML = '<a></a>';
-    visual.removeAllChildNodes(div);
+
+    div.createShadowRoot();
+    div.offsetWidth;
+
     var a = div.firstChild;
 
     div.innerHTML = '<b></b>';

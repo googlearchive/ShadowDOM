@@ -1,4 +1,5 @@
 [
+    "../observe-js/src/observe.js",
     "src/sidetable.js",
     "src/wrappers.js",
     "src/wrappers/events.js",

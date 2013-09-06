@@ -48,64 +48,52 @@
     updateWrapperDown(parentNodeWrapper);
   }
 
-  // This object groups DOM operations. This is supposed to be the DOM as the
-  // browser/render tree sees it.
-  // When changes are done to the visual DOM the logical DOM needs to be updated
-  // to reflect the correct tree.
-  function removeAllChildNodes(parentNodeWrapper) {
+  function insertBefore(parentNodeWrapper, newChildWrapper, refChildWrapper) {
     var parentNode = unwrap(parentNodeWrapper);
-    updateAllChildNodes(parentNodeWrapper);
-    if (parentNode.firstChild)
-      parentNode.textContent = '';
-  }
+    var newChild = unwrap(newChildWrapper);
+    var refChild = refChildWrapper && unwrap(refChildWrapper);
 
-  function appendChild(parentNodeWrapper, childWrapper) {
-    var parentNode = unwrap(parentNodeWrapper);
-    var child = unwrap(childWrapper);
-    if (child.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-      updateAllChildNodes(childWrapper);
+    remove(newChildWrapper);
+    updateWrapperUpAndSideways(newChildWrapper);
 
+    if (!refChildWrapper) {
+      parentNodeWrapper.lastChild_ = parentNodeWrapper.lastChild;
+      if (parentNodeWrapper.lastChild === parentNodeWrapper.firstChild)
+        parentNodeWrapper.firstChild_ = parentNodeWrapper.firstChild;
+
+      var lastChildWrapper = wrap(parentNode.lastChild);
+      if (lastChildWrapper)
+        lastChildWrapper.nextSibling_ = lastChildWrapper.nextSibling;
     } else {
-      remove(childWrapper);
-      updateWrapperUpAndSideways(childWrapper);
+      if (parentNodeWrapper.firstChild === refChildWrapper)
+        parentNodeWrapper.firstChild_ = refChildWrapper;
+
+      refChildWrapper.previousSibling_ = refChildWrapper.previousSibling;
     }
 
-    parentNodeWrapper.lastChild_ = parentNodeWrapper.lastChild;
-    if (parentNodeWrapper.lastChild === parentNodeWrapper.firstChild)
-      parentNodeWrapper.firstChild_ = parentNodeWrapper.firstChild;
-
-    var lastChildWrapper = wrap(parentNode.lastChild);
-    if (lastChildWrapper) {
-      lastChildWrapper.nextSibling_ = lastChildWrapper.nextSibling;
-    }
-
-    parentNode.appendChild(child);
-  }
-
-  function removeChild(parentNodeWrapper, childWrapper) {
-    var parentNode = unwrap(parentNodeWrapper);
-    var child = unwrap(childWrapper);
-
-    updateWrapperUpAndSideways(childWrapper);
-
-    if (childWrapper.previousSibling)
-      childWrapper.previousSibling.nextSibling_ = childWrapper;
-    if (childWrapper.nextSibling)
-      childWrapper.nextSibling.previousSibling_ = childWrapper;
-
-    if (parentNodeWrapper.lastChild === childWrapper)
-      parentNodeWrapper.lastChild_ = childWrapper;
-    if (parentNodeWrapper.firstChild === childWrapper)
-      parentNodeWrapper.firstChild_ = childWrapper;
-
-    parentNode.removeChild(child);
+    parentNode.insertBefore(newChild, refChild);
   }
 
   function remove(nodeWrapper) {
     var node = unwrap(nodeWrapper)
     var parentNode = node.parentNode;
-    if (parentNode)
-      removeChild(wrap(parentNode), nodeWrapper);
+    if (!parentNode)
+      return;
+
+    var parentNodeWrapper = wrap(parentNode);
+    updateWrapperUpAndSideways(nodeWrapper);
+
+    if (nodeWrapper.previousSibling)
+      nodeWrapper.previousSibling.nextSibling_ = nodeWrapper;
+    if (nodeWrapper.nextSibling)
+      nodeWrapper.nextSibling.previousSibling_ = nodeWrapper;
+
+    if (parentNodeWrapper.lastChild === nodeWrapper)
+      parentNodeWrapper.lastChild_ = nodeWrapper;
+    if (parentNodeWrapper.firstChild === nodeWrapper)
+      parentNodeWrapper.firstChild_ = nodeWrapper;
+
+    parentNode.removeChild(node);
   }
 
   var distributedChildNodesTable = new SideTable();
@@ -113,14 +101,6 @@
   var insertionParentTable = new SideTable();
   var rendererForHostTable = new SideTable();
   var shadowDOMRendererTable = new SideTable();
-
-  var reprCounter = 0;
-
-  function repr(node) {
-    if (!node.displayName)
-      node.displayName = node.nodeName + '-' + ++reprCounter;
-    return node.displayName;
-  }
 
   function distributeChildToInsertionPoint(child, insertionPoint) {
     getDistributedChildNodes(insertionPoint).push(child);
@@ -239,18 +219,15 @@
   var renderTimer;
 
   function renderAllPending() {
-    renderTimer = null;
     pendingDirtyRenderers.forEach(function(owner) {
       owner.render();
     });
     pendingDirtyRenderers = [];
   }
 
-  function ShadowRenderer(host) {
-    this.host = host;
-    this.dirty = false;
-    this.invalidateAttributes();
-    this.associateNode(host);
+  function handleRequestAnimationFrame() {
+    renderTimer = null;
+    renderAllPending();
   }
 
   /**
@@ -279,10 +256,88 @@
     return getRendererForHost(getHostForShadowRoot(shadowRoot));
   }
 
+  var spliceDiff = new ArraySplice();
+  spliceDiff.equals = function(renderNode, rawNode) {
+    return unwrap(renderNode.node) === rawNode;
+  };
+
+  /**
+   * RenderNode is used as an in memory "render tree". When we render the
+   * composed tree we create a tree of RenderNodes, then we diff this against
+   * the real DOM tree and make minimal changes as needed.
+   */
+  function RenderNode(node) {
+    this.node = node;
+    this.childNodes = [];
+  }
+
+  RenderNode.prototype = {
+    append: function(node) {
+      var rv = new RenderNode(node);
+      this.childNodes.push(rv);
+      return rv;
+    },
+
+    sync: function(opt_added) {
+      var nodeWrapper = this.node;
+      // plain array of RenderNodes
+      var newChildren = this.childNodes;
+      // plain array of real nodes.
+      var oldChildren = getChildNodesSnapshot(unwrap(nodeWrapper));
+      var added = opt_added || new SideTable();
+
+      var splices = spliceDiff.calculateSplices(newChildren, oldChildren);
+
+      var newIndex = 0, oldIndex = 0;
+      var lastIndex = 0;
+      for (var i = 0; i < splices.length; i++) {
+        var splice = splices[i];
+        for (; lastIndex < splice.index; lastIndex++) {
+          oldIndex++;
+          newChildren[newIndex++].sync(added);
+        }
+
+        var removedCount = splice.removed.length;
+        for (var j = 0; j < removedCount; j++) {
+          var wrapper = wrap(oldChildren[oldIndex++]);
+          if (!added.get(wrapper))
+            remove(wrapper);
+        }
+
+        var addedCount = splice.addedCount;
+        var refNode = oldChildren[oldIndex] && wrap(oldChildren[oldIndex]);
+        for (var j = 0; j < addedCount; j++) {
+          var newChildRenderNode = newChildren[newIndex++];
+          var newChildWrapper = newChildRenderNode.node;
+          insertBefore(nodeWrapper, newChildWrapper, refNode);
+
+          // Keep track of added so that we do not remove the node after it
+          // has been added.
+          added.set(newChildWrapper, true);
+
+          newChildRenderNode.sync(added);
+        }
+
+        lastIndex += addedCount;
+      }
+
+      for (var i = lastIndex; i < newChildren.length; i++) {
+        newChildren[i++].sync(added);
+      }
+    }
+  };
+
+  function ShadowRenderer(host) {
+    this.host = host;
+    this.dirty = false;
+    this.invalidateAttributes();
+    this.associateNode(host);
+  }
+
   ShadowRenderer.prototype = {
 
     // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#rendering-shadow-trees
-    render: function() {
+    render: function(opt_renderNode) {
       if (!this.dirty)
         return;
 
@@ -290,14 +345,19 @@
       this.treeComposition();
 
       var host = this.host;
-      var shadowDOM = host.shadowRoot;
+      var shadowRoot = host.shadowRoot;
 
-      this.removeAllChildNodes(this.host);
+      this.associateNode(host);
+      var topMostRenderer = !renderNode;
+      var renderNode = opt_renderNode || new RenderNode(host);
 
-      var shadowDOMChildNodes = getChildNodesSnapshot(shadowDOM);
+      var shadowDOMChildNodes = getChildNodesSnapshot(shadowRoot);
       shadowDOMChildNodes.forEach(function(node) {
-        this.renderNode(host, shadowDOM, node, false);
+        this.renderNode(shadowRoot, renderNode, node, false);
       }, this);
+
+      if (topMostRenderer)
+        renderNode.sync();
 
       this.dirty = false;
     },
@@ -308,80 +368,84 @@
         pendingDirtyRenderers.push(this);
         if (renderTimer)
           return;
-        renderTimer = window[request](renderAllPending, 0);
+        renderTimer = window[request](handleRequestAnimationFrame, 0);
       }
     },
 
-    renderNode: function(visualParent, tree, node, isNested) {
+    renderNode: function(shadowRoot, renderNode, node, isNested) {
       if (isShadowHost(node)) {
-        this.appendChild(visualParent, node);
+        renderNode = renderNode.append(node);
         var renderer = getRendererForHost(node);
         renderer.dirty = true;  // Need to rerender due to reprojection.
-        renderer.render();
+        renderer.render(renderNode);
       } else if (isInsertionPoint(node)) {
-        this.renderInsertionPoint(visualParent, tree, node, isNested);
+        this.renderInsertionPoint(shadowRoot, renderNode, node, isNested);
       } else if (isShadowInsertionPoint(node)) {
-        this.renderShadowInsertionPoint(visualParent, tree, node);
+        this.renderShadowInsertionPoint(shadowRoot, renderNode, node);
       } else {
-        this.renderAsAnyDomTree(visualParent, tree, node, isNested);
+        this.renderAsAnyDomTree(shadowRoot, renderNode, node, isNested);
       }
     },
 
-    renderAsAnyDomTree: function(visualParent, tree, node, isNested) {
-      this.appendChild(visualParent, node);
+    renderAsAnyDomTree: function(shadowRoot, renderNode, node, isNested) {
+      renderNode = renderNode.append(node);
 
       if (isShadowHost(node)) {
-        render(node);
+        var renderer = getRendererForHost(node);
+        renderer.render(renderNode);
       } else {
         var parent = node;
         var logicalChildNodes = getChildNodesSnapshot(parent);
         // We associate the parent of a content/shadow with the renderer
         // because we may need to remove stale childNodes.
         if (shadowDOMRendererTable.get(parent))
-          this.removeAllChildNodes(parent);
+          this.associateNode(parent);
         logicalChildNodes.forEach(function(node) {
-          this.renderNode(parent, tree, node, isNested);
+          this.renderNode(shadowRoot, renderNode, node, isNested);
         }, this);
       }
     },
 
-    renderInsertionPoint: function(visualParent, tree, insertionPoint, isNested) {
+    renderInsertionPoint: function(shadowRoot, renderNode, insertionPoint,
+                                   isNested) {
       var distributedChildNodes = getDistributedChildNodes(insertionPoint);
       if (distributedChildNodes.length) {
-        this.removeAllChildNodes(insertionPoint);
+        this.associateNode(insertionPoint);
 
         distributedChildNodes.forEach(function(child) {
           if (isInsertionPoint(child) && isNested)
-            this.renderInsertionPoint(visualParent, tree, child, isNested);
+            this.renderInsertionPoint(shadowRoot, renderNode, child, isNested);
           else
-            this.renderAsAnyDomTree(visualParent, tree, child, isNested);
+            this.renderAsAnyDomTree(shadowRoot, renderNode, child, isNested);
         }, this);
       } else {
-        this.renderFallbackContent(visualParent, insertionPoint);
+        this.renderFallbackContent(shadowRoot, renderNode, insertionPoint);
       }
-      this.remove(insertionPoint);
+      this.associateNode(insertionPoint.parentNode);
     },
 
-    renderShadowInsertionPoint: function(visualParent, tree, shadowInsertionPoint) {
-      var nextOlderTree = tree.olderShadowRoot;
+    renderShadowInsertionPoint: function(shadowRoot, renderNode,
+                                         shadowInsertionPoint) {
+      var nextOlderTree = shadowRoot.olderShadowRoot;
       if (nextOlderTree) {
         assignToInsertionPoint(nextOlderTree, shadowInsertionPoint);
-        this.remove(shadowInsertionPoint);
+        this.associateNode(shadowInsertionPoint.parentNode);
         var shadowDOMChildNodes = getChildNodesSnapshot(nextOlderTree);
         shadowDOMChildNodes.forEach(function(node) {
-          this.renderNode(visualParent, nextOlderTree, node, true);
+          this.renderNode(nextOlderTree, renderNode, node, true);
         }, this);
       } else {
-        this.renderFallbackContent(visualParent, shadowInsertionPoint);
+        this.renderFallbackContent(shadowRoot, renderNode,
+                                   shadowInsertionPoint);
       }
     },
 
-    renderFallbackContent: function (visualParent, fallbackHost) {
+    renderFallbackContent: function(shadowRoot, renderNode, fallbackHost) {
       var logicalChildNodes = getChildNodesSnapshot(fallbackHost);
       this.associateNode(fallbackHost);
-      this.remove(fallbackHost);
+      this.associateNode(fallbackHost.parentNode);
       logicalChildNodes.forEach(function(node) {
-        this.appendChild(visualParent, node);
+        this.renderAsAnyDomTree(shadowRoot, renderNode, node, false);
       }, this);
     },
 
@@ -498,23 +562,6 @@
       }
     },
 
-    appendChild: function(parent, child) {
-      // this.associateNode(child);
-      this.associateNode(parent);
-      appendChild(parent, child);
-    },
-
-    remove: function(node) {
-      // this.associateNode(node);
-      this.associateNode(node.parentNode);
-      remove(node);
-    },
-
-    removeAllChildNodes: function(parent) {
-      this.associateNode(parent);
-      removeAllChildNodes(parent);
-    },
-
     associateNode: function(node) {
       shadowDOMRendererTable.set(node, this);
     }
@@ -613,9 +660,8 @@
 
   // Exposed for testing
   scope.visual = {
-    removeAllChildNodes: removeAllChildNodes,
-    appendChild: appendChild,
-    removeChild: removeChild
+    insertBefore: insertBefore,
+    remove: remove,
   };
 
 })(this.ShadowDOMPolyfill);
