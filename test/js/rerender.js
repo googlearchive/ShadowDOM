@@ -427,7 +427,6 @@ suite('Shadow DOM rerender', function() {
 
       var b = document.createElement('b');
 
-
       host.insertBefore(b, a);
 
       assert.strictEqual(getVisualInnerHtml(host), '<b></b><a>Hello</a>');
@@ -461,7 +460,6 @@ suite('Shadow DOM rerender', function() {
       assert.strictEqual(getVisualInnerHtml(host), '<a>Hello</a>');
 
       var b = document.createElement('b');
-
 
       host.replaceChild(b, a);
 
@@ -537,5 +535,114 @@ suite('Shadow DOM rerender', function() {
     assert.equal(host.impl.innerHTML, '<b></b>w<a>x</a>v<c></c>z');  // dirty
     host.offsetWidth;
     assert.equal(host.impl.innerHTML, '<b></b>wv<c></c>z');
+  });
+
+  test('minimal dom changes', function() {
+    var div = document.createElement('div');
+    var OriginalNodePrototype =
+        // Node.prototype
+        Object.getPrototypeOf(
+            // Element.prototype
+            Object.getPrototypeOf(
+                // HTMLElement.prototype
+                Object.getPrototypeOf(
+                    // HTMLDivElement.prototype
+                    Object.getPrototypeOf(unwrap(div)))));
+
+    var originalInsertBefore = OriginalNodePrototype.insertBefore;
+    var originalRemoveChild = OriginalNodePrototype.removeChild;
+
+    var insertBeforeCount = 0;
+    var removeChildCount = 0;
+
+    OriginalNodePrototype.insertBefore = function(newChild, refChild) {
+      insertBeforeCount++;
+      return originalInsertBefore.call(this, newChild, refChild);
+    };
+
+    OriginalNodePrototype.removeChild = function(child) {
+      removeChildCount++;
+      return originalRemoveChild.call(this, child);
+    };
+
+    function reset() {
+      insertBeforeCount = 0;
+      removeChildCount = 0;
+    }
+
+    try {
+
+      var div = document.createElement('div');
+      var a = div.appendChild(document.createElement('a'));
+
+      var sr = div.createShadowRoot();
+      var content = sr.appendChild(document.createElement('content'));
+      var b = sr.appendChild(document.createElement('b'));
+
+      assert.equal(getVisualInnerHtml(div), '<a></a><b></b>');
+
+      assert.equal(insertBeforeCount, 1);
+      assert.equal(removeChildCount, 1);
+
+      reset();
+
+      // Invalidates but does not change the rendered tree.
+      content.select = '*';
+
+      assert.equal(getVisualInnerHtml(div), '<a></a><b></b>');
+      assert.equal(insertBeforeCount, 0);
+      assert.equal(removeChildCount, 0);
+
+      // Does not use our overridden appendChild
+      var c = div.appendChild(document.createElement('c'));
+      assert.equal(insertBeforeCount, 0);
+      assert.equal(removeChildCount, 0);
+
+      assert.equal(getVisualInnerHtml(div), '<a></a><c></c><b></b>');
+      assert.equal(insertBeforeCount, 1);
+      assert.equal(removeChildCount, 1);
+
+      content.select = 'c';
+      reset();
+      assert.equal(getVisualInnerHtml(div), '<c></c><b></b>');
+      assert.equal(insertBeforeCount, 0);
+      assert.equal(removeChildCount, 1);
+
+      content.select = '*';
+      reset();
+      assert.equal(getVisualInnerHtml(div), '<a></a><c></c><b></b>');
+      assert.equal(insertBeforeCount, 1);
+      assert.equal(removeChildCount, 0);
+
+      content.select = 'x';
+      reset();
+      assert.equal(getVisualInnerHtml(div), '<b></b>');
+      assert.equal(insertBeforeCount, 0);
+      assert.equal(removeChildCount, 2);
+
+      content.appendChild(document.createTextNode('fallback'));
+      reset();
+      assert.equal(getVisualInnerHtml(div), 'fallback<b></b>');
+      assert.equal(insertBeforeCount, 1);
+      assert.equal(removeChildCount, 1);  // moved from content
+
+      content.insertBefore(document.createTextNode('more '),
+                           content.firstChild);
+      reset();
+      assert.equal(getVisualInnerHtml(div), 'more fallback<b></b>');
+      assert.equal(insertBeforeCount, 0);  // already inserted before "fallback"
+      assert.equal(removeChildCount, 0);
+
+      content.select = '*';
+      reset();
+      assert.equal(getVisualInnerHtml(div), '<a></a><c></c><b></b>');
+      assert.equal(insertBeforeCount, 2);
+      assert.equal(removeChildCount, 2);
+
+
+    } finally {
+      OriginalNodePrototype.insertBefore =  originalInsertBefore;
+      OriginalNodePrototype.removeChild = originalRemoveChild;
+    }
   });
 });
