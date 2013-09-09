@@ -26,7 +26,7 @@
    * This updates the internal pointers for node, previousNode and nextNode.
    */
   function collectNodes(node, parentNode, previousNode, nextNode) {
-    if (node.nodeType !== Node.DOCUMENT_FRAGMENT_NODE) {
+    if (!(node instanceof DocumentFragment)) {
       if (node.parentNode)
         node.parentNode.removeChild(node);
       node.parentNode_ = parentNode;
@@ -58,6 +58,24 @@
       nextNode.previousSibling_ = nodes[nodes.length - 1];
 
     return nodes;
+  }
+
+  function collectNodesNoNeedToUpdatePointers(node) {
+    if (node instanceof DocumentFragment) {
+      var nodes = [];
+      var i = 0;
+      for (var child = node.firstChild; child; child = child.nextSibling) {
+        nodes[i++] = child;
+      }
+      return nodes;
+    }
+    return [node];
+  }
+
+  function nodesWereAdded(nodes) {
+    for (var i = 0; i < nodes.length; i++) {
+      nodes[i].nodeWasAdded_();
+    }
   }
 
   function ensureSameOwnerDocument(parent, child) {
@@ -188,10 +206,12 @@
     appendChild: function(childWrapper) {
       assertIsNodeWrapper(childWrapper);
 
+      var nodes;
+
       if (this.invalidateShadowRenderer() || invalidateParent(childWrapper)) {
         var previousNode = this.lastChild;
         var nextNode = null;
-        var nodes = collectNodes(childWrapper, this, previousNode, nextNode);
+        nodes = collectNodes(childWrapper, this, previousNode, nextNode);
 
         this.lastChild_ = nodes[nodes.length - 1];
         if (!previousNode)
@@ -199,11 +219,12 @@
 
         originalAppendChild.call(this.impl, unwrapNodesForInsertion(this, nodes));
       } else {
+        nodes = collectNodesNoNeedToUpdatePointers(childWrapper)
         ensureSameOwnerDocument(this, childWrapper);
         originalAppendChild.call(this.impl, unwrap(childWrapper));
       }
 
-      childWrapper.nodeWasAdded_();
+      nodesWereAdded(nodes);
 
       return childWrapper;
     },
@@ -217,10 +238,12 @@
       assertIsNodeWrapper(refWrapper);
       assert(refWrapper.parentNode === this);
 
+      var nodes;
+
       if (this.invalidateShadowRenderer() || invalidateParent(childWrapper)) {
         var previousNode = refWrapper.previousSibling;
         var nextNode = refWrapper;
-        var nodes = collectNodes(childWrapper, this, previousNode, nextNode);
+        nodes = collectNodes(childWrapper, this, previousNode, nextNode);
 
         if (this.firstChild === refWrapper)
           this.firstChild_ = nodes[0];
@@ -238,12 +261,13 @@
           adoptNodesIfNeeded(this, nodes);
         }
       } else {
+        nodes = collectNodesNoNeedToUpdatePointers(childWrapper);
         ensureSameOwnerDocument(this, childWrapper);
         originalInsertBefore.call(this.impl, unwrap(childWrapper),
                                   unwrap(refWrapper));
       }
 
-      childWrapper.nodeWasAdded_();
+      nodesWereAdded(nodes);
 
       return childWrapper;
     },
@@ -300,6 +324,7 @@
       }
 
       var oldChildNode = unwrap(oldChildWrapper);
+      var nodes;
 
       if (this.invalidateShadowRenderer() ||
           invalidateParent(newChildWrapper)) {
@@ -307,8 +332,7 @@
         var nextNode = oldChildWrapper.nextSibling;
         if (nextNode === newChildWrapper)
           nextNode = newChildWrapper.nextSibling;
-        var nodes = collectNodes(newChildWrapper, this,
-                                 previousNode, nextNode);
+        nodes = collectNodes(newChildWrapper, this, previousNode, nextNode);
 
         if (this.firstChild === oldChildWrapper)
           this.firstChild_ = nodes[0];
@@ -326,12 +350,13 @@
               oldChildNode);
         }
       } else {
+        nodes = collectNodesNoNeedToUpdatePointers(newChildWrapper);
         ensureSameOwnerDocument(this, newChildWrapper);
         originalReplaceChild.call(this.impl, unwrap(newChildWrapper),
                                   oldChildNode);
       }
 
-      newChildWrapper.nodeWasAdded_();
+      nodesWereAdded(nodes);
 
       return oldChildWrapper;
     },
