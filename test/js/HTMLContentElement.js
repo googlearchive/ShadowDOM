@@ -42,6 +42,19 @@ suite('HTMLContentElement', function() {
     assertArrayEqual(content.getDistributedNodes(), [b]);
   });
 
+  test('getDistributedNodes add document fragment with content', function() {
+    var host = document.createElement('div');
+    host.innerHTML = ' <a></a> <a></a> <a></a> ';
+    var root = host.createShadowRoot();
+    var df = document.createDocumentFragment();
+    df.appendChild(document.createTextNode(' '));
+    var content = df.appendChild(document.createElement('content'));
+    df.appendChild(document.createTextNode(' '));
+    root.appendChild(df);
+
+    assertArrayEqual(content.getDistributedNodes().length, 3);
+  });
+
   test('adding a new content element to a shadow tree', function() {
     var host = document.createElement('div');
     host.innerHTML = '<a></a><b></b>';
