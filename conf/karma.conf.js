@@ -7,6 +7,7 @@ module.exports = function(karma) {
     // list of files / patterns to load in the browser
     files: [
       'observe-js/src/observe.js',
+      'WeakMap/weakmap.js',
       'ShadowDOM/tools/test/mocha-htmltest.js',
       'ShadowDOM/conf/mocha.conf.js',
       'ShadowDOM/node_modules/chai/chai.js',

@@ -7,8 +7,8 @@ var ShadowDOMPolyfill = {};
 (function(scope) {
   'use strict';
 
-  var constructorTable = new SideTable();
-  var nativePrototypeTable = new SideTable();
+  var constructorTable = new WeakMap();
+  var nativePrototypeTable = new WeakMap();
   var wrappers = Object.create(null);
 
   // Don't test for eval if document has CSP securityPolicy object and we can

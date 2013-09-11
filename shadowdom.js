@@ -16,7 +16,7 @@
 
   [
     '../observe-js/src/observe.js',
-    'src/sidetable.js',
+    '../WeakMap/weakmap.js',
     'src/wrappers.js',
     'src/wrappers/events.js',
     'src/wrappers/NodeList.js',
