@@ -52,7 +52,7 @@
   function insertBefore(parentNodeWrapper, newChildWrapper, refChildWrapper) {
     var parentNode = unwrap(parentNodeWrapper);
     var newChild = unwrap(newChildWrapper);
-    var refChild = refChildWrapper && unwrap(refChildWrapper);
+    var refChild = refChildWrapper ? unwrap(refChildWrapper) : null;
 
     remove(newChildWrapper);
     updateWrapperUpAndSideways(newChildWrapper);
