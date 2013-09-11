@@ -266,6 +266,7 @@
    * the real DOM tree and make minimal changes as needed.
    */
   function RenderNode(node) {
+    this.skip = false;
     this.node = node;
     this.childNodes = [];
   }
@@ -278,6 +279,9 @@
     },
 
     sync: function(opt_added) {
+      if (this.skip)
+        return;
+
       var nodeWrapper = this.node;
       // plain array of RenderNodes
       var newChildren = this.childNodes;
@@ -390,6 +394,7 @@
 
       if (isShadowHost(node)) {
         var renderer = getRendererForHost(node);
+        renderNode.skip = !renderer.dirty;
         renderer.render(renderNode);
       } else {
         // We associate the parent of a content/shadow with the renderer

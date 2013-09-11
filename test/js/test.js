@@ -451,4 +451,18 @@ suite('Shadow DOM', function() {
     assert.equal(a.childNodes.length, 2);
   });
 
+  test('nested shadow hosts (issue 245)', function() {
+    var outer = document.createElement('outer');
+    var inner = outer.appendChild(document.createElement('inner'));
+
+    // Inner first. Order matters.
+    var innerShadowRoot = inner.createShadowRoot();
+    innerShadowRoot.textContent = 'inner';
+
+    var outerShadowRoot = outer.createShadowRoot();
+    outerShadowRoot.innerHTML = '<content></content>outer';
+
+    assert.equal(getVisualInnerHtml(outer), '<inner>inner</inner>outer');
+  });
+
 });
