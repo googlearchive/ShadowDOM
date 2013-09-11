@@ -16,9 +16,7 @@
   var registerWrapper = scope.registerWrapper;
   var wrappers = scope.wrappers;
 
-  var shadowRootTable = new WeakMap();
   var OriginalElement = window.Element;
-
 
   var matchesName = oneOf(OriginalElement.prototype, [
     'matches',
@@ -47,7 +45,7 @@
   mixin(Element.prototype, {
     createShadowRoot: function() {
       var newShadowRoot = new wrappers.ShadowRoot(this);
-      shadowRootTable.set(this, newShadowRoot);
+      this.impl.polymerShadowRoot_ = newShadowRoot;
 
       var renderer = scope.getRendererForHost(this);
       renderer.invalidate();
@@ -56,7 +54,7 @@
     },
 
     get shadowRoot() {
-      return shadowRootTable.get(this) || null;
+      return this.impl.polymerShadowRoot_ || null;
     },
 
     setAttribute: function(name, value) {
