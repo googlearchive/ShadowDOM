@@ -97,11 +97,11 @@
     parentNode.removeChild(node);
   }
 
-  var distributedChildNodesTable = new SideTable();
-  var eventParentsTable = new SideTable();
-  var insertionParentTable = new SideTable();
-  var rendererForHostTable = new SideTable();
-  var shadowDOMRendererTable = new SideTable();
+  var distributedChildNodesTable = new WeakMap();
+  var eventParentsTable = new WeakMap();
+  var insertionParentTable = new WeakMap();
+  var rendererForHostTable = new WeakMap();
+  var shadowDOMRendererTable = new WeakMap();
 
   function distributeChildToInsertionPoint(child, insertionPoint) {
     getDistributedChildNodes(insertionPoint).push(child);
@@ -283,7 +283,7 @@
       var newChildren = this.childNodes;
       // plain array of real nodes.
       var oldChildren = getChildNodesSnapshot(unwrap(nodeWrapper));
-      var added = opt_added || new SideTable();
+      var added = opt_added || new WeakMap();
 
       var splices = spliceDiff.calculateSplices(newChildren, oldChildren);
 
