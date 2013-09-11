@@ -13,8 +13,8 @@
   var setInnerHTML = scope.setInnerHTML;
   var unwrap = scope.unwrap;
 
-  var shadowHostTable = new SideTable();
-  var nextOlderShadowTreeTable = new SideTable();
+  var shadowHostTable = new WeakMap();
+  var nextOlderShadowTreeTable = new WeakMap();
 
   function ShadowRoot(hostWrapper) {
     var node = unwrap(hostWrapper.impl.ownerDocument.createDocumentFragment());

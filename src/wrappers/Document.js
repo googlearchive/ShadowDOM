@@ -21,7 +21,7 @@
   var wrapEventTargetMethods = scope.wrapEventTargetMethods;
   var wrapNodeList = scope.wrapNodeList;
 
-  var implementationTable = new SideTable();
+  var implementationTable = new WeakMap();
 
   function Document(node) {
     Node.call(this, node);

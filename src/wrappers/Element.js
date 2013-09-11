@@ -16,7 +16,7 @@
   var registerWrapper = scope.registerWrapper;
   var wrappers = scope.wrappers;
 
-  var shadowRootTable = new SideTable();
+  var shadowRootTable = new WeakMap();
   var OriginalElement = window.Element;
 
 
