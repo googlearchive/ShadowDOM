@@ -397,10 +397,6 @@
         renderNode.skip = !renderer.dirty;
         renderer.render(renderNode);
       } else {
-        // We associate the parent of a content/shadow with the renderer
-        // because we may need to remove stale childNodes.
-        if (shadowDOMRendererTable.get(node))
-          this.associateNode(node);
         for (var child = node.firstChild; child; child = child.nextSibling) {
           this.renderNode(shadowRoot, renderNode, child, isNested);
         }
