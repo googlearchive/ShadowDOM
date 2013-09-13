@@ -55,6 +55,39 @@ suite('HTMLContentElement', function() {
     assertArrayEqual(content.getDistributedNodes().length, 3);
   });
 
+  test('getDistributedNodes add content deep inside tree', function() {
+    var host = document.createElement('div');
+    host.innerHTML = ' <a></a> <a></a> <a></a> ';
+    var root = host.createShadowRoot();
+    var b = document.createElement('b');
+    var content = b.appendChild(document.createElement('content'));
+    content.select = '*';
+    root.appendChild(b);
+
+    assert.equal(content.getDistributedNodes().length, 3);
+    assertArrayEqual(content.getDistributedNodes(), host.children);
+  });
+
+  test('getDistributedNodes add content deeper inside tree', function() {
+    var foo = document.createElement('div');
+    var fooRoot = foo.createShadowRoot();
+    fooRoot.innerHTML = '<div>' +
+      ' <div>item1</div> <div>item2</div> <div>item3</div> ' +
+    '</div>';
+
+    var bar = fooRoot.firstChild;
+    var barRoot = bar.createShadowRoot();
+    barRoot.innerHTML = '<div><content></content></div>';
+
+    var zot = barRoot.firstChild;
+    var zotRoot = zot.createShadowRoot();
+    zotRoot.innerHTML = '<content select="*"></content>';
+    var content = zotRoot.firstChild;
+
+    assert.equal(content.getDistributedNodes().length, 3);
+    assertArrayEqual(content.getDistributedNodes(), fooRoot.firstChild.children);
+  });
+
   test('adding a new content element to a shadow tree', function() {
     var host = document.createElement('div');
     host.innerHTML = '<a></a><b></b>';
@@ -76,6 +109,32 @@ suite('HTMLContentElement', function() {
     assert.equal(unwrap(host).innerHTML, '<c><b></b></c>');
 
     c.removeChild(content);
+    host.offsetHeight;
+    assert.equal(unwrap(host).innerHTML, '<c></c>');
+  });
+
+  test('adding a new content element to a shadow tree 2', function() {
+    var host = document.createElement('div');
+    host.innerHTML = '<a></a><b></b>';
+    var a = host.firstChild;
+    var b = host.lastChild;
+
+    var sr = host.createShadowRoot();
+    sr.innerHTML = '<c></c>';
+    var c = sr.firstChild;
+
+    host.offsetHeight;
+    assert.equal(unwrap(host).innerHTML, '<c></c>');
+
+    var d = document.createElement('d');
+    var content = d.appendChild(document.createElement('content'));
+    content.select = 'b';
+    c.appendChild(d);
+
+    host.offsetHeight;
+    assert.equal(unwrap(host).innerHTML, '<c><d><b></b></d></c>');
+
+    c.removeChild(d);
     host.offsetHeight;
     assert.equal(unwrap(host).innerHTML, '<c></c>');
   });
