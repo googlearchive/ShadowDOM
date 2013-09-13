@@ -1,5 +1,5 @@
 module.exports = function(karma) {
-  var common = require('../tools/test/karma-common.conf.js');
+  var common = require('../../tools/test/karma-common.conf.js');
   karma.set(common.mixin_common_opts(karma, {
     // base path, that will be used to resolve files and exclude
     basePath: '../../',
@@ -8,7 +8,7 @@ module.exports = function(karma) {
     files: [
       'observe-js/src/observe.js',
       'WeakMap/weakmap.js',
-      'ShadowDOM/tools/test/mocha-htmltest.js',
+      'tools/test/mocha-htmltest.js',
       'ShadowDOM/conf/mocha.conf.js',
       'ShadowDOM/node_modules/chai/chai.js',
       'ShadowDOM/shadowdom.js',
@@ -16,7 +16,7 @@ module.exports = function(karma) {
       {pattern: 'ShadowDOM/src/**/*.js', included: false},
       {pattern: 'ShadowDOM/test/**/*.js', included: false},
       {pattern: 'ShadowDOM/test/**/*.html', included: false},
-      {pattern: 'ShadowDOM/tools/**/*.js', included: false}
+      {pattern: 'tools/**/*.js', included: false}
     ]
   }));
 };
