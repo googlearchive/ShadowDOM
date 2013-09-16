@@ -101,7 +101,6 @@
   var eventParentsTable = new WeakMap();
   var insertionParentTable = new WeakMap();
   var rendererForHostTable = new WeakMap();
-  var shadowDOMRendererTable = new WeakMap();
 
   function distributeChildToInsertionPoint(child, insertionPoint) {
     getDistributedChildNodes(insertionPoint).push(child);
@@ -554,7 +553,7 @@
     },
 
     associateNode: function(node) {
-      shadowDOMRendererTable.set(node, this);
+      node.impl.polymerShadowRenderer_ = this;
     }
   };
 
@@ -613,7 +612,7 @@
    * This gets called when a node was added or removed to it.
    */
   Node.prototype.invalidateShadowRenderer = function(force) {
-    var renderer = shadowDOMRendererTable.get(this);
+    var renderer = this.impl.polymerShadowRenderer_;
     if (renderer) {
       renderer.invalidate();
       return true;
@@ -623,7 +622,7 @@
   };
 
   HTMLContentElement.prototype.getDistributedNodes = function() {
-    var renderer = shadowDOMRendererTable.get(this);
+    var renderer = this.impl.polymerShadowRenderer_;
     if (renderer)
       renderer.render();
     return getDistributedChildNodes(this);
@@ -638,7 +637,7 @@
     var renderer;
     if (shadowRoot)
       renderer = getRendererForShadowRoot(shadowRoot);
-    shadowDOMRendererTable.set(this, renderer);
+    this.impl.polymerShadowRenderer_ = renderer;
     if (renderer)
       renderer.invalidate();
   };
