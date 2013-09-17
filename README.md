@@ -109,5 +109,4 @@ To support this kind of behavior the event dispatching in the browser has to be 
 * `Object.prototype.toString` does not return the same string as for native objects.
 * No live `NodeList`s. All node lists are snapshotted upon read.
 * `document`, `window`, `document.body`, `document.head` and others are non configurable and cannot be overridden. We are trying to make these work as seamlessly as possible but there will doubtlessly be cases where there will be problems; for those cases you can use `wrap` and `unwrap` to get unblocked.
-* `onclick` and other `on-*` event handlers do not wrap the event object as needed.
 * Cross window/frame access is not implemented.
