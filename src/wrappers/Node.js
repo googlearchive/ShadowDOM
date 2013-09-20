@@ -366,7 +366,11 @@
      * the renderer as needed.
      * @private
      */
-    nodeWasAdded_: function() {},
+    nodeWasAdded_: function() {
+      for (var child = this.firstChild; child; child = child.nextSibling) {
+        child.nodeWasAdded_();
+      }
+    },
 
     hasChildNodes: function() {
       return this.firstChild === null;

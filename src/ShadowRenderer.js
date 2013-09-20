@@ -622,9 +622,9 @@
   };
 
   HTMLContentElement.prototype.getDistributedNodes = function() {
-    var renderer = this.impl.polymerShadowRenderer_;
-    if (renderer)
-      renderer.render();
+    // TODO(arv): We should only rerender the dirty ancestor renderers (from
+    // the root and down).
+    renderAllPending();
     return getDistributedChildNodes(this);
   };
 
