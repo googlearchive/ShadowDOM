@@ -336,7 +336,7 @@
         if (window.onerror)
           window.onerror(ex.message);
         else
-          console.error(ex);
+          console.error(ex, ex.stack);
       }
     }
 
