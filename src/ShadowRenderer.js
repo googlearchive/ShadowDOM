@@ -360,9 +360,9 @@
       }
 
       if (topMostRenderer) {
-        muteMutationEvents();
+        //muteMutationEvents();
         renderNode.sync();
-        unmuteMutationEvents();
+        //unmuteMutationEvents();
       }
 
       this.dirty = false;
