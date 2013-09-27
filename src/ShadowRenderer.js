@@ -13,7 +13,9 @@
   var assert = scope.assert;
   var getHostForShadowRoot = scope.getHostForShadowRoot;
   var mixin = scope.mixin;
+  var muteMutationEvents = scope.muteMutationEvents;
   var oneOf = scope.oneOf;
+  var unmuteMutationEvents = scope.unmuteMutationEvents;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
 
@@ -357,8 +359,11 @@
         this.renderNode(shadowRoot, renderNode, node, false);
       }
 
-      if (topMostRenderer)
+      if (topMostRenderer) {
+        muteMutationEvents();
         renderNode.sync();
+        unmuteMutationEvents();
+      }
 
       this.dirty = false;
     },

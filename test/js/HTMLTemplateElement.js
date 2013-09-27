@@ -78,4 +78,31 @@ suite('HTML Template Element', function() {
     });
   });
 
+  test('Mutation events', function() {
+    var div = document.createElement('div');
+    div.innerHTML = '<template> <a>b</a></template>';
+
+    var count = 0;
+    function handleEvent(e) {
+      count++;
+    }
+
+    div.addEventListener('DOMAttrModified', handleEvent, true);
+    div.addEventListener('DOMAttributeNameChanged', handleEvent, true);
+    div.addEventListener('DOMCharacterDataModified', handleEvent, true);
+    div.addEventListener('DOMElementNameChanged', handleEvent, true);
+    div.addEventListener('DOMNodeInserted', handleEvent, true);
+    div.addEventListener('DOMNodeInsertedIntoDocument', handleEvent, true);
+    div.addEventListener('DOMNodeRemoved', handleEvent, true);
+    div.addEventListener('DOMNodeRemovedFromDocument', handleEvent, true);
+    div.addEventListener('DOMSubtreeModified', handleEvent, true);
+
+    var template = div.firstChild;
+    assert.instanceOf(template.content, DocumentFragment);
+    assert.instanceOf(template.content.firstChild, Text);
+    assert.instanceOf(template.content.firstElementChild, HTMLAnchorElement);
+
+    assert.equal(count, 0);
+  });
+
 });
