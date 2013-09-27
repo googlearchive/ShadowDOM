@@ -88,6 +88,21 @@ suite('HTMLContentElement', function() {
     assertArrayEqual(content.getDistributedNodes(), fooRoot.firstChild.children);
   });
 
+  test('Adding tree with content again', function() {
+    var host = document.createElement('div');
+    host.innerHTML = ' <p>Content</p> ';
+
+    var t = document.createElement('template');
+    t.innerHTML = ' <div> <div> [<content></content>] </div> </div> ';
+
+    var sr = host.createShadowRoot();
+    sr.appendChild(t.content.cloneNode(true));
+
+    host.offsetHeight;
+    assert.equal(unwrap(host).innerHTML,
+        ' <div> <div> [ <p>Content</p> ] </div> </div> ');
+  });
+
   test('adding a new content element to a shadow tree', function() {
     var host = document.createElement('div');
     host.innerHTML = '<a></a><b></b>';
