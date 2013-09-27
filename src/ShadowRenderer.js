@@ -324,7 +324,7 @@
       }
 
       for (var i = lastIndex; i < newChildren.length; i++) {
-        newChildren[i++].sync(added);
+        newChildren[i].sync(added);
       }
     }
   };
