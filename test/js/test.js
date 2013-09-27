@@ -465,4 +465,29 @@ suite('Shadow DOM', function() {
     assert.equal(getVisualInnerHtml(outer), '<inner>inner</inner>outer');
   });
 
+  test('no mutation events during rendering', function() {
+    var div = document.createElement('div');
+    div.innerHTML = '<a>b</a>';
+    var sr = div.createShadowRoot();
+    sr.innerHTML = 'c<content></content>d';
+
+    var count = 0;
+    function handleEvent(e) {
+      count++;
+    }
+
+    div.addEventListener('DOMAttrModified', handleEvent, true);
+    div.addEventListener('DOMAttributeNameChanged', handleEvent, true);
+    div.addEventListener('DOMCharacterDataModified', handleEvent, true);
+    div.addEventListener('DOMElementNameChanged', handleEvent, true);
+    div.addEventListener('DOMNodeInserted', handleEvent, true);
+    div.addEventListener('DOMNodeInsertedIntoDocument', handleEvent, true);
+    div.addEventListener('DOMNodeRemoved', handleEvent, true);
+    div.addEventListener('DOMNodeRemovedFromDocument', handleEvent, true);
+    div.addEventListener('DOMSubtreeModified', handleEvent, true);
+
+    assert.equal(getVisualInnerHtml(div), 'c<a>b</a>d');
+
+    assert.equal(count, 0);
+  });
 });

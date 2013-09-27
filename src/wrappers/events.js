@@ -181,21 +181,17 @@
     return false;
   }
 
-  function isMutationEvent(type) {
-    switch (type) {
-      case 'DOMAttrModified':
-      case 'DOMAttributeNameChanged':
-      case 'DOMCharacterDataModified':
-      case 'DOMElementNameChanged':
-      case 'DOMNodeInserted':
-      case 'DOMNodeInsertedIntoDocument':
-      case 'DOMNodeRemoved':
-      case 'DOMNodeRemovedFromDocument':
-      case 'DOMSubtreeModified':
-        return true;
-    }
-    return false;
+  var mutationEventsAreSilenced = 0;
+
+  function muteMutationEvents() {
+    mutationEventsAreSilenced++;
   }
+
+  function unmuteMutationEvents() {
+    mutationEventsAreSilenced--;
+  }
+
+  var OriginalMutationEvent = window.MutationEvent;
 
   function dispatchOriginalEvent(originalEvent) {
     // Make sure this event is only dispatched once.
@@ -206,8 +202,12 @@
     // Don't do rendering if this is a mutation event since rendering might
     // mutate the DOM which would fire more events and we would most likely
     // just iloop.
-    if (!isMutationEvent(originalEvent.type))
+    if (originalEvent instanceof OriginalMutationEvent) {
+      if (mutationEventsAreSilenced)
+        return;
+    } else {
       scope.renderAllPending();
+    }
 
     var target = wrap(originalEvent.target);
     var event = wrap(originalEvent);
@@ -725,6 +725,8 @@
   scope.elementFromPoint = elementFromPoint;
   scope.getEventHandlerGetter = getEventHandlerGetter;
   scope.getEventHandlerSetter = getEventHandlerSetter;
+  scope.muteMutationEvents = muteMutationEvents;
+  scope.unmuteMutationEvents = unmuteMutationEvents;
   scope.wrapEventTargetMethods = wrapEventTargetMethods;
   scope.wrappers.CustomEvent = CustomEvent;
   scope.wrappers.Event = Event;
