@@ -373,7 +373,7 @@
     },
 
     hasChildNodes: function() {
-      return this.firstChild === null;
+      return this.firstChild !== null;
     },
 
     /** @type {Node} */
