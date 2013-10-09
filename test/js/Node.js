@@ -186,4 +186,16 @@ suite('Node', function() {
 
     expectStructure(host2, {});
   });
+  
+  test('hasChildNodes without a shadow root', function() {
+    var div = document.createElement('div');
+    
+    assert.isFalse(div.hasChildNodes(), 'should be false with no children');
+    
+    div.innerHTML = '<span></span>';
+    assert.isTrue(div.hasChildNodes(), 'should be true with a single child');
+
+    div.innerHTML = '<span></span><ul></ul>';
+    assert.isTrue(div.hasChildNodes(), 'should be true with multiple children');
+  });
 });
