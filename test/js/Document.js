@@ -373,24 +373,24 @@ htmlSuite('Document', function() {
     assert.equal(self, a);
   });
 
-  test('document.register enteredDocumentCallback, leftDocumentCallback',
+  test('document.register enteredViewCallback, leftViewCallback',
       function() {
     if (!document.register)
       return;
 
-    var enteredDocumentCalls = 0;
-    var leftDocumentCalls = 0;
+    var enteredViewCalls = 0;
+    var leftViewCalls = 0;
 
     function A() {}
     A.prototype = {
       __proto__: HTMLElement.prototype,
-      enteredDocumentCallback: function() {
-        enteredDocumentCalls++;
+      enteredViewCallback: function() {
+        enteredViewCalls++;
         assert.instanceOf(this, A);
         assert.equal(a, this);
       },
-      leftDocumentCallback: function() {
-        leftDocumentCalls++;
+      leftViewCallback: function() {
+        leftViewCalls++;
         assert.instanceOf(this, A);
         assert.equal(a, this);
       }
@@ -400,9 +400,9 @@ htmlSuite('Document', function() {
 
     var a = new A;
     document.body.appendChild(a);
-    assert.equal(enteredDocumentCalls, 1);
+    assert.equal(enteredViewCalls, 1);
     document.body.removeChild(a);
-    assert.equal(leftDocumentCalls, 1);
+    assert.equal(leftViewCalls, 1);
   });
 
   test('document.register attributeChangedCallback', function() {

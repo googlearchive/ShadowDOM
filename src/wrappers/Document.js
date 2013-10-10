@@ -138,8 +138,8 @@
       // and not from the spec since the spec is out of date.
       [
         'createdCallback',
-        'enteredDocumentCallback',
-        'leftDocumentCallback',
+        'enteredViewCallback',
+        'leftViewCallback',
         'attributeChangedCallback',
       ].forEach(function(name) {
         var f = prototype[name];
