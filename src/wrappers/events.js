@@ -643,7 +643,12 @@
     },
     dispatchEvent: function(event) {
       var target = getTargetToListenAt(this);
-      return target.dispatchEvent_(unwrap(event));
+      var nativeEvent = unwrap(event);
+      // Allow dispatching the same event again. This is safe because if user
+      // code calls this during an existing dispatch of the same event the
+      // native dispatchEvent throws (that is required by the spec).
+      handledEventsTable.set(nativeEvent, false);
+      return target.dispatchEvent_(nativeEvent);
     }
   };
 
@@ -653,7 +658,6 @@
   function wrapEventTargetMethods(constructors) {
     forwardMethodsToWrapper(constructors, methodNames);
   }
-
 
   var originalElementFromPoint = document.elementFromPoint;
 
