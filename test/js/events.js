@@ -1277,4 +1277,43 @@ test('retarget order (multiple shadow roots)', function() {
     text.dispatchEvent(new Event('x'));
   });
 
+  test('dispatch same event object twice', function() {
+    var e = new Event('x', {bubbles: true});
+    var doc = wrap(document);
+
+    var count = 0;
+    function handler(e) {
+      count++;
+    };
+
+    doc.addEventListener('x', handler);
+
+    document.dispatchEvent(e);
+    assert.equal(count, 1);
+    document.dispatchEvent(e);
+    assert.equal(count, 2);
+    document.dispatchEvent(e);
+    assert.equal(count, 3);
+
+    doc.removeEventListener('x', handler);
+  });
+
+  test('Ensure nested dispatch is not allowed', function() {
+    var e = new Event('x', {bubbles: true});
+    var doc = wrap(document);
+
+    var count = 0;
+
+    doc.addEventListener('x', function f(e) {
+      count++;
+      assert.throws(function() {
+        doc.dispatchEvent(e);
+      });
+    });
+
+    doc.dispatchEvent(e);
+
+    assert.equal(count, 1);
+  });
+
 });
