@@ -1277,4 +1277,17 @@ test('retarget order (multiple shadow roots)', function() {
     text.dispatchEvent(new Event('x'));
   });
 
+  test('manual relatedTarget', function() {
+    var ce = new CustomEvent('x');
+    ce.relatedTarget = 42;
+    var count = 0;
+    document.addEventListener('x', function f(e) {
+      count++;
+      assert.equal(e.relatedTarget, 42);
+      document.removeEventListener('x', f);
+    });
+    document.dispatchEvent(ce);
+    assert.equal(count, 1);
+  });
+
 });

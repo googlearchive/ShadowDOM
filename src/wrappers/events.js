@@ -294,13 +294,19 @@
 
     if ('relatedTarget' in event) {
       var originalEvent = unwrap(event);
-      var relatedTarget = wrap(originalEvent.relatedTarget);
+      // X-Tag sets relatedTarget on a CustomEvent. If they do that there is no
+      // way to have relatedTarget return the adjusted target but worse is that
+      // the originalEvent might not have a relatedTarget so we hit an assert
+      // when we try to wrap it.
+      if (originalEvent.relatedTarget) {
+        var relatedTarget = wrap(originalEvent.relatedTarget);
 
-      var adjusted = adjustRelatedTarget(currentTarget, relatedTarget);
-      if (adjusted === target)
-        return true;
+        var adjusted = adjustRelatedTarget(currentTarget, relatedTarget);
+        if (adjusted === target)
+          return true;
 
-      relatedTargetTable.set(event, adjusted);
+        relatedTargetTable.set(event, adjusted);
+      }
     }
 
     eventPhaseTable.set(event, phase);
