@@ -56,6 +56,7 @@ var modules = [
   'Element.js',
   'HTMLBodyElement.js',
   'HTMLButtonElement.js',
+  'HTMLCanvasElement.js',
   'HTMLContentElement.js',
   'HTMLFieldSetElement.js',
   'HTMLHeadElement.js',
