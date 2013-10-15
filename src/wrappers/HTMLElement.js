@@ -130,11 +130,15 @@
     }
   });
 
-  function getterRequiresRendering(name) {
-    defineGetter(HTMLElement, name, function() {
+  function getter(name) {
+    return function() {
       scope.renderAllPending();
       return this.impl[name];
-     });
+    };
+  }
+
+  function getterRequiresRendering(name) {
+    defineGetter(HTMLElement, name, getter(name));
   }
 
   [
@@ -147,10 +151,25 @@
     'offsetTop',
     'offsetWidth',
     'scrollHeight',
-    'scrollLeft',
-    'scrollTop',
     'scrollWidth',
   ].forEach(getterRequiresRendering);
+
+  function getterAndSetterRequiresRendering(name) {
+    Object.defineProperty(HTMLElement.prototype, name, {
+      get: getter(name),
+      set: function(v) {
+        scope.renderAllPending();
+        this.impl[name] = v;
+      },
+      configurable: true,
+      enumerable: true
+    });
+  }
+
+  [
+    'scrollLeft',
+    'scrollTop',
+  ].forEach(getterAndSetterRequiresRendering);
 
   function methodRequiresRendering(name) {
     Object.defineProperty(HTMLElement.prototype, name, {
