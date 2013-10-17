@@ -1175,8 +1175,8 @@ test('retarget order (multiple shadow roots)', function() {
     assert.equal(calls, 2);
 
     // defaultPrevented is broken in IE.
-    // https://connect.microsoft.com/IE/feedback/details/790389/event-defaultprevented-returns-false-after-preventdefault-was-called 
-    if (!/IE/.test(navigator.userAgent))
+    // https://connect.microsoft.com/IE/feedback/details/790389/event-defaultprevented-returns-false-after-preventdefault-was-called
+    if (!/Trident/.test(navigator.userAgent))
       assert.isTrue(event.defaultPrevented);
   });
 

@@ -135,8 +135,13 @@ suite('MutationObserver', function() {
       assert.equal(addedNodes[0], c);
       assert.equal(addedNodes[1], d);
       assert.equal(removedNodes.length, 2);
-      assert.equal(removedNodes[0], a);
-      assert.equal(removedNodes[1], b);
+      // The ordering of the removed nodes is different in IE11.
+      if (removedNodes[0] === a) {
+        assert.equal(removedNodes[1], b);
+      } else {
+        assert.equal(removedNodes[0], b);
+        assert.equal(removedNodes[1], a);
+      }
       mo.disconnect();
       done();
     });
@@ -265,7 +270,10 @@ suite('MutationObserver', function() {
       assert.equal(observer, mo);
       assert.equal(records[0].type, 'childList');
       assert.equal(records[0].target, div);
-      assert.equal(removedNodes.length, 1);
+
+      // IE11 is broken and reports the text node being removed twice.
+      if (!/Trident/.test(navigator.userAgent))
+        assert.equal(removedNodes.length, 1);
       assert.equal(removedNodes[0], a);
       done();
     });
