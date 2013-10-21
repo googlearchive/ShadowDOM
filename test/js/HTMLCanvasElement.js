@@ -27,8 +27,14 @@ suite('HTMLCanvasElement', function() {
       return;
 
     var canvas = document.createElement('canvas');
-    var context = canvas.getContext('webgl');
-    // Chrome returns null if the graphics drivers are not good enough.
+    var context = null;
+    // Firefox throws exception if graphics card is not supported
+    try {
+      context = canvas.getContext('webgl');
+    }
+    catch(ex) {
+    }
+    // Chrome returns null if the graphics card is not supported
     assert.isTrue(context === null || context instanceof WebGLRenderingContext);
 
     if (context != null)
@@ -60,7 +66,12 @@ suite('HTMLCanvasElement', function() {
 
   test('WebGL texImage2D', function(done) {
     var canvas = document.createElement('canvas');
-    var gl = canvas.getContext('webgl');
+    var gl = null;
+    // Firefox throws exception if graphics card is not supported
+    try {
+      gl = canvas.getContext('webgl');
+    } catch (ex) {
+    }
     // IE10 does not have WebGL.
     // Chrome returns null if the graphics card is not supported
     if (!gl) {
@@ -80,7 +91,12 @@ suite('HTMLCanvasElement', function() {
 
   test('WebGL texSubImage2D', function(done) {
     var canvas = document.createElement('canvas');
-    var gl = canvas.getContext('webgl');
+    var gl = null;
+    // Firefox throws exception if graphics card is not supported
+    try {
+      gl = canvas.getContext('webgl');
+    } catch(ex) {
+    }
     // IE10 does not have WebGL.
     // Chrome returns null if the graphics card is not supported
     if (!gl) {
