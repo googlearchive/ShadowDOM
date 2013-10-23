@@ -103,20 +103,24 @@ var ShadowDOMPolyfill = {};
     return /^on[a-z]+$/.test(name);
   }
 
+  function isIdentifierName(name) {
+    return /^\w[a-zA-Z_0-9]*$/.test(name);
+  }
+
   function getGetter(name) {
-    return hasEval ?
+    return hasEval && isIdentifierName(name) ?
         new Function('return this.impl.' + name) :
         function() { return this.impl[name]; };
   }
 
   function getSetter(name) {
-    return hasEval ?
+    return hasEval && isIdentifierName(name) ?
         new Function('v', 'this.impl.' + name + ' = v') :
         function(v) { this.impl[name] = v; };
   }
 
   function getMethod(name) {
-    return hasEval ?
+    return hasEval && isIdentifierName(name) ?
         new Function('return this.impl.' + name +
                      '.apply(this.impl, arguments)') :
         function() { return this.impl[name].apply(this.impl, arguments); };
