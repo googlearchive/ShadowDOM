@@ -24,7 +24,8 @@
     }
   });
 
-  registerWrapper(OriginalHTMLCanvasElement, HTMLCanvasElement);
+  registerWrapper(OriginalHTMLCanvasElement, HTMLCanvasElement,
+                  document.createElement('canvas'));
 
   scope.wrappers.HTMLCanvasElement = HTMLCanvasElement;
 })(this.ShadowDOMPolyfill);

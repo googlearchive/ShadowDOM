@@ -28,6 +28,7 @@
     'src/wrappers/HTMLElement.js',
     'src/wrappers/HTMLCanvasElement.js',
     'src/wrappers/HTMLContentElement.js',
+    'src/wrappers/HTMLImageElement.js',
     'src/wrappers/HTMLShadowElement.js',
     'src/wrappers/HTMLTemplateElement.js',
     'src/wrappers/HTMLUnknownElement.js',

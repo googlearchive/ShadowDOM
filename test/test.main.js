@@ -62,6 +62,7 @@ var modules = [
   'HTMLFieldSetElement.js',
   'HTMLHeadElement.js',
   'HTMLHtmlElement.js',
+  'HTMLImageElement.js',
   'HTMLInputElement.js',
   'HTMLKeygenElement.js',
   'HTMLLabelElement.js',

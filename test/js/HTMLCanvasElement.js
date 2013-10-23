@@ -41,6 +41,20 @@ suite('HTMLCanvasElement', function() {
       assert.equal(context.canvas, canvas);
   });
 
+  test('2d drawImage using new Image', function(done) {
+    var canvas = document.createElement('canvas');
+    var context = canvas.getContext('2d');
+
+    // var img = new Image();
+    var img = document.createElement('img');
+    img.width = img.height = 32;
+    img.onload = function() {
+      context.drawImage(img, 0, 0);
+      done();
+    };
+    img.src = iconUrl;
+  });
+
   test('2d drawImage', function(done) {
     var canvas = document.createElement('canvas');
     var context = canvas.getContext('2d');
@@ -112,6 +126,16 @@ suite('HTMLCanvasElement', function() {
       done();
     };
     img.src = iconUrl;
+  });
+
+  test('width', function() {
+    var canvas = document.createElement('canvas');
+    assert.isNumber(canvas.width);
+  });
+
+  test('height', function() {
+    var canvas = document.createElement('canvas');
+    assert.isNumber(canvas.height);
   });
 
 });
