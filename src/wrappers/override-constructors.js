@@ -18,10 +18,10 @@
     'base': 'HTMLBaseElement',
     'body': 'HTMLBodyElement',
     'button': 'HTMLButtonElement',
-    'canvas': 'HTMLCanvasElement',
     // 'command': 'HTMLCommandElement',  // Not fully implemented in Gecko.
     'dl': 'HTMLDListElement',
     'datalist': 'HTMLDataListElement',
+    'data': 'HTMLDataElement',
     'dir': 'HTMLDirectoryElement',
     'div': 'HTMLDivElement',
     'embed': 'HTMLEmbedElement',
@@ -35,17 +35,13 @@
     'h1': 'HTMLHeadingElement',
     'html': 'HTMLHtmlElement',
     'iframe': 'HTMLIFrameElement',
-
-    // Uses HTMLSpanElement in Firefox.
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=843881
-    // 'image',
-
     'input': 'HTMLInputElement',
     'li': 'HTMLLIElement',
     'label': 'HTMLLabelElement',
     'legend': 'HTMLLegendElement',
     'link': 'HTMLLinkElement',
     'map': 'HTMLMapElement',
+    'marquee': 'HTMLMarqueeElement',
     // 'media', Covered by audio and video
     'menu': 'HTMLMenuElement',
     'menuitem': 'HTMLMenuItemElement',
@@ -67,6 +63,7 @@
     'source': 'HTMLSourceElement',
     'span': 'HTMLSpanElement',
     'style': 'HTMLStyleElement',
+    'time': 'HTMLTimeElement',
     'caption': 'HTMLTableCaptionElement',
     // WebKit and Moz are wrong:
     // https://bugs.webkit.org/show_bug.cgi?id=111469
@@ -78,6 +75,7 @@
     'thead': 'HTMLTableSectionElement',
     'tbody': 'HTMLTableSectionElement',
     'textarea': 'HTMLTextAreaElement',
+    'track': 'HTMLTrackElement',
     'title': 'HTMLTitleElement',
     'ul': 'HTMLUListElement',
     'video': 'HTMLVideoElement',
