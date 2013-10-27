@@ -66,4 +66,4 @@
   scope.ChildNodeInterface = ChildNodeInterface;
   scope.ParentNodeInterface = ParentNodeInterface;
 
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);

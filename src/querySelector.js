@@ -70,4 +70,4 @@
   scope.GetElementsByInterface = GetElementsByInterface;
   scope.SelectorsInterface = SelectorsInterface;
 
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);

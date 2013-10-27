@@ -39,4 +39,4 @@
   registerWrapper(OriginalWebGLRenderingContext, WebGLRenderingContext);
 
   scope.wrappers.WebGLRenderingContext = WebGLRenderingContext;
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);

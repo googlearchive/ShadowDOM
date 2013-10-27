@@ -28,4 +28,4 @@
   HTMLUnknownElement.prototype = Object.create(HTMLElement.prototype);
   registerWrapper(OriginalHTMLUnknownElement, HTMLUnknownElement);
   scope.wrappers.HTMLUnknownElement = HTMLUnknownElement;
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);

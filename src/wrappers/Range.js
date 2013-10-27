@@ -89,4 +89,4 @@
 
   scope.wrappers.Range = Range;
 
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);

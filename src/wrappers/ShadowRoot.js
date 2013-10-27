@@ -60,4 +60,4 @@
   scope.getHostForShadowRoot = function(node) {
     return shadowHostTable.get(node);
   };
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);

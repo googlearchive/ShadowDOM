@@ -43,4 +43,4 @@
   scope.addWrapNodeListMethod = addWrapNodeListMethod;
   scope.wrapNodeList = wrapNodeList;
 
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);
