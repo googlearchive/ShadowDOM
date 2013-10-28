@@ -8,6 +8,7 @@
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
   var unwrap = scope.unwrap;
+  var unwrapIfNeeded = scope.unwrapIfNeeded;
   var wrap = scope.wrap;
 
   var OriginalCanvasRenderingContext2D = window.CanvasRenderingContext2D;
@@ -22,7 +23,7 @@
     },
 
     drawImage: function() {
-      arguments[0] = unwrap(arguments[0]);
+      arguments[0] = unwrapIfNeeded(arguments[0]);
       this.impl.drawImage.apply(this.impl, arguments);
     },
 
