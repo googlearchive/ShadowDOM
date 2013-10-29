@@ -11,7 +11,6 @@
   var Node = scope.wrappers.Node;
   var ShadowRoot = scope.wrappers.ShadowRoot;
   var assert = scope.assert;
-  var getHostForShadowRoot = scope.getHostForShadowRoot;
   var mixin = scope.mixin;
   var muteMutationEvents = scope.muteMutationEvents;
   var oneOf = scope.oneOf;
@@ -253,7 +252,7 @@
   }
 
   function getRendererForShadowRoot(shadowRoot) {
-    return getRendererForHost(getHostForShadowRoot(shadowRoot));
+    return getRendererForHost(shadowRoot.host);
   }
 
   var spliceDiff = new ArraySplice();

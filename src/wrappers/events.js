@@ -49,7 +49,7 @@
 
     // 1.
     if (isShadowRoot(node))
-      return getInsertionParent(node) || scope.getHostForShadowRoot(node);
+      return getInsertionParent(node) || node.host;
 
     // 2.
     var eventParents = scope.eventParentsTable.get(node);
@@ -145,7 +145,7 @@
         ancestor = calculateParents(ancestor, context, ancestors);  // 3.4.7.
       }
       if (isShadowRoot(target))  // 3.5.
-        target = scope.getHostForShadowRoot(target);
+        target = target.host;
       else
         target = target.parentNode;  // 3.6.
     }
@@ -174,10 +174,8 @@
   function enclosedBy(a, b) {
     if (a === b)
       return true;
-    if (a instanceof wrappers.ShadowRoot) {
-      var host = scope.getHostForShadowRoot(a);
-      return enclosedBy(rootOfNode(host), b);
-    }
+    if (a instanceof wrappers.ShadowRoot)
+      return enclosedBy(rootOfNode(a.host), b);
     return false;
   }
 
@@ -599,7 +597,7 @@
 
   function getTargetToListenAt(wrapper) {
     if (wrapper instanceof wrappers.ShadowRoot)
-      wrapper = scope.getHostForShadowRoot(wrapper);
+      wrapper = wrapper.host;
     return unwrap(wrapper);
   }
 
