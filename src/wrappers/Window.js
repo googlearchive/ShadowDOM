@@ -46,4 +46,4 @@
 
   scope.wrappers.Window = Window;
 
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);

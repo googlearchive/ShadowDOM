@@ -23,4 +23,4 @@
     registerWrapper(OriginalHTMLShadowElement, HTMLShadowElement);
 
   scope.wrappers.HTMLShadowElement = HTMLShadowElement;
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);

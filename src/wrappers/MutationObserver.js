@@ -84,4 +84,4 @@
   scope.wrappers.MutationObserver = MutationObserver;
   scope.wrappers.MutationRecord = MutationRecord;
 
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);

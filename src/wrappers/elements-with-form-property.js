@@ -51,4 +51,4 @@
 
   elementsWithFormProperty.forEach(createWrapperConstructor);
 
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);

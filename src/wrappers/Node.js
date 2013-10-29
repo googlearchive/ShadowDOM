@@ -494,4 +494,4 @@
 
   scope.wrappers.Node = Node;
 
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);

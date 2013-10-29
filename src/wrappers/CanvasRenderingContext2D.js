@@ -36,4 +36,4 @@
   registerWrapper(OriginalCanvasRenderingContext2D, CanvasRenderingContext2D);
 
   scope.wrappers.CanvasRenderingContext2D = CanvasRenderingContext2D;
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);

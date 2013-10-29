@@ -114,4 +114,4 @@
   // that reflect attributes.
   scope.matchesName = matchesName;
   scope.wrappers.Element = Element;
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);

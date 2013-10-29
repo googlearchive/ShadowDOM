@@ -23,4 +23,4 @@
   scope.wrappers.DocumentFragment = DocumentFragment;
   scope.wrappers.Text = Text;
 
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);

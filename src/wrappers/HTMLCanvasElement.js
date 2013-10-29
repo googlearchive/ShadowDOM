@@ -28,4 +28,4 @@
                   document.createElement('canvas'));
 
   scope.wrappers.HTMLCanvasElement = HTMLCanvasElement;
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);

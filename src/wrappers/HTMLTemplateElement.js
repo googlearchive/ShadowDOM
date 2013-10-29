@@ -81,4 +81,4 @@
     registerWrapper(OriginalHTMLTemplateElement, HTMLTemplateElement);
 
   scope.wrappers.HTMLTemplateElement = HTMLTemplateElement;
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);

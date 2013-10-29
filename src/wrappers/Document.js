@@ -281,4 +281,4 @@
   scope.wrappers.DOMImplementation = DOMImplementation;
   scope.wrappers.Document = Document;
 
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);
