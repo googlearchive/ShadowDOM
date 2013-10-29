@@ -40,11 +40,13 @@
     }
 
     var nodes = [];
-    var firstChild;
-    while (firstChild = node.firstChild) {
-      node.removeChild(firstChild);
-      nodes.push(firstChild);
-      firstChild.parentNode_ = parentNode;
+    for (var child = node.firstChild; child; child = child.nextSibling) {
+      nodes.push(child);
+    }
+
+    for (var i = nodes.length - 1; i >= 0; i--) {
+      node.removeChild(nodes[i]);
+      nodes[i].parentNode_ = parentNode;
     }
 
     for (var i = 0; i < nodes.length; i++) {
