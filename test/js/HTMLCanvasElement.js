@@ -93,11 +93,21 @@ suite('HTMLCanvasElement', function() {
       return;
     }
 
+    var imageData = document.createElement('canvas').getContext('2d').
+        createImageData(16, 16);
+    var arrayBufferView = new Uint8Array(16 * 16 * 4);
+
     var img = document.createElement('img');
     img.onload = function() {
       var texture = gl.createTexture();
       gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE,
+                    imageData);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,
+                    16, 16, 0,
+                    gl.RGBA, gl.UNSIGNED_BYTE, arrayBufferView);
+
       done();
     };
     img.src = iconUrl;
@@ -118,11 +128,16 @@ suite('HTMLCanvasElement', function() {
       return;
     }
 
+    var arrayBufferView = new Uint8Array(16 * 16 * 4);
+
     var img = document.createElement('img');
     img.onload = function() {
       var texture = gl.createTexture();
       gl.bindTexture(gl.TEXTURE_2D, texture);
       gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, gl.RGBA, gl.UNSIGNED_BYTE, img);
+      gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0,
+          16, 16,
+          gl.RGBA, gl.UNSIGNED_BYTE, arrayBufferView);
       done();
     };
     img.src = iconUrl;

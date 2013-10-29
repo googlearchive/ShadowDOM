@@ -7,7 +7,7 @@
 
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
-  var unwrap = scope.unwrap;
+  var unwrapIfNeeded = scope.unwrapIfNeeded;
   var wrap = scope.wrap;
 
   var OriginalWebGLRenderingContext = window.WebGLRenderingContext;
@@ -26,12 +26,12 @@
     },
 
     texImage2D: function() {
-      arguments[5] = unwrap(arguments[5]);
+      arguments[5] = unwrapIfNeeded(arguments[5]);
       this.impl.texImage2D.apply(this.impl, arguments);
     },
 
     texSubImage2D: function() {
-      arguments[6] = unwrap(arguments[6]);
+      arguments[6] = unwrapIfNeeded(arguments[6]);
       this.impl.texSubImage2D.apply(this.impl, arguments);
     }
   });
