@@ -196,12 +196,28 @@
     this.previousSibling_ = undefined;
   };
 
+  var OriginalDocumentFragment = window.DocumentFragment;
   var originalAppendChild = OriginalNode.prototype.appendChild;
-  var originalInsertBefore = OriginalNode.prototype.insertBefore;
-  var originalReplaceChild = OriginalNode.prototype.replaceChild;
-  var originalRemoveChild = OriginalNode.prototype.removeChild;
   var originalCompareDocumentPosition =
       OriginalNode.prototype.compareDocumentPosition;
+  var originalInsertBefore = OriginalNode.prototype.insertBefore;
+  var originalRemoveChild = OriginalNode.prototype.removeChild;
+  var originalReplaceChild = OriginalNode.prototype.replaceChild;
+
+  var isIe = /Trident/.test(navigator.userAgent);
+
+  var removeChildOriginalHelper = isIe ?
+      function(parent, child) {
+        try {
+          originalRemoveChild.call(parent, child);
+        } catch (ex) {
+          if (!(parent instanceof OriginalDocumentFragment))
+            throw ex;
+        }
+      } :
+      function(parent, child) {
+        originalRemoveChild.call(parent, child);
+      };
 
   Node.prototype = Object.create(EventTarget.prototype);
   mixin(Node.prototype, {
@@ -306,7 +322,7 @@
 
         var parentNode = childNode.parentNode;
         if (parentNode)
-          originalRemoveChild.call(parentNode, childNode);
+          removeChildOriginalHelper(parentNode, childNode);
 
         if (thisFirstChild === childWrapper)
           this.firstChild_ = childWrapperNextSibling;
@@ -322,7 +338,7 @@
         childWrapper.previousSibling_ = childWrapper.nextSibling_ =
             childWrapper.parentNode_ = undefined;
       } else {
-        originalRemoveChild.call(this.impl, childNode);
+        removeChildOriginalHelper(this.impl, childNode);
       }
 
       return childWrapper;
