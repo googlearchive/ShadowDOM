@@ -275,8 +275,20 @@
     removeChild: function(childWrapper) {
       assertIsNodeWrapper(childWrapper);
       if (childWrapper.parentNode !== this) {
-        // TODO(arv): DOMException
-        throw new Error('NotFoundError');
+        // IE has invalid DOM trees at times.
+        var found = false;
+        var childNodes = this.childNodes;
+        for (var ieChild = this.firstChild; ieChild;
+             ieChild = ieChild.nextSibling) {
+          if (ieChild === childWrapper) {
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          // TODO(arv): DOMException
+          throw new Error('NotFoundError');
+        }
       }
 
       var childNode = unwrap(childWrapper);
