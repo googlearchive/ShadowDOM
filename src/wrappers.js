@@ -21,6 +21,7 @@ var ShadowDOMPolyfill = {};
       var f = new Function('', 'return true;');
       hasEval = f();
     } catch (ex) {
+      return false;
     }
   }
 
