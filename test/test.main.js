@@ -44,6 +44,29 @@ function assertArrayEqual(a, b, msg) {
   assert.equal(a.length, b.length, msg);
 }
 
+function expectMutationRecord(record, expected) {
+  assert.equal(record.type,
+      expected.type === undefined ? null : expected.type);
+  assert.equal(record.target,
+      expected.target === undefined ? null : expected.target);
+  assertArrayEqual(record.addedNodes,
+      expected.addedNodes === undefined ? [] : expected.addedNodes);
+  assertArrayEqual(record.removedNodes,
+      expected.removedNodes === undefined ? [] : expected.removedNodes);
+  assert.equal(record.previousSibling,
+      expected.previousSibling === undefined ?
+          null : expected.previousSibling);
+  assert.equal(record.nextSibling,
+      expected.nextSibling === undefined ? null : expected.nextSibling);
+  assert.equal(record.attributeName,
+      expected.attributeName === undefined ? null : expected.attributeName);
+  assert.equal(record.attributeNamespace,
+      expected.attributeNamespace === undefined ?
+          null : expected.attributeNamespace);
+  assert.equal(record.oldValue,
+      expected.oldValue === undefined ? null : expected.oldValue);
+}
+
 mocha.setup({
   ui: 'tdd',
   globals: ['console', 'getInterface']
@@ -76,14 +99,22 @@ var modules = [
   'HTMLTemplateElement.js',
   'HTMLTextAreaElement.js',
   'MutationObserver.js',
+  'MutationObserver/attributes.js',
+  'MutationObserver/callback.js',
+  'MutationObserver/characterData.js',
+  'MutationObserver/childList.js',
+  'MutationObserver/mixed.js',
+  'MutationObserver/transient.js',
+  'MutationObserver/options.js',
   'Node.js',
   'ParentNodeInterface.js',
   'ShadowRoot.js',
   'Text.js',
-  'Window.js',
   'Range.js',
+  'Window.js',
   'custom-element.js',
   'events.js',
+  'microtask.js',
   'paralleltrees.js',
   'reprojection.js',
   'rerender.js',

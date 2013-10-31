@@ -209,7 +209,7 @@ suite('MutationObserver', function() {
       subtree: true
     });
 
-    document.body.setAttribute('a', newValue());
+    wrap(document).body.setAttribute('a', newValue());
   });
 
   test('observe document.body', function(done) {
@@ -230,7 +230,7 @@ suite('MutationObserver', function() {
       attributes: true
     });
 
-    document.body.setAttribute('a', newValue());
+    wrap(document.body).setAttribute('a', newValue());
   });
 
   test('observe document.head', function(done) {
@@ -251,7 +251,7 @@ suite('MutationObserver', function() {
       attributes: true
     });
 
-    document.head.setAttribute('a', newValue());
+    wrap(document.head).setAttribute('a', newValue());
   });
 
   test('observe text node', function(done) {

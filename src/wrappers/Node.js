@@ -7,9 +7,11 @@
 
   var EventTarget = scope.wrappers.EventTarget;
   var NodeList = scope.wrappers.NodeList;
-  var defineWrapGetter = scope.defineWrapGetter;
   var assert = scope.assert;
+  var defineWrapGetter = scope.defineWrapGetter;
+  var enqueueMutation = scope.enqueueMutation;
   var mixin = scope.mixin;
+  var registerTransientObservers = scope.registerTransientObservers;
   var registerWrapper = scope.registerWrapper;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
@@ -74,10 +76,29 @@
     return [node];
   }
 
+  function snapshotNodeList(nodeList) {
+    // NodeLists are not live at the moment so just return the same object.
+    return nodeList;
+  }
+
+  // http://dom.spec.whatwg.org/#node-is-inserted
+  function nodeWasAdded(node) {
+    node.nodeIsInserted_();
+  }
+
   function nodesWereAdded(nodes) {
     for (var i = 0; i < nodes.length; i++) {
-      nodes[i].nodeWasAdded_();
+      nodeWasAdded(nodes[i]);
     }
+  }
+
+  // http://dom.spec.whatwg.org/#node-is-removed
+  function nodeWasRemoved(node) {
+    // Nothing at this point in time.
+  }
+
+  function nodesWereRemoved(nodes) {
+    // Nothing at this point in time.
   }
 
   function ensureSameOwnerDocument(parent, child) {
@@ -225,9 +246,9 @@
       assertIsNodeWrapper(childWrapper);
 
       var nodes;
+      var previousNode = this.lastChild;
 
       if (this.invalidateShadowRenderer() || invalidateParent(childWrapper)) {
-        var previousNode = this.lastChild;
         var nextNode = null;
         nodes = collectNodes(childWrapper, this, previousNode, nextNode);
 
@@ -241,6 +262,12 @@
         ensureSameOwnerDocument(this, childWrapper);
         originalAppendChild.call(this.impl, unwrap(childWrapper));
       }
+
+      enqueueMutation(this, 'childList', {
+        addedNodes: nodes,
+        nextSibling: null,
+        previousSibling: previousNode
+      });
 
       nodesWereAdded(nodes);
 
@@ -258,8 +285,9 @@
 
       var nodes;
 
+      var previousNode = refWrapper.previousSibling;
+
       if (this.invalidateShadowRenderer() || invalidateParent(childWrapper)) {
-        var previousNode = refWrapper.previousSibling;
         var nextNode = refWrapper;
         nodes = collectNodes(childWrapper, this, previousNode, nextNode);
 
@@ -284,6 +312,12 @@
         originalInsertBefore.call(this.impl, unwrap(childWrapper),
                                   unwrap(refWrapper));
       }
+
+      enqueueMutation(this, 'childList', {
+        addedNodes: nodes,
+        nextSibling: refWrapper,
+        previousSibling: previousNode
+      });
 
       nodesWereAdded(nodes);
 
@@ -310,15 +344,15 @@
       }
 
       var childNode = unwrap(childWrapper);
-      if (this.invalidateShadowRenderer()) {
+      var childWrapperNextSibling = childWrapper.nextSibling;
+      var childWrapperPreviousSibling = childWrapper.previousSibling;
 
+      if (this.invalidateShadowRenderer()) {
         // We need to remove the real node from the DOM before updating the
         // pointers. This is so that that mutation event is dispatched before
         // the pointers have changed.
         var thisFirstChild = this.firstChild;
         var thisLastChild = this.lastChild;
-        var childWrapperNextSibling = childWrapper.nextSibling;
-        var childWrapperPreviousSibling = childWrapper.previousSibling;
 
         var parentNode = childNode.parentNode;
         if (parentNode)
@@ -341,6 +375,14 @@
         removeChildOriginalHelper(this.impl, childNode);
       }
 
+      enqueueMutation(this, 'childList', {
+        removedNodes: [childWrapper],
+        nextSibling: childWrapperNextSibling,
+        previousSibling: childWrapperPreviousSibling
+      });
+
+      registerTransientObservers(this, childWrapper);
+
       return childWrapper;
     },
 
@@ -354,12 +396,12 @@
       }
 
       var oldChildNode = unwrap(oldChildWrapper);
+      var nextNode = oldChildWrapper.nextSibling;
+      var previousNode = oldChildWrapper.previousSibling;
       var nodes;
 
       if (this.invalidateShadowRenderer() ||
           invalidateParent(newChildWrapper)) {
-        var previousNode = oldChildWrapper.previousSibling;
-        var nextNode = oldChildWrapper.nextSibling;
         if (nextNode === newChildWrapper)
           nextNode = newChildWrapper.nextSibling;
         nodes = collectNodes(newChildWrapper, this, previousNode, nextNode);
@@ -386,19 +428,27 @@
                                   oldChildNode);
       }
 
+      enqueueMutation(this, 'childList', {
+        addedNodes: nodes,
+        removedNodes: [oldChildWrapper],
+        nextSibling: nextNode,
+        previousSibling: previousNode
+      });
+
+      nodeWasRemoved(oldChildWrapper);
       nodesWereAdded(nodes);
 
       return oldChildWrapper;
     },
 
     /**
-     * Called after a node was added. Subclasses override this to invalidate
+     * Called after a node was inserted. Subclasses override this to invalidate
      * the renderer as needed.
      * @private
      */
-    nodeWasAdded_: function() {
+    nodeIsInserted_: function() {
       for (var child = this.firstChild; child; child = child.nextSibling) {
-        child.nodeWasAdded_();
+        child.nodeIsInserted_();
       }
     },
 
@@ -455,6 +505,8 @@
       return s;
     },
     set textContent(textContent) {
+      var removedNodes = snapshotNodeList(this.childNodes);
+
       if (this.invalidateShadowRenderer()) {
         removeAllChildNodes(this);
         if (textContent !== '') {
@@ -464,6 +516,16 @@
       } else {
         this.impl.textContent = textContent;
       }
+
+      var addedNodes = snapshotNodeList(this.childNodes);
+
+      enqueueMutation(this, 'childList', {
+        addedNodes: addedNodes,
+        removedNodes: removedNodes
+      });
+
+      nodesWereRemoved(removedNodes);
+      nodesWereAdded(addedNodes);
     },
 
     get childNodes() {
@@ -522,6 +584,11 @@
   delete Node.prototype.querySelectorAll;
   Node.prototype = mixin(Object.create(EventTarget.prototype), Node.prototype);
 
+  scope.nodeWasAdded = nodeWasAdded;
+  scope.nodeWasRemoved = nodeWasRemoved;
+  scope.nodesWereAdded = nodesWereAdded;
+  scope.nodesWereRemoved = nodesWereRemoved;
+  scope.snapshotNodeList = snapshotNodeList;
   scope.wrappers.Node = Node;
 
 })(window.ShadowDOMPolyfill);

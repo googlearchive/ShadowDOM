@@ -7,6 +7,7 @@
 
   var ChildNodeInterface = scope.ChildNodeInterface;
   var Node = scope.wrappers.Node;
+  var enqueueMutation = scope.enqueueMutation;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
 
@@ -22,6 +23,16 @@
     },
     set textContent(value) {
       this.data = value;
+    },
+    get data() {
+      return this.impl.data;
+    },
+    set data(value) {
+      var oldValue = this.impl.data;
+      enqueueMutation(this, 'characterData', {
+        oldValue: oldValue
+      });
+      this.impl.data = value;
     }
   });
 
