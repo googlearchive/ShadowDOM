@@ -9,10 +9,20 @@
 
   var setEndOfMicrotask = scope.setEndOfMicrotask
   var wrapIfNeeded = scope.wrapIfNeeded
+  var wrappers = scope.wrappers;
 
   var registrationsTable = new WeakMap();
   var globalMutationObservers = [];
   var isScheduled = false;
+
+  function makeNodeList(args) {
+    var nodeList = new wrappers.NodeList();
+    for (var i = 0; i < args.length; i++) {
+      nodeList[i] = args[i];
+    }
+    nodeList.length = i;
+    return nodeList;
+  }
 
   function scheduleCallback(observer) {
     if (isScheduled)
@@ -47,8 +57,8 @@
   function MutationRecord(type, target) {
     this.type = type;
     this.target = target;
-    this.addedNodes = [];
-    this.removedNodes = [];
+    this.addedNodes = new wrappers.NodeList();
+    this.removedNodes = new wrappers.NodeList();
     this.previousSibling = null;
     this.nextSibling = null;
     this.attributeName = null;
@@ -90,7 +100,7 @@
   }
 
   // http://dom.spec.whatwg.org/#queue-a-mutation-record
-  function queueMutationRecord(target, type, data) {
+  function enqueueMutation(target, type, data) {
     // 1.
     var interestedObservers = Object.create(null);
     var associatedStrings = Object.create(null);
@@ -165,11 +175,11 @@
 
       // 3.
       if (data.addedNodes)
-        record.addedNodes = data.addedNodes;
+        record.addedNodes = makeNodeList(data.addedNodes);
 
       // 4.
       if (data.removedNodes)
-        record.removedNodes = data.removedNodes;
+        record.removedNodes = makeNodeList(data.removedNodes);
 
       // 5.
       if (data.previousSibling)
@@ -368,7 +378,7 @@
     }
   };
 
-  scope.enqueueMutation = queueMutationRecord;
+  scope.enqueueMutation = enqueueMutation;
   scope.registerTransientObservers = registerTransientObservers;
   scope.wrappers.MutationObserver = MutationObserver;
   scope.wrappers.MutationRecord = MutationRecord;

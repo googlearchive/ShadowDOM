@@ -6,52 +6,18 @@
 
 suite('MutationObserver', function() {
 
-  test('basics', function() {
-    var mo = new MutationObserver(function(records, observer) {
-
-    });
-
-    var div = document.createElement('div');
-    mo.observe(div, {
-      childList: true
-    });
-
-    var a = div.appendChild(document.createElement('a'));
-
-    var records = mo.takeRecords();
-    assert.equal(1, records.length);
-    assert.equal('childList', records[0].type);
-    assert.equal(1, records[0].addedNodes.length);
-    assert.equal(a, records[0].addedNodes[0]);
-  });
-
   suite('childList', function() {
 
-    //  TODO: remove
-    var addedNodes, removedNodes;
+    var NodeList = ShadowDOMPolyfill.wrappers.NodeList;
 
-    setup(function() {
-      addedNodes = [];
-      removedNodes = [];
-    });
-
-    function mergeRecords(records) {
-      records.forEach(function(record) {
-        if (record.addedNodes)
-          addedNodes.push.apply(addedNodes, record.addedNodes);
-        if (record.removedNodes)
-          removedNodes.push.apply(removedNodes, record.removedNodes);
-      });
+    function makeNodeList(/* ...args */) {
+      var nodeList = new NodeList;
+      for (var i = 0; i < arguments.length; i++) {
+        nodeList[i] = arguments[i];
+      }
+      nodeList.length = i;
+      return nodeList;
     }
-
-    function assertAll(records, expectedProperties) {
-      records.forEach(function(record) {
-        for (var propertyName in expectedProperties) {
-          assert.strictEqual(record[propertyName], expectedProperties[propertyName]);
-        }
-      });
-    }
-    ///////////////////
 
     test('appendChild', function() {
       var div = document.createElement('div');
@@ -98,7 +64,7 @@ suite('MutationObserver', function() {
       div.insertBefore(c, a);
 
       var records = observer.takeRecords();
-      assert.strictEqual(records.length, 2);
+      assert.equal(records.length, 2);
 
       expectMutationRecord(records[0], {
         type: 'childList',
@@ -131,7 +97,7 @@ suite('MutationObserver', function() {
       div.removeChild(a);
 
       var records = observer.takeRecords();
-      assert.strictEqual(records.length, 2);
+      assert.equal(records.length, 2);
 
       expectMutationRecord(records[0], {
         type: 'childList',
@@ -163,7 +129,7 @@ suite('MutationObserver', function() {
       div.removeChild(b);
 
       var records = observer.takeRecords();
-      assert.strictEqual(records.length, 3);
+      assert.equal(records.length, 3);
 
       expectMutationRecord(records[0], {
         type: 'childList',
@@ -201,7 +167,7 @@ suite('MutationObserver', function() {
       child.removeChild(b);
 
       var records = observer.takeRecords();
-      assert.strictEqual(records.length, 3);
+      assert.equal(records.length, 3);
 
       expectMutationRecord(records[0], {
         type: 'childList',
@@ -243,7 +209,7 @@ suite('MutationObserver', function() {
       div.appendChild(b);
 
       var records = observer.takeRecords();
-      assert.strictEqual(records.length, 2);
+      assert.equal(records.length, 2);
 
       expectMutationRecord(records[0], {
         type: 'childList',
@@ -276,14 +242,14 @@ suite('MutationObserver', function() {
       div.appendChild(df);
 
       var records = observer.takeRecords();
-      mergeRecords(records);
-
-      // TODO(arv): assert.equals or deepEquals or whatever it is called.
-      assert.deepEqual(addedNodes, [b, c, d]);
-      assert.deepEqual(removedNodes, []);
-      assertAll(records, {
+      assert.equal(records.length, 1);
+      expectMutationRecord(records[0], {
         type: 'childList',
-        target: div
+        target: div,
+        addedNodes: makeNodeList(b, c, d),
+        removedNodes: makeNodeList(),
+        previousSibling: a,
+        nextSibling: null
       });
     });
 
@@ -304,13 +270,14 @@ suite('MutationObserver', function() {
       div.insertBefore(df, a);
 
       var records = observer.takeRecords();
-      mergeRecords(records);
-
-      assert.deepEqual(addedNodes, [b, c, d]);
-      assert.deepEqual(removedNodes, []);
-      assertAll(records, {
+      assert.equal(records.length, 1);
+      expectMutationRecord(records[0], {
         type: 'childList',
-        target: div
+        target: div,
+        addedNodes: makeNodeList(b, c, d),
+        removedNodes: makeNodeList(),
+        previousSibling: null,
+        nextSibling: a
       });
     });
 
@@ -331,13 +298,14 @@ suite('MutationObserver', function() {
       div.insertBefore(df, b);
 
       var records = observer.takeRecords();
-      mergeRecords(records);
-
-      assert.deepEqual(addedNodes, [c, d]);
-      assert.deepEqual(removedNodes, []);
-      assertAll(records, {
+      assert.equal(records.length, 1);
+      expectMutationRecord(records[0], {
         type: 'childList',
-        target: div
+        target: div,
+        addedNodes: makeNodeList(c, d),
+        removedNodes: makeNodeList(),
+        previousSibling: a,
+        nextSibling: b
       });
     });
 
@@ -355,13 +323,14 @@ suite('MutationObserver', function() {
       div.innerHTML = '';
 
       var records = observer.takeRecords();
-      mergeRecords(records);
-
-      assert.deepEqual(addedNodes, []);
-      assert.deepEqual(removedNodes, [a, b, c]);
-      assertAll(records, {
+      assert.equal(records.length, 1);
+      expectMutationRecord(records[0], {
         type: 'childList',
-        target: div
+        target: div,
+        addedNodes: makeNodeList(),
+        removedNodes: makeNodeList(a, b, c),
+        previousSibling: null,
+        nextSibling: null
       });
     });
 
@@ -380,13 +349,14 @@ suite('MutationObserver', function() {
       var d = div.lastChild;
 
       var records = observer.takeRecords();
-      mergeRecords(records);
-
-      assert.deepEqual(addedNodes, [c, d]);
-      assert.deepEqual(removedNodes, [a, b]);
-      assertAll(records, {
+      assert.equal(records.length, 1);
+      expectMutationRecord(records[0], {
         type: 'childList',
-        target: div
+        target: div,
+        addedNodes: makeNodeList(c, d),
+        removedNodes: makeNodeList(a, b),
+        previousSibling: null,
+        nextSibling: null
       });
     });
 
@@ -404,13 +374,14 @@ suite('MutationObserver', function() {
       div.textContent = '';
 
       var records = observer.takeRecords();
-      mergeRecords(records);
-
-      assert.deepEqual(addedNodes, []);
-      assert.deepEqual(removedNodes, [a, b, c]);
-      assertAll(records, {
+      assert.equal(records.length, 1);
+      expectMutationRecord(records[0], {
         type: 'childList',
-        target: div
+        target: div,
+        addedNodes: makeNodeList(),
+        removedNodes: makeNodeList(a, b, c),
+        previousSibling: null,
+        nextSibling: null
       });
     });
 
@@ -428,13 +399,78 @@ suite('MutationObserver', function() {
       var text = div.firstChild;
 
       var records = observer.takeRecords();
-      mergeRecords(records);
-
-      assert.deepEqual(addedNodes, [text]);
-      assert.deepEqual(removedNodes, [a, b]);
-      assertAll(records, {
+      assert.equal(records.length, 1);
+      expectMutationRecord(records[0], {
         type: 'childList',
-        target: div
+        target: div,
+        addedNodes: makeNodeList(text),
+        removedNodes: makeNodeList(a, b),
+        previousSibling: null,
+        nextSibling: null
+      });
+    });
+
+    test('surpress removal', function() {
+      var a = document.createElement('a');
+      var b = document.createElement('b');
+      var c = document.createElement('c');
+
+      a.appendChild(c);
+
+      var observerA = new MutationObserver(function() {});
+      observerA.observe(a, {
+        childList: true
+      });
+
+      var observerB = new MutationObserver(function() {});
+      observerB.observe(b, {
+        childList: true
+      });
+
+      b.appendChild(c);
+
+      var recordsA = observerA.takeRecords();
+
+      assert.equal(recordsA.length, 0);
+
+      var recordsB = observerB.takeRecords();
+      assert.equal(recordsB.length, 1);
+      expectMutationRecord(recordsB[0], {
+        type: 'childList',
+        target: b,
+        addedNodes: [c]
+      });
+    });
+
+    test('surpress document fragment', function() {
+      var df = document.createDocumentFragment();
+      var b = document.createElement('b');
+      var c = document.createElement('c');
+
+      df.appendChild(c);
+
+      var observerDf = new MutationObserver(function() {});
+      observerDf.observe(df, {
+        childList: true
+      });
+
+      var observerB = new MutationObserver(function() {});
+      observerB.observe(b, {
+        childList: true
+      });
+
+      b.appendChild(df);
+
+      var recordsDf = observerDf.takeRecords();
+
+      assert.equal(recordsDf.length, 0);
+
+      var recordsB = observerB.takeRecords();
+      assert.equal(recordsB.length, 1);
+      expectMutationRecord(recordsB[0], {
+        type: 'childList',
+        target: b,
+        addedNodes: [c]
       });
     });
 
