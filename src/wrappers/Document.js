@@ -150,12 +150,19 @@
         };
       });
 
-      var nativeConstructor = originalRegister.call(unwrap(this), tagName,
-          {prototype: newPrototype});
+      var p = {prototype: newPrototype};
+      if (object.extends)
+        p.extends = object.extends;
+      var nativeConstructor = originalRegister.call(unwrap(this), tagName, p);
 
       function GeneratedWrapper(node) {
-        if (!node)
-          return document.createElement(tagName);
+        if (!node) {
+          if (object.extends) {
+            return document.createElement(object.extends, tagName);
+          } else {
+            return document.createElement(tagName);
+          }
+        }
         this.impl = node;
       }
       GeneratedWrapper.prototype = prototype;
