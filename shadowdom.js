@@ -24,6 +24,7 @@
     'src/querySelector.js',
     'src/wrappers/node-interfaces.js',
     'src/wrappers/CharacterData.js',
+    'src/wrappers/Comment.js',
     'src/wrappers/Element.js',
     'src/wrappers/HTMLElement.js',
     'src/wrappers/HTMLCanvasElement.js',
