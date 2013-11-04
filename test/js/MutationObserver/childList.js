@@ -82,6 +82,30 @@ suite('MutationObserver', function() {
       });
     });
 
+    test('replaceChild', function() {
+      var div = document.createElement('div');
+      var a = document.createElement('a');
+      var b = document.createElement('b');
+      div.appendChild(a);
+
+      var observer = new MutationObserver(function() {});
+      observer.observe(div, {
+        childList: true
+      });
+
+      div.replaceChild(b, a);
+
+      var records = observer.takeRecords();
+      assert.equal(records.length, 1);
+
+      expectMutationRecord(records[0], {
+        type: 'childList',
+        target: div,
+        addedNodes: [b],
+        removedNodes: [a]
+      });
+    });
+
     test('removeChild', function() {
       var div = document.createElement('div');
       var a = div.appendChild(document.createElement('a'));
@@ -410,7 +434,7 @@ suite('MutationObserver', function() {
       });
     });
 
-    test('surpress removal', function() {
+    test('appendChild removal', function() {
       var a = document.createElement('a');
       var b = document.createElement('b');
       var c = document.createElement('c');
@@ -431,7 +455,12 @@ suite('MutationObserver', function() {
 
       var recordsA = observerA.takeRecords();
 
-      assert.equal(recordsA.length, 0);
+      assert.equal(recordsA.length, 1);
+      expectMutationRecord(recordsA[0], {
+        type: 'childList',
+        target: a,
+        removedNodes: [c]
+      });
 
       var recordsB = observerB.takeRecords();
       assert.equal(recordsB.length, 1);
@@ -442,7 +471,50 @@ suite('MutationObserver', function() {
       });
     });
 
-    test('surpress document fragment', function() {
+    test('insertBefore removal', function() {
+      var a = document.createElement('a');
+      var b = document.createElement('b');
+      var c = document.createElement('c');
+      var d = document.createElement('d');
+      var e = document.createElement('e');
+
+      a.appendChild(c);
+      a.appendChild(d);
+      b.appendChild(e);
+
+      var observerA = new MutationObserver(function() {});
+      observerA.observe(a, {
+        childList: true
+      });
+
+      var observerB = new MutationObserver(function() {});
+      observerB.observe(b, {
+        childList: true
+      });
+
+      b.insertBefore(d, e);
+
+      var recordsA = observerA.takeRecords();
+
+      assert.equal(recordsA.length, 1);
+      expectMutationRecord(recordsA[0], {
+        type: 'childList',
+        target: a,
+        removedNodes: [d],
+        previousSibling: c
+      });
+
+      var recordsB = observerB.takeRecords();
+      assert.equal(recordsB.length, 1);
+      expectMutationRecord(recordsB[0], {
+        type: 'childList',
+        target: b,
+        addedNodes: [d],
+        nextSibling: e
+      });
+    });
+
+    test('appendChild removal document fragment', function() {
       var df = document.createDocumentFragment();
       var b = document.createElement('b');
       var c = document.createElement('c');
@@ -463,7 +535,12 @@ suite('MutationObserver', function() {
 
       var recordsDf = observerDf.takeRecords();
 
-      assert.equal(recordsDf.length, 0);
+      assert.equal(recordsDf.length, 1);
+      expectMutationRecord(recordsDf[0], {
+        type: 'childList',
+        target: df,
+        removedNodes: [c]
+      });
 
       var recordsB = observerB.takeRecords();
       assert.equal(recordsB.length, 1);

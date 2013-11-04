@@ -107,6 +107,7 @@
 
     // 2.
     var nodes = [];
+    // TODO(arv): No need for this temporary nodes array.
     for (var node = target; node; node = node.parentNode) {
       nodes.push(node);
     }

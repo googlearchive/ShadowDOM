@@ -65,6 +65,7 @@
   }
 
   function collectNodesNoNeedToUpdatePointers(node) {
+    // TODO(arv): makeNodeList
     if (node instanceof DocumentFragment) {
       var nodes = [];
       var i = 0;
@@ -169,6 +170,27 @@
     return p && p.invalidateShadowRenderer();
   }
 
+  /**
+   * Called before node is inserted into a node to enqueue its removal from its
+   * old parent.
+   * @param {!Node} node The node that is about to be removed.
+   * @param {!NodeList} nodes The collected nodes.
+   */
+  function enqueueRemovalForInsertedNodes(node, nodes) {
+    var parent;
+    if (node instanceof DocumentFragment) {
+      enqueueMutation(node, 'childList', {
+        removedNodes: nodes
+      });
+    } else if (parent = node.parentNode) {
+      enqueueMutation(parent, 'childList', {
+        removedNodes: nodes,
+        previousSibling: node.previousSibling,
+        nextSibling: node.nextSibling
+      });
+    }
+  }
+
   var OriginalNode = window.Node;
 
   /**
@@ -248,19 +270,26 @@
       var nodes;
       var previousNode = this.lastChild;
 
-      if (this.invalidateShadowRenderer() || invalidateParent(childWrapper)) {
+      var useNative = !this.invalidateShadowRenderer() &&
+                      !invalidateParent(childWrapper);
+
+      if (useNative) {
+        nodes = collectNodesNoNeedToUpdatePointers(childWrapper);
+      } else {
         var nextNode = null;
         nodes = collectNodes(childWrapper, this, previousNode, nextNode);
+      }
 
+      enqueueRemovalForInsertedNodes(childWrapper, nodes)
+
+      if (useNative) {
+        ensureSameOwnerDocument(this, childWrapper);
+        originalAppendChild.call(this.impl, unwrap(childWrapper));
+      } else {
         this.lastChild_ = nodes[nodes.length - 1];
         if (!previousNode)
           this.firstChild_ = nodes[0];
-
         originalAppendChild.call(this.impl, unwrapNodesForInsertion(this, nodes));
-      } else {
-        nodes = collectNodesNoNeedToUpdatePointers(childWrapper)
-        ensureSameOwnerDocument(this, childWrapper);
-        originalAppendChild.call(this.impl, unwrap(childWrapper));
       }
 
       enqueueMutation(this, 'childList', {
@@ -287,10 +316,23 @@
 
       var previousNode = refWrapper.previousSibling;
 
-      if (this.invalidateShadowRenderer() || invalidateParent(childWrapper)) {
+      var useNative = !this.invalidateShadowRenderer() &&
+                      !invalidateParent(childWrapper);
+
+      if (useNative) {
+        nodes = collectNodesNoNeedToUpdatePointers(childWrapper);
+      } else {
         var nextNode = refWrapper;
         nodes = collectNodes(childWrapper, this, previousNode, nextNode);
+      }
 
+      enqueueRemovalForInsertedNodes(childWrapper, nodes);
+
+      if (useNative) {
+        ensureSameOwnerDocument(this, childWrapper);
+        originalInsertBefore.call(this.impl, unwrap(childWrapper),
+                                  unwrap(refWrapper));
+      } else {
         if (this.firstChild === refWrapper)
           this.firstChild_ = nodes[0];
 
@@ -306,11 +348,6 @@
         } else {
           adoptNodesIfNeeded(this, nodes);
         }
-      } else {
-        nodes = collectNodesNoNeedToUpdatePointers(childWrapper);
-        ensureSameOwnerDocument(this, childWrapper);
-        originalInsertBefore.call(this.impl, unwrap(childWrapper),
-                                  unwrap(refWrapper));
       }
 
       enqueueMutation(this, 'childList', {
@@ -400,12 +437,20 @@
       var previousNode = oldChildWrapper.previousSibling;
       var nodes;
 
-      if (this.invalidateShadowRenderer() ||
-          invalidateParent(newChildWrapper)) {
+      var useNative = !this.invalidateShadowRenderer() &&
+                      !invalidateParent(newChildWrapper);
+
+      if (useNative) {
+        nodes = collectNodesNoNeedToUpdatePointers(newChildWrapper);
+      } else {
         if (nextNode === newChildWrapper)
           nextNode = newChildWrapper.nextSibling;
         nodes = collectNodes(newChildWrapper, this, previousNode, nextNode);
+      }
 
+      enqueueRemovalForInsertedNodes(newChildWrapper, nodes);
+
+      if (!useNative) {
         if (this.firstChild === oldChildWrapper)
           this.firstChild_ = nodes[0];
         if (this.lastChild === oldChildWrapper)
@@ -422,7 +467,6 @@
               oldChildNode);
         }
       } else {
-        nodes = collectNodesNoNeedToUpdatePointers(newChildWrapper);
         ensureSameOwnerDocument(this, newChildWrapper);
         originalReplaceChild.call(this.impl, unwrap(newChildWrapper),
                                   oldChildNode);
