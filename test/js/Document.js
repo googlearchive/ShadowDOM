@@ -310,6 +310,35 @@ htmlSuite('Document', function() {
     assert.equal(b2.getName(), 'b');
   });
 
+  test('document.register type extension', function() {
+    if (!document.register)
+      return;
+
+    var aPrototype = Object.create(HTMLSpanElement.prototype);
+    aPrototype.getName = function() {
+      return 'a';
+    };
+
+    var A = document.register('x-a-span',
+      {prototype: aPrototype, extends: 'span'});
+
+    var a1 = document.createElement('span', 'x-a-span');
+    assert.equal('span', a1.localName);
+    assert.equal('<span is="x-a-span"></span>', a1.outerHTML);
+    assert.equal(Object.getPrototypeOf(a1), aPrototype);
+    assert.instanceOf(a1, A);
+    assert.instanceOf(a1, HTMLSpanElement);
+    assert.equal(a1.getName(), 'a');
+
+    var a2 = new A();
+    assert.equal('span', a2.localName);
+    assert.equal('<span is="x-a-span"></span>', a2.outerHTML);
+    assert.equal(Object.getPrototypeOf(a2), aPrototype);
+    assert.instanceOf(a2, A);
+    assert.instanceOf(a2, HTMLSpanElement);
+    assert.equal(a2.getName(), 'a');
+  });
+
   test('document.register deeper', function() {
     if (!document.register)
       return;
