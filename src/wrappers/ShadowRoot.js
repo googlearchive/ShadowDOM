@@ -43,6 +43,10 @@
       return nextOlderShadowTreeTable.get(this) || null;
     },
 
+    get host() {
+      return shadowHostTable.get(this) || null;
+    },
+
     invalidateShadowRenderer: function() {
       return shadowHostTable.get(this).invalidateShadowRenderer();
     },
@@ -57,7 +61,4 @@
   });
 
   scope.wrappers.ShadowRoot = ShadowRoot;
-  scope.getHostForShadowRoot = function(node) {
-    return shadowHostTable.get(node);
-  };
 })(this.ShadowDOMPolyfill);

@@ -56,4 +56,13 @@ suite('ShadowRoot', function() {
     assert.equal(sr2.olderShadowRoot, sr);
   });
 
+  test('host', function() {
+    var host = document.createElement('div');
+    var sr = host.createShadowRoot();
+    assert.equal(host, sr.host);
+
+    var sr2 = host.createShadowRoot();
+    assert.equal(host, sr2.host);
+  });
+
 });
