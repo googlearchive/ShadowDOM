@@ -40,11 +40,13 @@
     }
 
     var nodes = [];
-    var firstChild;
-    while (firstChild = node.firstChild) {
-      node.removeChild(firstChild);
-      nodes.push(firstChild);
-      firstChild.parentNode_ = parentNode;
+    for (var child = node.firstChild; child; child = child.nextSibling) {
+      nodes.push(child);
+    }
+
+    for (var i = nodes.length - 1; i >= 0; i--) {
+      node.removeChild(nodes[i]);
+      nodes[i].parentNode_ = parentNode;
     }
 
     for (var i = 0; i < nodes.length; i++) {
@@ -194,12 +196,28 @@
     this.previousSibling_ = undefined;
   };
 
+  var OriginalDocumentFragment = window.DocumentFragment;
   var originalAppendChild = OriginalNode.prototype.appendChild;
-  var originalInsertBefore = OriginalNode.prototype.insertBefore;
-  var originalReplaceChild = OriginalNode.prototype.replaceChild;
-  var originalRemoveChild = OriginalNode.prototype.removeChild;
   var originalCompareDocumentPosition =
       OriginalNode.prototype.compareDocumentPosition;
+  var originalInsertBefore = OriginalNode.prototype.insertBefore;
+  var originalRemoveChild = OriginalNode.prototype.removeChild;
+  var originalReplaceChild = OriginalNode.prototype.replaceChild;
+
+  var isIe = /Trident/.test(navigator.userAgent);
+
+  var removeChildOriginalHelper = isIe ?
+      function(parent, child) {
+        try {
+          originalRemoveChild.call(parent, child);
+        } catch (ex) {
+          if (!(parent instanceof OriginalDocumentFragment))
+            throw ex;
+        }
+      } :
+      function(parent, child) {
+        originalRemoveChild.call(parent, child);
+      };
 
   Node.prototype = Object.create(EventTarget.prototype);
   mixin(Node.prototype, {
@@ -275,8 +293,20 @@
     removeChild: function(childWrapper) {
       assertIsNodeWrapper(childWrapper);
       if (childWrapper.parentNode !== this) {
-        // TODO(arv): DOMException
-        throw new Error('NotFoundError');
+        // IE has invalid DOM trees at times.
+        var found = false;
+        var childNodes = this.childNodes;
+        for (var ieChild = this.firstChild; ieChild;
+             ieChild = ieChild.nextSibling) {
+          if (ieChild === childWrapper) {
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          // TODO(arv): DOMException
+          throw new Error('NotFoundError');
+        }
       }
 
       var childNode = unwrap(childWrapper);
@@ -292,7 +322,7 @@
 
         var parentNode = childNode.parentNode;
         if (parentNode)
-          originalRemoveChild.call(parentNode, childNode);
+          removeChildOriginalHelper(parentNode, childNode);
 
         if (thisFirstChild === childWrapper)
           this.firstChild_ = childWrapperNextSibling;
@@ -308,7 +338,7 @@
         childWrapper.previousSibling_ = childWrapper.nextSibling_ =
             childWrapper.parentNode_ = undefined;
       } else {
-        originalRemoveChild.call(this.impl, childNode);
+        removeChildOriginalHelper(this.impl, childNode);
       }
 
       return childWrapper;
