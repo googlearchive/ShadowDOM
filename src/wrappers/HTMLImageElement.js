@@ -27,12 +27,13 @@
     }
 
     var node = unwrap(document.createElement('img'));
+    HTMLElement.call(this, node);
+    rewrap(node, this);
+
     if (width !== undefined)
       node.width = width;
     if (height !== undefined)
       node.height = height;
-    HTMLElement.call(this, node);
-    rewrap(node, this);
   }
 
   Image.prototype = HTMLImageElement.prototype;

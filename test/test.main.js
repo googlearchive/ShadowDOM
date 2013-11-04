@@ -54,6 +54,7 @@ var modules = [
   'Comment.js',
   'Document.js',
   'Element.js',
+  'HTMLAudioElement.js',
   'HTMLBodyElement.js',
   'HTMLButtonElement.js',
   'HTMLCanvasElement.js',

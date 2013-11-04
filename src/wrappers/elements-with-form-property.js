@@ -20,7 +20,7 @@
     'HTMLLabelElement',
     'HTMLLegendElement',
     'HTMLObjectElement',
-    'HTMLOptionElement',
+    // HTMLOptionElement is handled in HTMLOptionElement.js
     'HTMLOutputElement',
     'HTMLSelectElement',
     'HTMLTextAreaElement',

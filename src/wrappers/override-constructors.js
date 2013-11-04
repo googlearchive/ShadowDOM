@@ -13,7 +13,6 @@
     'a': 'HTMLAnchorElement',
     'applet': 'HTMLAppletElement',
     'area': 'HTMLAreaElement',
-    'audio': 'HTMLAudioElement',
     'br': 'HTMLBRElement',
     'base': 'HTMLBaseElement',
     'body': 'HTMLBodyElement',
@@ -42,7 +41,6 @@
     'link': 'HTMLLinkElement',
     'map': 'HTMLMapElement',
     'marquee': 'HTMLMarqueeElement',
-    // 'media', Covered by audio and video
     'menu': 'HTMLMenuElement',
     'menuitem': 'HTMLMenuItemElement',
     'meta': 'HTMLMetaElement',
