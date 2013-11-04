@@ -15,15 +15,6 @@
   var globalMutationObservers = [];
   var isScheduled = false;
 
-  function makeNodeList(args) {
-    var nodeList = new wrappers.NodeList();
-    for (var i = 0; i < args.length; i++) {
-      nodeList[i] = args[i];
-    }
-    nodeList.length = i;
-    return nodeList;
-  }
-
   function scheduleCallback(observer) {
     if (isScheduled)
       return;
@@ -106,15 +97,8 @@
     var associatedStrings = Object.create(null);
 
     // 2.
-    var nodes = [];
-    // TODO(arv): No need for this temporary nodes array.
     for (var node = target; node; node = node.parentNode) {
-      nodes.push(node);
-    }
-
-    // 3.
-    for (var i = 0; i < nodes.length; i++) {
-      var node = nodes[i];
+      // 3.
       var registrations = registrationsTable.get(node);
       if (!registrations)
         continue;
@@ -176,11 +160,11 @@
 
       // 3.
       if (data.addedNodes)
-        record.addedNodes = makeNodeList(data.addedNodes);
+        record.addedNodes = data.addedNodes;
 
       // 4.
       if (data.removedNodes)
-        record.removedNodes = makeNodeList(data.removedNodes);
+        record.removedNodes = data.removedNodes;
 
       // 5.
       if (data.previousSibling)

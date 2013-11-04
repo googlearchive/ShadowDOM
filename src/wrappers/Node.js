@@ -65,16 +65,19 @@
   }
 
   function collectNodesNoNeedToUpdatePointers(node) {
-    // TODO(arv): makeNodeList
+    var nodes = new NodeList();
     if (node instanceof DocumentFragment) {
       var nodes = [];
       var i = 0;
       for (var child = node.firstChild; child; child = child.nextSibling) {
         nodes[i++] = child;
       }
+      nodes.length = i;
       return nodes;
     }
-    return [node];
+    nodes[0] = node;
+    nodes.length = 1;
+    return nodes;
   }
 
   function snapshotNodeList(nodeList) {
@@ -265,66 +268,27 @@
   Node.prototype = Object.create(EventTarget.prototype);
   mixin(Node.prototype, {
     appendChild: function(childWrapper) {
-      assertIsNodeWrapper(childWrapper);
-
-      var nodes;
-      var previousNode = this.lastChild;
-
-      var useNative = !this.invalidateShadowRenderer() &&
-                      !invalidateParent(childWrapper);
-
-      if (useNative) {
-        nodes = collectNodesNoNeedToUpdatePointers(childWrapper);
-      } else {
-        var nextNode = null;
-        nodes = collectNodes(childWrapper, this, previousNode, nextNode);
-      }
-
-      enqueueRemovalForInsertedNodes(childWrapper, nodes)
-
-      if (useNative) {
-        ensureSameOwnerDocument(this, childWrapper);
-        originalAppendChild.call(this.impl, unwrap(childWrapper));
-      } else {
-        this.lastChild_ = nodes[nodes.length - 1];
-        if (!previousNode)
-          this.firstChild_ = nodes[0];
-        originalAppendChild.call(this.impl, unwrapNodesForInsertion(this, nodes));
-      }
-
-      enqueueMutation(this, 'childList', {
-        addedNodes: nodes,
-        nextSibling: null,
-        previousSibling: previousNode
-      });
-
-      nodesWereAdded(nodes);
-
-      return childWrapper;
+      return this.insertBefore(childWrapper, null);
     },
 
     insertBefore: function(childWrapper, refWrapper) {
-      // TODO(arv): Unify with appendChild
-      if (!refWrapper)
-        return this.appendChild(childWrapper);
-
       assertIsNodeWrapper(childWrapper);
-      assertIsNodeWrapper(refWrapper);
-      assert(refWrapper.parentNode === this);
+
+      refWrapper = refWrapper || null;
+      refWrapper && assertIsNodeWrapper(refWrapper);
+      refWrapper && assert(refWrapper.parentNode === this);
 
       var nodes;
-
-      var previousNode = refWrapper.previousSibling;
+      var previousNode =
+          refWrapper ? refWrapper.previousSibling : this.lastChild;
 
       var useNative = !this.invalidateShadowRenderer() &&
                       !invalidateParent(childWrapper);
 
-      if (useNative) {
+      if (useNative)
         nodes = collectNodesNoNeedToUpdatePointers(childWrapper);
-      } else {
-        var nextNode = refWrapper;
-        nodes = collectNodes(childWrapper, this, previousNode, nextNode);
-      }
+      else
+        nodes = collectNodes(childWrapper, this, previousNode, refWrapper);
 
       enqueueRemovalForInsertedNodes(childWrapper, nodes);
 
@@ -333,18 +297,18 @@
         originalInsertBefore.call(this.impl, unwrap(childWrapper),
                                   unwrap(refWrapper));
       } else {
-        if (this.firstChild === refWrapper)
+        if (!previousNode)
           this.firstChild_ = nodes[0];
+        if (!refWrapper)
+          this.lastChild_ = nodes[nodes.length - 1];
+
+        var refNode = unwrap(refWrapper);
+        var parentNode = refNode ? refNode.parentNode : this.impl;
 
         // insertBefore refWrapper no matter what the parent is?
-        var refNode = unwrap(refWrapper);
-        var parentNode = refNode.parentNode;
-
         if (parentNode) {
-          originalInsertBefore.call(
-              parentNode,
-              unwrapNodesForInsertion(this, nodes),
-              refNode);
+          originalInsertBefore.call(parentNode,
+              unwrapNodesForInsertion(this, nodes), refNode);
         } else {
           adoptNodesIfNeeded(this, nodes);
         }
