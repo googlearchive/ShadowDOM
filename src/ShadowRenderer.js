@@ -658,4 +658,4 @@
     remove: remove,
   };
 
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);

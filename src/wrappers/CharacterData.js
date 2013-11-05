@@ -31,4 +31,4 @@
                   document.createTextNode(''));
 
   scope.wrappers.CharacterData = CharacterData;
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);

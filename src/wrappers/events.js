@@ -744,4 +744,4 @@
   scope.wrappers.MutationEvent = MutationEvent;
   scope.wrappers.UIEvent = UIEvent;
 
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);

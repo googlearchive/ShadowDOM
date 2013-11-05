@@ -19,4 +19,4 @@
                   document.createElement('audio'));
 
   scope.wrappers.HTMLMediaElement = HTMLMediaElement;
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);

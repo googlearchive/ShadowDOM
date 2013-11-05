@@ -197,4 +197,4 @@
   // TODO: Find a better way to share these two with WrapperShadowRoot.
   scope.getInnerHTML = getInnerHTML;
   scope.setInnerHTML = setInnerHTML
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);

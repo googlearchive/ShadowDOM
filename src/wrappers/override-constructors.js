@@ -98,4 +98,4 @@
   // Export for testing.
   scope.knownElements = elements;
 
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);

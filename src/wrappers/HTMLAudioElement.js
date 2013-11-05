@@ -39,4 +39,4 @@
 
   scope.wrappers.HTMLAudioElement = HTMLAudioElement;
   scope.wrappers.Audio = Audio;
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);

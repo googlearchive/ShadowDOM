@@ -60,4 +60,4 @@
 
   scope.wrappers.HTMLOptionElement = HTMLOptionElement;
   scope.wrappers.Option = Option;
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);

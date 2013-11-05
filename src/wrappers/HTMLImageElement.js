@@ -40,4 +40,4 @@
 
   scope.wrappers.HTMLImageElement = HTMLImageElement;
   scope.wrappers.Image = Image;
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);

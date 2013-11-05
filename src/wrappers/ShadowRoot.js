@@ -61,4 +61,5 @@
   });
 
   scope.wrappers.ShadowRoot = ShadowRoot;
-})(this.ShadowDOMPolyfill);
+
+})(window.ShadowDOMPolyfill);

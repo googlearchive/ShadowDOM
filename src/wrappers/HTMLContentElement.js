@@ -38,4 +38,4 @@
     registerWrapper(OriginalHTMLContentElement, HTMLContentElement);
 
   scope.wrappers.HTMLContentElement = HTMLContentElement;
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);
