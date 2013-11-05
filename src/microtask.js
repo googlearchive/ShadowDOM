@@ -46,4 +46,4 @@
 
   context.setEndOfMicrotask = setEndOfMicrotask;
 
-})(this.ShadowDOMPolyfill);
+})(window.ShadowDOMPolyfill);

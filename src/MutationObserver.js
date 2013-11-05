@@ -19,6 +19,7 @@
     if (isScheduled)
       return;
     setEndOfMicrotask(notifyObservers);
+    isScheduled = true;
   }
 
   // http://dom.spec.whatwg.org/#mutation-observers
@@ -26,7 +27,7 @@
     isScheduled = false;
 
     do {
-      var notifyList = globalMutationObservers.slice(0);
+      var notifyList = globalMutationObservers.slice();
       var anyNonEmpty = false;
       for (var i = 0; i < notifyList.length; i++) {
         var mo = notifyList[i];
