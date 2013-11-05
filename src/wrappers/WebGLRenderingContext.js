@@ -36,7 +36,15 @@
     }
   });
 
-  registerWrapper(OriginalWebGLRenderingContext, WebGLRenderingContext);
+  // Blink/WebKit has broken DOM bindings. Usually we would create an instance
+  // of the object and pass it into registerWrapper as a "blueprint" but
+  // creating WebGL contexts is expensive and might fail so we use a dummy
+  // object with dummy instance properties for these broken browsers.
+  var instanceProperties = /WebKit/.test(navigator.userAgent) ?
+      {drawingBufferHeight: null, drawingBufferWidth: null} : {};
+
+  registerWrapper(OriginalWebGLRenderingContext, WebGLRenderingContext,
+      instanceProperties);
 
   scope.wrappers.WebGLRenderingContext = WebGLRenderingContext;
 })(window.ShadowDOMPolyfill);

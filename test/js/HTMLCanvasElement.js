@@ -41,6 +41,27 @@ suite('HTMLCanvasElement', function() {
       assert.equal(context.canvas, canvas);
   });
 
+  test('context instance properties', function() {
+    var canvas = document.createElement('canvas');
+    var context = canvas.getContext('2d');
+
+    assert.isString(context.fillStyle);
+    assert.isString(context.strokeStyle);
+    assert.isString(context.textBaseline);
+    assert.isString(context.textAlign);
+    assert.isString(context.font);
+    assert.isNumber(context.lineDashOffset);
+    assert.isString(context.shadowColor);
+    assert.isNumber(context.shadowBlur);
+    assert.isNumber(context.shadowOffsetY);
+    assert.isNumber(context.shadowOffsetX);
+    assert.isNumber(context.miterLimit);
+    assert.isString(context.lineJoin);
+    assert.isString(context.lineCap);
+    assert.isNumber(context.lineWidth);
+    assert.isNumber(context.globalAlpha);
+  });
+
   test('2d drawImage using new Image', function(done) {
     var canvas = document.createElement('canvas');
     var context = canvas.getContext('2d');
@@ -111,6 +132,24 @@ suite('HTMLCanvasElement', function() {
       done();
     };
     img.src = iconUrl;
+  });
+
+  test('WebGL context instance properties', function() {
+    var canvas = document.createElement('canvas');
+    var gl = null;
+    // Firefox throws exception if graphics card is not supported
+    try {
+      gl = canvas.getContext('webgl');
+    } catch (ex) {
+    }
+    // IE10 does not have WebGL.
+    // Chrome returns null if the graphics card is not supported
+    if (!gl) {
+      return;
+    }
+
+    assert.isNumber(gl.drawingBufferHeight);
+    assert.isNumber(gl.drawingBufferWidth);
   });
 
   test('WebGL texSubImage2D', function(done) {
