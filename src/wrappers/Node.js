@@ -477,9 +477,6 @@
     },
 
     cloneNode: function(deep) {
-      if (!this.invalidateShadowRenderer())
-        return wrap(this.impl.cloneNode(deep));
-
       var clone = wrap(this.impl.cloneNode(false));
       if (deep) {
         for (var child = this.firstChild; child; child = child.nextSibling) {

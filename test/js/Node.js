@@ -7,6 +7,7 @@
 suite('Node', function() {
 
   var wrap = ShadowDOMPolyfill.wrap;
+  var unwrap = ShadowDOMPolyfill.unwrap;
 
   var DOCUMENT_POSITION_DISCONNECTED = Node.DOCUMENT_POSITION_DISCONNECTED;
   var DOCUMENT_POSITION_PRECEDING = Node.DOCUMENT_POSITION_PRECEDING;
@@ -186,16 +187,107 @@ suite('Node', function() {
 
     expectStructure(host2, {});
   });
-  
+
   test('hasChildNodes without a shadow root', function() {
     var div = document.createElement('div');
-    
+
     assert.isFalse(div.hasChildNodes(), 'should be false with no children');
-    
+
     div.innerHTML = '<span></span>';
     assert.isTrue(div.hasChildNodes(), 'should be true with a single child');
 
     div.innerHTML = '<span></span><ul></ul>';
     assert.isTrue(div.hasChildNodes(), 'should be true with multiple children');
   });
+
+  test('parentElement', function() {
+    var a = document.createElement('a');
+    a.textContent = 'text';
+    var textNode = a.firstChild;
+    assert.equal(textNode.parentElement, a);
+    assert.isNull(a.parentElement);
+
+    var doc = wrap(document);
+    var body = doc.body;
+    var documentElement = doc.documentElement;
+    assert.equal(body.parentElement, documentElement);
+    assert.isNull(documentElement.parentElement);
+  });
+
+  test('contains', function() {
+    var div = document.createElement('div');
+    assert.isTrue(div.contains(div));
+
+    div.textContent = 'a';
+    var textNode = div.firstChild;
+    assert.isTrue(textNode.contains(textNode));
+    assert.isTrue(div.contains(textNode));
+    assert.isFalse(textNode.contains(div));
+
+    var doc = div.ownerDocument;
+    assert.isTrue(doc.contains(doc));
+    assert.isFalse(doc.contains(div));
+    assert.isFalse(doc.contains(textNode));
+
+    assert.isFalse(div.contains(null));
+    assert.isFalse(div.contains());
+  });
+
+  test('instanceof', function() {
+    var div = document.createElement('div');
+    assert.instanceOf(div, HTMLElement);
+    assert.instanceOf(div, Element);
+    assert.instanceOf(div, EventTarget);
+  });
+
+  test('cloneNode(false)', function() {
+    var doc = wrap(document);
+    var a = document.createElement('a');
+    a.href = 'http://domain.com/';
+    a.textContent = 'text';
+    var textNode = a.firstChild;
+
+    var aClone = a.cloneNode(false);
+
+    assert.equal(aClone.tagName, 'A');
+    assert.equal(aClone.href, 'http://domain.com/');
+    expectStructure(aClone, {});
+  });
+
+  test('cloneNode(true)', function() {
+    var doc = wrap(document);
+    var a = document.createElement('a');
+    a.href = 'http://domain.com/';
+    a.textContent = 'text';
+    var textNode = a.firstChild;
+
+    var aClone = a.cloneNode(true);
+    var textNodeClone = aClone.firstChild;
+
+    assert.equal(aClone.tagName, 'A');
+    assert.equal(aClone.href, 'http://domain.com/');
+    expectStructure(aClone, {
+      firstChild: textNodeClone,
+      lastChild: textNodeClone
+    });
+    expectStructure(textNodeClone, {
+      parentNode: aClone
+    });
+  });
+
+  test('cloneNode with shadowRoot', function() {
+    var div = document.createElement('div');
+    var a = div.appendChild(document.createElement('a'));
+    var sr = a.createShadowRoot();
+    sr.innerHTML = '<b></b>';
+    div.offsetHeight;
+    assert.equal(unwrap(div).innerHTML, '<a><b></b></a>');
+
+    var clone = div.cloneNode(true);
+    assert.equal(clone.innerHTML, '<a></a>');
+    clone.offsetHeight;
+    // shadow roots are not cloned.
+    assert.equal(unwrap(clone).innerHTML, '<a></a>');
+  });
+
 });
