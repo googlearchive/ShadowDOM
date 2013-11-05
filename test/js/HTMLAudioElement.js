@@ -25,11 +25,11 @@ suite('HTMLAudioElement', function() {
   test('Audio arguments', function() {
     var audio = new Audio();
     assert.isFalse(audio.hasAttribute('src'));
-    assert.equal(audio.getAttribute('preload', 'auto'));
+    assert.equal(audio.getAttribute('preload'), 'auto');
 
     var src = 'foo.wav';
     var audio = new Audio(src);
-    assert.equal(audio.getAttribute('src', 'foo.wav'));
+    assert.equal(audio.getAttribute('src'), 'foo.wav');
   });
 
   test('Audio called as function', function() {
@@ -44,7 +44,7 @@ suite('HTMLAudioElement', function() {
     div.appendChild(audio);
 
     assert.equal(div.firstChild, audio);
-    assert.equal('<div><audio></div>', div.outerHTML);
+    assert.equal('<div><audio preload="auto"></audio></div>', div.outerHTML);
   });
 
 });
