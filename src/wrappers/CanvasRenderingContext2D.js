@@ -33,7 +33,8 @@
     }
   });
 
-  registerWrapper(OriginalCanvasRenderingContext2D, CanvasRenderingContext2D);
+  registerWrapper(OriginalCanvasRenderingContext2D, CanvasRenderingContext2D,
+                  document.createElement('canvas').getContext('2d'));
 
   scope.wrappers.CanvasRenderingContext2D = CanvasRenderingContext2D;
 })(window.ShadowDOMPolyfill);
