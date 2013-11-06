@@ -11,6 +11,7 @@
   var ParentNodeInterface = scope.ParentNodeInterface;
   var SelectorsInterface = scope.SelectorsInterface;
   var addWrapNodeListMethod = scope.addWrapNodeListMethod;
+  var enqueueMutation = scope.enqueueMutation;
   var mixin = scope.mixin;
   var oneOf = scope.oneOf;
   var registerWrapper = scope.registerWrapper;
@@ -38,6 +39,17 @@
       renderer.invalidate();
   }
 
+  function enqueAttributeChange(element, name, oldValue) {
+    // This is not fully spec compliant. We should use localName (which might
+    // have a different case than name) and the namespace (which requires us
+    // to get the Attr object).
+    enqueueMutation(element, 'attributes', {
+      name: name,
+      namespace: null,
+      oldValue: oldValue
+    });
+  }
+
   function Element(node) {
     Node.call(this, node);
   }
@@ -58,12 +70,16 @@
     },
 
     setAttribute: function(name, value) {
+      var oldValue = this.impl.getAttribute(name);
       this.impl.setAttribute(name, value);
+      enqueAttributeChange(this, name, oldValue);
       invalidateRendererBasedOnAttribute(this, name);
     },
 
     removeAttribute: function(name) {
+      var oldValue = this.impl.getAttribute(name);
       this.impl.removeAttribute(name);
+      enqueAttributeChange(this, name, oldValue);
       invalidateRendererBasedOnAttribute(this, name);
     },
 

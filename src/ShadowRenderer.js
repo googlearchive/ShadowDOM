@@ -632,8 +632,8 @@
     return getDistributedChildNodes(this);
   };
 
-  HTMLShadowElement.prototype.nodeWasAdded_ =
-  HTMLContentElement.prototype.nodeWasAdded_ = function() {
+  HTMLShadowElement.prototype.nodeIsInserted_ =
+  HTMLContentElement.prototype.nodeIsInserted_ = function() {
     // Invalidate old renderer if any.
     this.invalidateShadowRenderer();
 

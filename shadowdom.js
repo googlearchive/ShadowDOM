@@ -18,6 +18,8 @@
     '../observe-js/src/observe.js',
     '../WeakMap/weakmap.js',
     'src/wrappers.js',
+    'src/microtask.js',
+    'src/MutationObserver.js',
     'src/wrappers/events.js',
     'src/wrappers/NodeList.js',
     'src/wrappers/Node.js',
@@ -43,7 +45,6 @@
     'src/wrappers/elements-with-form-property.js',
     'src/wrappers/Document.js',
     'src/wrappers/Window.js',
-    'src/wrappers/MutationObserver.js',
     'src/wrappers/Range.js',
     'src/wrappers/override-constructors.js'
   ].forEach(function(src) {

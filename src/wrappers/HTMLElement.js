@@ -7,8 +7,12 @@
 
   var Element = scope.wrappers.Element;
   var defineGetter = scope.defineGetter;
+  var enqueueMutation = scope.enqueueMutation;
   var mixin = scope.mixin;
+  var nodesWereAdded = scope.nodesWereAdded;
+  var nodesWereRemoved = scope.nodesWereRemoved;
   var registerWrapper = scope.registerWrapper;
+  var snapshotNodeList = scope.snapshotNodeList;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
 
@@ -110,10 +114,21 @@
       return getInnerHTML(this);
     },
     set innerHTML(value) {
+      var removedNodes = snapshotNodeList(this.childNodes);
+
       if (this.invalidateShadowRenderer())
         setInnerHTML(this, value, this.tagName);
       else
         this.impl.innerHTML = value;
+      var addedNodes = snapshotNodeList(this.childNodes);
+
+      enqueueMutation(this, 'childList', {
+        addedNodes: addedNodes,
+        removedNodes: removedNodes
+      });
+
+      nodesWereRemoved(removedNodes);
+      nodesWereAdded(addedNodes);
     },
 
     get outerHTML() {
