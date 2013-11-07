@@ -5,6 +5,7 @@
  */
 
 suite('MutationObserver', function() {
+  'use strict';
 
   suite('childList', function() {
 
@@ -514,24 +515,27 @@ suite('MutationObserver', function() {
       });
     });
 
-    test('appendChild removal document fragment', function() {
+    test('insertBefore removal document fragment', function() {
       var df = document.createDocumentFragment();
-      var b = document.createElement('b');
-      var c = document.createElement('c');
+      var a = df.appendChild(document.createElement('a'));
+      var b = df.appendChild(document.createElement('b'));
+      var c = df.appendChild(document.createElement('c'));
 
-      df.appendChild(c);
+      var d = document.createElement('d');
+      var e = d.appendChild(document.createElement('e'));
+      var f = d.appendChild(document.createElement('f'));
 
       var observerDf = new MutationObserver(function() {});
       observerDf.observe(df, {
         childList: true
       });
 
-      var observerB = new MutationObserver(function() {});
-      observerB.observe(b, {
+      var observerD = new MutationObserver(function() {});
+      observerD.observe(d, {
         childList: true
       });
 
-      b.appendChild(df);
+      d.insertBefore(df, f);
 
       var recordsDf = observerDf.takeRecords();
 
@@ -539,15 +543,106 @@ suite('MutationObserver', function() {
       expectMutationRecord(recordsDf[0], {
         type: 'childList',
         target: df,
-        removedNodes: [c]
+        removedNodes: [a, b, c]
       });
 
-      var recordsB = observerB.takeRecords();
-      assert.equal(recordsB.length, 1);
-      expectMutationRecord(recordsB[0], {
+      var recordsD = observerD.takeRecords();
+      assert.equal(recordsD.length, 1);
+      expectMutationRecord(recordsD[0], {
         type: 'childList',
-        target: b,
-        addedNodes: [c]
+        target: d,
+        addedNodes: [a, b, c],
+        previousSibling: e,
+        nextSibling: f
+      });
+    });
+
+
+    test('insertBefore removal document fragment (with shadow roots)', function() {
+      var df = document.createDocumentFragment();
+      var a = df.appendChild(document.createElement('a'));
+      var b = df.appendChild(document.createElement('b'));
+      var c = df.appendChild(document.createElement('c'));
+
+      var d = document.createElement('d');
+      var sr = d.createShadowRoot();
+      var e = sr.appendChild(document.createElement('e'));
+      var f = sr.appendChild(document.createElement('f'));
+
+      var observerDf = new MutationObserver(function() {});
+      observerDf.observe(df, {
+        childList: true
+      });
+
+      var observerSr = new MutationObserver(function() {});
+      observerSr.observe(sr, {
+        childList: true
+      });
+
+      sr.insertBefore(df, f);
+
+      var recordsDf = observerDf.takeRecords();
+
+      assert.equal(recordsDf.length, 1);
+      expectMutationRecord(recordsDf[0], {
+        type: 'childList',
+        target: df,
+        removedNodes: [a, b, c]
+      });
+
+      var recordsSr = observerSr.takeRecords();
+      assert.equal(recordsSr.length, 1);
+      expectMutationRecord(recordsSr[0], {
+        type: 'childList',
+        target: sr,
+        addedNodes: [a, b, c],
+        previousSibling: e,
+        nextSibling: f
+      });
+    });
+
+    test('Check old siblings', function() {
+      var a = document.createElement('a');
+      a.innerHTML = '<b></b><c></c>';
+      var b = a.firstChild;
+      var c = a.lastChild;
+
+      var d = document.createElement('d');
+      d.innerHTML = '<e></e><f></f><g></g>';
+      var e = d.firstChild;
+      var f = e.nextSibling;
+      var g = d.lastChild;
+
+      var observer = new MutationObserver(function() {});
+      observer.observe(a, {
+        childList: true
+      });
+
+      var observer2 = new MutationObserver(function() {});
+      observer2.observe(d, {
+        childList: true
+      });
+
+      a.insertBefore(f, c);
+
+      var records = observer.takeRecords();
+      assert.equal(records.length, 1);
+      expectMutationRecord(records[0], {
+        type: 'childList',
+        target: a,
+        addedNodes: [f],
+        previousSibling: b,
+        nextSibling: c
+      });
+
+      records = observer2.takeRecords();
+      assert.equal(records.length, 1);
+      expectMutationRecord(records[0], {
+        type: 'childList',
+        target: d,
+        removedNodes: [f],
+        previousSibling: e,
+        nextSibling: g
       });
     });
 

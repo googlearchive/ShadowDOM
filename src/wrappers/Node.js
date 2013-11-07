@@ -21,6 +21,36 @@
     assert(node instanceof Node);
   }
 
+  function createOneElementNodeList(node) {
+    var nodes = new NodeList();
+    nodes[0] = node;
+    nodes.length = 1;
+    return nodes;
+  }
+
+  var surpressMutations = false;
+
+  /**
+   * Called before node is inserted into a node to enqueue its removal from its
+   * old parent.
+   * @param {!Node} node The node that is about to be removed.
+   * @param {!Node} parent The parent node that the node is being removed from.
+   * @param {!NodeList} nodes The collected nodes.
+   */
+  function enqueueRemovalForInsertedNodes(node, parent, nodes) {
+    enqueueMutation(parent, 'childList', {
+      removedNodes: nodes,
+      previousSibling: node.previousSibling,
+      nextSibling: node.nextSibling
+    });
+  }
+
+  function enqueueRemovalForInsertedDocumentFragment(df, nodes) {
+    enqueueMutation(df, 'childList', {
+      removedNodes: nodes
+    });
+  }
+
   /**
    * Collects nodes from a DocumentFragment or a Node for removal followed
    * by an insertion.
@@ -28,55 +58,67 @@
    * This updates the internal pointers for node, previousNode and nextNode.
    */
   function collectNodes(node, parentNode, previousNode, nextNode) {
-    if (!(node instanceof DocumentFragment)) {
-      if (node.parentNode)
-        node.parentNode.removeChild(node);
-      node.parentNode_ = parentNode;
-      node.previousSibling_ = previousNode;
-      node.nextSibling_ = nextNode;
+    if (node instanceof DocumentFragment) {
+      var nodes = collectNodesForDocumentFragment(node);
+
+      // The extra loop is to work around bugs with DocumentFragments in IE.
+      surpressMutations = true;
+      for (var i = nodes.length - 1; i >= 0; i--) {
+        node.removeChild(nodes[i]);
+        nodes[i].parentNode_ = parentNode;
+      }
+      surpressMutations = false;
+
+      for (var i = 0; i < nodes.length; i++) {
+        nodes[i].previousSibling_ = nodes[i - 1] || previousNode;
+        nodes[i].nextSibling_ = nodes[i + 1] || nextNode;
+      }
+
       if (previousNode)
-        previousNode.nextSibling_ = node;
+        previousNode.nextSibling_ = nodes[0];
       if (nextNode)
-        nextNode.previousSibling_ = node;
-      return [node];
+        nextNode.previousSibling_ = nodes[nodes.length - 1];
+
+      return nodes;
     }
 
-    var nodes = [];
-    for (var child = node.firstChild; child; child = child.nextSibling) {
-      nodes.push(child);
+    var nodes = createOneElementNodeList(node);
+    var oldParent = node.parentNode;
+    if (oldParent) {
+      // This will enqueue the mutation record for the removal as needed.
+      oldParent.removeChild(node);
     }
 
-    for (var i = nodes.length - 1; i >= 0; i--) {
-      node.removeChild(nodes[i]);
-      nodes[i].parentNode_ = parentNode;
-    }
-
-    for (var i = 0; i < nodes.length; i++) {
-      nodes[i].previousSibling_ = nodes[i - 1] || previousNode;
-      nodes[i].nextSibling_ = nodes[i + 1] || nextNode;
-    }
-
+    node.parentNode_ = parentNode;
+    node.previousSibling_ = previousNode;
+    node.nextSibling_ = nextNode;
     if (previousNode)
-      previousNode.nextSibling_ = nodes[0];
+      previousNode.nextSibling_ = node;
     if (nextNode)
-      nextNode.previousSibling_ = nodes[nodes.length - 1];
+      nextNode.previousSibling_ = node;
 
     return nodes;
   }
 
-  function collectNodesNoNeedToUpdatePointers(node) {
+  function collectNodesNative(node) {
+    if (node instanceof DocumentFragment)
+      return collectNodesForDocumentFragment(node);
+
+    var nodes = createOneElementNodeList(node);
+    var oldParent = node.parentNode;
+    if (oldParent)
+      enqueueRemovalForInsertedNodes(node, oldParent, nodes);
+    return nodes;
+  }
+
+  function collectNodesForDocumentFragment(node) {
     var nodes = new NodeList();
-    if (node instanceof DocumentFragment) {
-      var nodes = [];
-      var i = 0;
-      for (var child = node.firstChild; child; child = child.nextSibling) {
-        nodes[i++] = child;
-      }
-      nodes.length = i;
-      return nodes;
+    var i = 0;
+    for (var child = node.firstChild; child; child = child.nextSibling) {
+      nodes[i++] = child;
     }
-    nodes[0] = node;
-    nodes.length = 1;
+    nodes.length = i;
+    enqueueRemovalForInsertedDocumentFragment(node, nodes);
     return nodes;
   }
 
@@ -173,27 +215,6 @@
     return p && p.invalidateShadowRenderer();
   }
 
-  /**
-   * Called before node is inserted into a node to enqueue its removal from its
-   * old parent.
-   * @param {!Node} node The node that is about to be removed.
-   * @param {!NodeList} nodes The collected nodes.
-   */
-  function enqueueRemovalForInsertedNodes(node, nodes) {
-    var parent;
-    if (node instanceof DocumentFragment) {
-      enqueueMutation(node, 'childList', {
-        removedNodes: nodes
-      });
-    } else if (parent = node.parentNode) {
-      enqueueMutation(parent, 'childList', {
-        removedNodes: nodes,
-        previousSibling: node.previousSibling,
-        nextSibling: node.nextSibling
-      });
-    }
-  }
-
   var OriginalNode = window.Node;
 
   /**
@@ -286,11 +307,9 @@
                       !invalidateParent(childWrapper);
 
       if (useNative)
-        nodes = collectNodesNoNeedToUpdatePointers(childWrapper);
+        nodes = collectNodesNative(childWrapper);
       else
         nodes = collectNodes(childWrapper, this, previousNode, refWrapper);
-
-      enqueueRemovalForInsertedNodes(childWrapper, nodes);
 
       if (useNative) {
         ensureSameOwnerDocument(this, childWrapper);
@@ -376,11 +395,13 @@
         removeChildOriginalHelper(this.impl, childNode);
       }
 
-      enqueueMutation(this, 'childList', {
-        removedNodes: [childWrapper],
-        nextSibling: childWrapperNextSibling,
-        previousSibling: childWrapperPreviousSibling
-      });
+      if (!surpressMutations) {
+        enqueueMutation(this, 'childList', {
+          removedNodes: createOneElementNodeList(childWrapper),
+          nextSibling: childWrapperNextSibling,
+          previousSibling: childWrapperPreviousSibling
+        });
+      }
 
       registerTransientObservers(this, childWrapper);
 
@@ -405,14 +426,12 @@
                       !invalidateParent(newChildWrapper);
 
       if (useNative) {
-        nodes = collectNodesNoNeedToUpdatePointers(newChildWrapper);
+        nodes = collectNodesNative(newChildWrapper);
       } else {
         if (nextNode === newChildWrapper)
           nextNode = newChildWrapper.nextSibling;
         nodes = collectNodes(newChildWrapper, this, previousNode, nextNode);
       }
-
-      enqueueRemovalForInsertedNodes(newChildWrapper, nodes);
 
       if (!useNative) {
         if (this.firstChild === oldChildWrapper)
@@ -438,7 +457,7 @@
 
       enqueueMutation(this, 'childList', {
         addedNodes: nodes,
-        removedNodes: [oldChildWrapper],
+        removedNodes: createOneElementNodeList(oldChildWrapper),
         nextSibling: nextNode,
         previousSibling: previousNode
       });
