@@ -375,6 +375,7 @@
   };
 
   var OriginalEvent = window.Event;
+  OriginalEvent.prototype.polymerBlackList_ = {returnValue: true};
 
   /**
    * Creates a new Event wrapper or wraps an existin native Event object.
@@ -563,6 +564,19 @@
     configureEventConstructor('FocusEvent', {relatedTarget: null}, 'UIEvent');
   }
 
+  function BeforeUnloadEvent(impl) {
+    Event.call(this);
+  }
+  BeforeUnloadEvent.prototype = Object.create(Event.prototype);
+  mixin(BeforeUnloadEvent.prototype, {
+    get returnValue() {
+      return this.impl.returnValue;
+    },
+    set returnValue(v) {
+      this.impl.returnValue = v;
+    }
+  });
+
   function isValidListener(fun) {
     if (typeof fun === 'function')
       return true;
@@ -736,6 +750,7 @@
   scope.muteMutationEvents = muteMutationEvents;
   scope.unmuteMutationEvents = unmuteMutationEvents;
   scope.wrapEventTargetMethods = wrapEventTargetMethods;
+  scope.wrappers.BeforeUnloadEvent = BeforeUnloadEvent;
   scope.wrappers.CustomEvent = CustomEvent;
   scope.wrappers.Event = Event;
   scope.wrappers.EventTarget = EventTarget;

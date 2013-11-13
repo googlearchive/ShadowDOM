@@ -1328,4 +1328,9 @@ test('retarget order (multiple shadow roots)', function() {
     assert.equal(count, 1);
   });
 
+  test('returnValue', function() {
+    var e = new Event('x');
+    assert.isFalse('returnValue' in e);
+  });
+
 });

@@ -127,28 +127,39 @@ window.ShadowDOMPolyfill = {};
         function() { return this.impl[name].apply(this.impl, arguments); };
   }
 
-  function installProperty(source, target, allowMethod) {
-    Object.getOwnPropertyNames(source).forEach(function(name) {
+  function getDescriptor(source, name) {
+    try {
+      return Object.getOwnPropertyDescriptor(source, name);
+    } catch (ex) {
+      // JSC and V8 both use data properties instead of accessors which can
+      // cause getting the property desciptor to throw an exception.
+      // https://bugs.webkit.org/show_bug.cgi?id=49739
+      return dummyDescriptor;
+    }
+  }
+
+  function installProperty(source, target, allowMethod, opt_blacklist) {
+    var names = Object.getOwnPropertyNames(source);
+    for (var i = 0; i < names.length; i++) {
+      var name = names[i];
+      if (name === 'polymerBlackList_')
+        continue;
+
       if (name in target)
-        return;
+        continue;
+
+      if (source.polymerBlackList_ && source.polymerBlackList_[name])
+        continue;
 
       if (isFirefox) {
         // Tickle Firefox's old bindings.
         source.__lookupGetter__(name);
       }
-      var descriptor;
-      try {
-        descriptor = Object.getOwnPropertyDescriptor(source, name);
-      } catch (ex) {
-        // JSC and V8 both use data properties instead of accessors which can
-        // cause getting the property desciptor to throw an exception.
-        // https://bugs.webkit.org/show_bug.cgi?id=49739
-        descriptor = dummyDescriptor;
-      }
+      var descriptor = getDescriptor(source, name);
       var getter, setter;
       if (allowMethod && typeof descriptor.value === 'function') {
         target[name] = getMethod(name);
-        return;
+        continue;
       }
 
       var isEvent = isEventHandlerName(name);
@@ -170,7 +181,7 @@ window.ShadowDOMPolyfill = {};
         configurable: descriptor.configurable,
         enumerable: descriptor.enumerable
       });
-    });
+    }
   }
 
   /**
