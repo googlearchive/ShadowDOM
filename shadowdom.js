@@ -39,13 +39,13 @@
     'src/wrappers/HTMLUnknownElement.js',
     'src/wrappers/CanvasRenderingContext2D.js',
     'src/wrappers/WebGLRenderingContext.js',
+    'src/wrappers/Range.js',
     'src/wrappers/generic.js',
     'src/wrappers/ShadowRoot.js',
     'src/ShadowRenderer.js',
     'src/wrappers/elements-with-form-property.js',
     'src/wrappers/Document.js',
     'src/wrappers/Window.js',
-    'src/wrappers/Range.js',
     'src/wrappers/override-constructors.js'
   ].forEach(function(src) {
     document.write('<script src="' + base + src + '"></script>');
