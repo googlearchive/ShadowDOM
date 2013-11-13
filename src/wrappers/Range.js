@@ -85,7 +85,7 @@
     };
   }
 
-  registerWrapper(window.Range, Range);
+  registerWrapper(window.Range, Range, document.createRange());
 
   scope.wrappers.Range = Range;
 

@@ -33,4 +33,26 @@ suite('Range', function() {
     assert.equal(fragment.childNodes.length, 1);
   });
 
+  test('WebIDL attributes', function() {
+    var range = document.createRange();
+
+    assert.isTrue('collapsed' in range);
+    assert.isFalse(range.hasOwnProperty('collapsed'));
+
+    assert.isTrue('commonAncestorContainer' in range);
+    assert.isFalse(range.hasOwnProperty('commonAncestorContainer'));
+
+    assert.isTrue('endContainer' in range);
+    assert.isFalse(range.hasOwnProperty('endContainer'));
+
+    assert.isTrue('endOffset' in range);
+    assert.isFalse(range.hasOwnProperty('endOffset'));
+
+    assert.isTrue('startContainer' in range);
+    assert.isFalse(range.hasOwnProperty('startContainer'));
+
+    assert.isTrue('startOffset' in range);
+    assert.isFalse(range.hasOwnProperty('startOffset'));
+  });
+
 });
