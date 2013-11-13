@@ -179,16 +179,6 @@
     return false;
   }
 
-  var mutationEventsAreSilenced = 0;
-
-  function muteMutationEvents() {
-    mutationEventsAreSilenced++;
-  }
-
-  function unmuteMutationEvents() {
-    mutationEventsAreSilenced--;
-  }
-
   var OriginalMutationEvent = window.MutationEvent;
 
   function dispatchOriginalEvent(originalEvent) {
@@ -197,15 +187,9 @@
       return;
     handledEventsTable.set(originalEvent, true);
 
-    // Don't do rendering if this is a mutation event since rendering might
-    // mutate the DOM which would fire more events and we would most likely
-    // just iloop.
-    if (originalEvent instanceof OriginalMutationEvent) {
-      if (mutationEventsAreSilenced)
-        return;
-    } else {
-      scope.renderAllPending();
-    }
+    // Render before dispatching the event to ensure that the event path is
+    // correct.
+    scope.renderAllPending();
 
     var target = wrap(originalEvent.target);
     var event = wrap(originalEvent);
@@ -569,6 +553,23 @@
     return fun && fun.handleEvent;
   }
 
+
+  function isMutationEvent(type) {
+    switch (type) {
+      case 'DOMAttrModified':
+      case 'DOMAttributeNameChanged':
+      case 'DOMCharacterDataModified':
+      case 'DOMElementNameChanged':
+      case 'DOMNodeInserted':
+      case 'DOMNodeInsertedIntoDocument':
+      case 'DOMNodeRemoved':
+      case 'DOMNodeRemovedFromDocument':
+      case 'DOMSubtreeModified':
+        return true;
+    }
+    return false;
+  }
+
   var OriginalEventTarget = window.EventTarget;
 
   /**
@@ -603,7 +604,7 @@
 
   EventTarget.prototype = {
     addEventListener: function(type, fun, capture) {
-      if (!isValidListener(fun))
+      if (!isValidListener(fun) || isMutationEvent(type))
         return;
 
       var listener = new Listener(type, fun, capture);
@@ -733,8 +734,6 @@
   scope.elementFromPoint = elementFromPoint;
   scope.getEventHandlerGetter = getEventHandlerGetter;
   scope.getEventHandlerSetter = getEventHandlerSetter;
-  scope.muteMutationEvents = muteMutationEvents;
-  scope.unmuteMutationEvents = unmuteMutationEvents;
   scope.wrapEventTargetMethods = wrapEventTargetMethods;
   scope.wrappers.CustomEvent = CustomEvent;
   scope.wrappers.Event = Event;
