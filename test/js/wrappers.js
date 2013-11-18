@@ -17,6 +17,13 @@ suite('Wrapper creation', function() {
     assert.isTrue(Object.getPrototypeOf(br).hasOwnProperty('clear'));
   });
 
+  test('HTMLUnknownElement constructor', function() {
+    var element = document.createElement('unknownelement');
+    assert.instanceOf(element, HTMLUnknownElement);
+    assert.equal(Object.getPrototypeOf(element), HTMLUnknownElement.prototype);
+    assert.equal(Object.getPrototypeOf(element).constructor, HTMLUnknownElement);
+  });
+
   Object.keys(knownElements).forEach(function(tagName) {
     test(tagName, function() {
       var constructor = window[knownElements[tagName]];
@@ -26,6 +33,7 @@ suite('Wrapper creation', function() {
       var element = document.createElement(tagName);
       assert.instanceOf(element, constructor);
       assert.equal(Object.getPrototypeOf(element), constructor.prototype);
+      assert.equal(Object.getPrototypeOf(element).constructor, constructor);
     });
   });
 
