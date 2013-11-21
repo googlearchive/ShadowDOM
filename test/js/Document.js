@@ -221,6 +221,22 @@ htmlSuite('Document', function() {
     assert.equal(c.ownerDocument, doc);
   });
 
+  test('importNode', function() {
+    var doc = wrap(document);
+    var doc2 = doc.implementation.createHTMLDocument('');
+    var div = doc2.createElement('div');
+    div.innerHTML = 'test';
+    assert.equal(div.ownerDocument, doc2);
+
+    var div2 = document.importNode(div, true);
+    assert.equal(div.innerHTML, div2.innerHTML);
+    assert.equal(div2.ownerDocument, doc);
+
+    var div3 = doc2.importNode(div2);
+    assert.equal(div3.innerHTML, '');
+    assert.equal(div3.ownerDocument, doc2);
+  });
+
   test('elementFromPoint', function() {
     div = document.body.appendChild(document.createElement('div'));
     div.style.cssText = 'position: fixed; background: green; ' +

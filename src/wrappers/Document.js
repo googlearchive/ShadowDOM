@@ -80,6 +80,8 @@
       doc.adoptNode(oldShadowRoot);
   }
 
+  var originalImportNode = document.importNode;
+
   mixin(Document.prototype, {
     adoptNode: function(node) {
       if (node.parentNode)
@@ -89,6 +91,9 @@
     },
     elementFromPoint: function(x, y) {
       return elementFromPoint(this, this, x, y);
+    },
+    importNode: function(node, deep) {
+      return wrap(originalImportNode.call(this.impl, unwrap(node), deep));
     }
   });
 
@@ -207,6 +212,7 @@
     window.HTMLDocument || window.Document,  // Gecko adds these to HTMLDocument
   ], [
     'adoptNode',
+    'importNode',
     'contains',
     'createComment',
     'createDocumentFragment',
