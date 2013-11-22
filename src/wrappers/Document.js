@@ -93,7 +93,15 @@
       return elementFromPoint(this, this, x, y);
     },
     importNode: function(node, deep) {
-      return wrap(originalImportNode.call(this.impl, unwrap(node), deep));
+      // We need to manually walk the tree to ensure we do not include rendered
+      // shadow trees.
+      var clone = wrap(originalImportNode.call(this.impl, unwrap(node), false));
+      if (deep) {
+        for (var child = node.firstChild; child; child = child.nextSibling) {
+          clone.appendChild(this.importNode(child, true));
+        }
+      }
+      return clone;
     }
   });
 
