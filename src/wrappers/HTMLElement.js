@@ -137,11 +137,11 @@
       return getOuterHTML(this);
     },
     set outerHTML(value) {
-      // TODO(arv): Mutation observer
       var p = this.parentNode;
       if (p) {
         p.invalidateShadowRenderer();
-        this.impl.outerHTML = value;
+        var df = frag(p, value);
+        p.replaceChild(df, this);
       }
     },
 
