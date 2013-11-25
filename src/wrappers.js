@@ -373,6 +373,7 @@ window.ShadowDOMPolyfill = {};
   scope.defineGetter = defineGetter;
   scope.defineWrapGetter = defineWrapGetter;
   scope.forwardMethodsToWrapper = forwardMethodsToWrapper;
+  scope.isWrapper = isWrapper;
   scope.isWrapperFor = isWrapperFor;
   scope.mixin = mixin;
   scope.nativePrototypeTable = nativePrototypeTable;
