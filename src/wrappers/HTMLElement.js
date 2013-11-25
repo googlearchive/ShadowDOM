@@ -137,13 +137,53 @@
       return getOuterHTML(this);
     },
     set outerHTML(value) {
+      // TODO(arv): Mutation observer
       var p = this.parentNode;
       if (p) {
         p.invalidateShadowRenderer();
         this.impl.outerHTML = value;
       }
+    },
+
+    insertAdjacentHTML: function(position, text) {
+      var contextElement, refNode;
+      switch (String(position).toLowerCase()) {
+        case 'beforebegin':
+          contextElement = this.parentNode;
+          refNode = this;
+          break;
+        case 'afterend':
+          contextElement = this.parentNode;
+          refNode = this.nextSibling;
+          break;
+        case 'afterbegin':
+          contextElement = this;
+          refNode = this.firstChild;
+          break;
+        case 'beforeend':
+          contextElement = this;
+          refNode = null;
+          break;
+        default:
+          return;
+      }
+
+      var df = frag(contextElement, text);
+      contextElement.insertBefore(df, refNode);
     }
   });
+
+  function frag(contextElement, html) {
+    // TODO(arv): This does not work with SVG and other non HTML elements.
+    var p = unwrap(contextElement.cloneNode(false));
+    p.innerHTML = html;
+    var df = unwrap(document.createDocumentFragment());
+    var c;
+    while (c = p.firstChild) {
+      df.appendChild(c);
+    }
+    return wrap(df);
+  }
 
   function getter(name) {
     return function() {

@@ -646,6 +646,118 @@ suite('MutationObserver', function() {
       });
     });
 
+    test('insertAdjacentHTML beforebegin', function() {
+      var a = document.createElement('a');
+      a.innerHTML = '<b></b><c></c>';
+      var b = a.firstChild;
+      var c = a.lastChild;
+
+      var observer = new MutationObserver(function() {});
+      observer.observe(a, {
+        childList: true
+      });
+
+      c.insertAdjacentHTML('beforebegin', '<d></d><e></e>');
+
+      assert.equal(a.innerHTML, '<b></b><d></d><e></e><c></c>');
+      var d = b.nextSibling;
+      var e = d.nextSibling;
+
+      var records = observer.takeRecords();
+      assert.equal(records.length, 1);
+      expectMutationRecord(records[0], {
+        type: 'childList',
+        target: a,
+        addedNodes: [d, e],
+        previousSibling: b,
+        nextSibling: c
+      });
+    });
+
+    test('insertAdjacentHTML afterbegin', function() {
+      var a = document.createElement('a');
+      a.innerHTML = '<b></b><c></c>';
+      var b = a.firstChild;
+      var c = a.lastChild;
+
+      var observer = new MutationObserver(function() {});
+      observer.observe(a, {
+        childList: true
+      });
+
+      a.insertAdjacentHTML('afterbegin', '<d></d><e></e>');
+
+      assert.equal(a.innerHTML, '<d></d><e></e><b></b><c></c>');
+      var d = a.firstChild;
+      var e = d.nextSibling;
+
+      var records = observer.takeRecords();
+      assert.equal(records.length, 1);
+      expectMutationRecord(records[0], {
+        type: 'childList',
+        target: a,
+        addedNodes: [d, e],
+        previousSibling: null,
+        nextSibling: b
+      });
+    });
+
+    test('insertAdjacentHTML beforeend', function() {
+      var a = document.createElement('a');
+      a.innerHTML = '<b></b><c></c>';
+      var b = a.firstChild;
+      var c = a.lastChild;
+
+      var observer = new MutationObserver(function() {});
+      observer.observe(a, {
+        childList: true
+      });
+
+      a.insertAdjacentHTML('beforeend', '<d></d><e></e>');
+
+      assert.equal(a.innerHTML, '<b></b><c></c><d></d><e></e>');
+      var d = c.nextSibling;
+      var e = d.nextSibling;
+
+      var records = observer.takeRecords();
+      assert.equal(records.length, 1);
+      expectMutationRecord(records[0], {
+        type: 'childList',
+        target: a,
+        addedNodes: [d, e],
+        previousSibling: c,
+        nextSibling: null
+      });
+    });
+
+    test('insertAdjacentHTML afterend', function() {
+      var a = document.createElement('a');
+      a.innerHTML = '<b></b><c></c>';
+      var b = a.firstChild;
+      var c = a.lastChild;
+
+      var observer = new MutationObserver(function() {});
+      observer.observe(a, {
+        childList: true
+      });
+
+      b.insertAdjacentHTML('afterend', '<d></d><e></e>');
+
+      assert.equal(a.innerHTML, '<b></b><d></d><e></e><c></c>');
+      var d = b.nextSibling;
+      var e = d.nextSibling;
+
+      var records = observer.takeRecords();
+      assert.equal(records.length, 1);
+      expectMutationRecord(records[0], {
+        type: 'childList',
+        target: a,
+        addedNodes: [d, e],
+        previousSibling: b,
+        nextSibling: c
+      });
+    });
+
   });
 
 });
