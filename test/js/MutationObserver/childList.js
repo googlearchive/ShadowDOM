@@ -758,6 +758,38 @@ suite('MutationObserver', function() {
       });
     });
 
+    test('outerHTML', function() {
+      var a = document.createElement('a');
+      a.innerHTML = '<b></b><c></c><d></d>';
+      var b = a.firstChild;
+      var c = b.nextSibling;
+      var d = a.lastChild;
+
+      var sr = a.createShadowRoot();
+      a.offsetHeight;
+
+      var observer = new MutationObserver(function() {});
+      observer.observe(a, {
+        childList: true
+      });
+
+      c.outerHTML = '<e></e><f></f>';
+      assert.equal(a.innerHTML, '<b></b><e></e><f></f><d></d>');
+      var e = b.nextSibling;
+      var f = e.nextSibling;
+
+      var records = observer.takeRecords();
+      assert.equal(records.length, 1);
+      expectMutationRecord(records[0], {
+        type: 'childList',
+        target: a,
+        addedNodes: [e, f],
+        removedNodes: [c],
+        previousSibling: b,
+        nextSibling: d
+      });
+    });
+
   });
 
 });
