@@ -27,12 +27,18 @@
                                          pseudo);
   };
 
+  // Work around for https://bugzilla.mozilla.org/show_bug.cgi?id=943065
+  delete window.getComputedStyle;
+
   ['addEventListener', 'removeEventListener', 'dispatchEvent'].forEach(
       function(name) {
         OriginalWindow.prototype[name] = function() {
           var w = wrap(this || window);
           return w[name].apply(w, arguments);
         };
+
+        // Work around for https://bugzilla.mozilla.org/show_bug.cgi?id=943065
+        delete window[name];
       });
 
   mixin(Window.prototype, {
