@@ -483,7 +483,7 @@
 
   var supportsEventConstructors = (function() {
     try {
-      new window.MouseEvent('click');
+      new window.FocusEvent('focus');
     } catch (ex) {
       return false;
     }
