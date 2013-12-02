@@ -15,6 +15,7 @@
   var wrappedFuns = new WeakMap();
   var listenersTable = new WeakMap();
   var handledEventsTable = new WeakMap();
+  var currentlyDispatchingEvents = new WeakMap();
   var targetTable = new WeakMap();
   var currentTargetTable = new WeakMap();
   var relatedTargetTable = new WeakMap();
@@ -186,16 +187,16 @@
       return;
     handledEventsTable.set(originalEvent, true);
 
-    // Render before dispatching the event to ensure that the event path is
-    // correct.
-    scope.renderAllPending();
-
-    var target = wrap(originalEvent.target);
-    var event = wrap(originalEvent);
-    return dispatchEvent(event, target);
+    return dispatchEvent(wrap(originalEvent), wrap(originalEvent.target));
   }
 
   function dispatchEvent(event, originalWrapperTarget) {
+    if (currentlyDispatchingEvents.get(event))
+      throw new Error('InvalidStateError')
+    currentlyDispatchingEvents.set(event, true);
+
+    // Render to ensure that the event path is correct.
+    scope.renderAllPending();
     var eventPath = retarget(originalWrapperTarget);
 
     // For window load events the load event is dispatched at the window but
@@ -219,7 +220,8 @@
     }
 
     eventPhaseTable.set(event, Event.NONE);
-    currentTargetTable.set(event, null);
+    currentTargetTable.delete(event, null);
+    currentlyDispatchingEvents.delete(event);
 
     return event.defaultPrevented;
   }
@@ -652,13 +654,7 @@
       }
     },
     dispatchEvent: function(event) {
-      var target = getTargetToListenAt(this);
-      var nativeEvent = unwrap(event);
-      // Allow dispatching the same event again. This is safe because if user
-      // code calls this during an existing dispatch of the same event the
-      // native dispatchEvent throws (that is required by the spec).
-      handledEventsTable.set(nativeEvent, false);
-      return target.dispatchEvent_(nativeEvent);
+      dispatchEvent(event, this);
     }
   };
 
