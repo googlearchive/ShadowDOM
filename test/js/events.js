@@ -1333,4 +1333,32 @@ test('retarget order (multiple shadow roots)', function() {
     assert.isFalse('returnValue' in e);
   });
 
+  test('event propagation in shadow tree', function() {
+    var host = document.createElement('host');
+    host.innerHTML = ' <child></child> ';
+    var child = host.firstElementChild;
+
+    var root = host.createShadowRoot();
+    root.textContent = 'waiting...';
+
+    var data;
+    host.addEventListener('test', function(e) {
+      data = e.data;
+    });
+
+    function send(data) {
+      var e = new Event('test', {bubbles: true});
+      e.data = data;
+      child.dispatchEvent(e);
+    }
+
+    send('a');
+    assert.equal(data, 'a');
+
+    host.offsetWidth;
+
+    send('b');
+    assert.equal(data, 'b');
+  });
+
 });
