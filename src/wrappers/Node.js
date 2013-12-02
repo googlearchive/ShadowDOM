@@ -10,6 +10,7 @@
   var assert = scope.assert;
   var defineWrapGetter = scope.defineWrapGetter;
   var enqueueMutation = scope.enqueueMutation;
+  var isWrapper = scope.isWrapper;
   var mixin = scope.mixin;
   var registerTransientObservers = scope.registerTransientObservers;
   var registerWrapper = scope.registerWrapper;
@@ -295,8 +296,18 @@
     insertBefore: function(childWrapper, refWrapper) {
       assertIsNodeWrapper(childWrapper);
 
-      refWrapper = refWrapper || null;
-      refWrapper && assertIsNodeWrapper(refWrapper);
+      var refNode;
+      if (refWrapper) {
+        if (isWrapper(refWrapper)) {
+          refNode = unwrap(refWrapper);
+        } else {
+          refNode = refWrapper;
+          refWrapper = wrap(refNode);
+        }
+      } else {
+        refWrapper = null;
+      }
+
       refWrapper && assert(refWrapper.parentNode === this);
 
       var nodes;
@@ -313,15 +324,13 @@
 
       if (useNative) {
         ensureSameOwnerDocument(this, childWrapper);
-        originalInsertBefore.call(this.impl, unwrap(childWrapper),
-                                  unwrap(refWrapper));
+        originalInsertBefore.call(this.impl, unwrap(childWrapper), refNode);
       } else {
         if (!previousNode)
           this.firstChild_ = nodes[0];
         if (!refWrapper)
           this.lastChild_ = nodes[nodes.length - 1];
 
-        var refNode = unwrap(refWrapper);
         var parentNode = refNode ? refNode.parentNode : this.impl;
 
         // insertBefore refWrapper no matter what the parent is?
@@ -410,14 +419,20 @@
 
     replaceChild: function(newChildWrapper, oldChildWrapper) {
       assertIsNodeWrapper(newChildWrapper);
-      assertIsNodeWrapper(oldChildWrapper);
+
+      var oldChildNode;
+      if (isWrapper(oldChildWrapper)) {
+        oldChildNode = unwrap(oldChildWrapper);
+      } else {
+        oldChildNode = oldChildWrapper;
+        oldChildWrapper = wrap(oldChildNode);
+      }
 
       if (oldChildWrapper.parentNode !== this) {
         // TODO(arv): DOMException
         throw new Error('NotFoundError');
       }
 
-      var oldChildNode = unwrap(oldChildWrapper);
       var nextNode = oldChildWrapper.nextSibling;
       var previousNode = oldChildWrapper.previousSibling;
       var nodes;

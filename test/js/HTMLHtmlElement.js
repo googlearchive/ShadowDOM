@@ -27,6 +27,22 @@ suite('HTMLHtmlElement', function() {
     assert.equal(doc.documentElement.lastChild, b);
   });
 
+  test('insertBefore', function() {
+    var comment = document.createComment('comment');
+    var root = document.documentElement;
+    root.insertBefore(comment, root.firstChild);
+    assert.equal(wrap(root.firstChild), comment);
+  });
+
+  test('replaceChild', function() {
+    var comment = document.createComment('comment');
+    var comment2 = document.createComment('comment2');
+    var root = document.documentElement;
+    root.insertBefore(comment, root.firstChild);
+    assert.equal(wrap(root.firstChild), comment);
+    root.replaceChild(comment2, root.firstChild);
+  });
+
   test('matches', function() {
     // From jQuery.
     var html = document.documentElement;
