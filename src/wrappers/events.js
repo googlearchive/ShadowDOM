@@ -435,14 +435,16 @@
     if (prototype)
       mixin(GenericEvent.prototype, prototype);
     if (OriginalEvent) {
-      // IE does not support event constructors but FocusEvent can only be
-      // created using new FocusEvent in Firefox.
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=882165
-      if (OriginalEvent.prototype['init' + name]) {
+      // - Old versions of Safari fails on new FocusEvent (and others?).
+      // - IE does not support event constructors.
+      // - createEvent('FocusEvent') throws in Firefox.
+      // => Try the best practice solution first and fallback to the old way
+      // if needed.
+      try {
+        registerWrapper(OriginalEvent, GenericEvent, new OriginalEvent('temp'));
+      } catch (ex) {
         registerWrapper(OriginalEvent, GenericEvent,
                         document.createEvent(name));
-      } else {
-        registerWrapper(OriginalEvent, GenericEvent, new OriginalEvent('temp'));
       }
     }
     return GenericEvent;
