@@ -451,6 +451,7 @@ htmlSuite('Document', function() {
       __proto__: HTMLElement.prototype,
       createdCallback: function() {
         assert.isTrue(this.isCustom);
+        assert.instanceOf(this, A);
       },
       isCustom: true
     }
