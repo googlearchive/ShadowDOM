@@ -162,7 +162,7 @@
         newPrototype[name] = function() {
           // if this element has been wrapped prior to registration,
           // the wrapper is stale; in this case rewrap
-          if (!(wrap(this) instanceof GeneratedWrapper)) {
+          if (!(wrap(this) instanceof CustomElementConstructor)) {
             rewrap(this);
           }
           f.apply(wrap(this), arguments);
@@ -173,7 +173,7 @@
       if (object.extends)
         p.extends = object.extends;
 
-      function GeneratedWrapper(node) {
+      function CustomElementConstructor(node) {
         if (!node) {
           if (object.extends) {
             return document.createElement(object.extends, tagName);
@@ -183,15 +183,15 @@
         }
         this.impl = node;
       }
-      GeneratedWrapper.prototype = prototype;
-      GeneratedWrapper.prototype.constructor = GeneratedWrapper;
+      CustomElementConstructor.prototype = prototype;
+      CustomElementConstructor.prototype.constructor = CustomElementConstructor;
 
-      scope.constructorTable.set(newPrototype, GeneratedWrapper);
+      scope.constructorTable.set(newPrototype, CustomElementConstructor);
       scope.nativePrototypeTable.set(prototype, newPrototype);
 
       // registration is synchronous so do it last
       var nativeConstructor = originalRegister.call(unwrap(this), tagName, p);
-      return GeneratedWrapper;
+      return CustomElementConstructor;
     };
 
     forwardMethodsToWrapper([
