@@ -430,13 +430,33 @@ htmlSuite('Document', function() {
         assert.instanceOf(this, A);
         self = this;
       }
-    }
+    };
 
     A = document.register('x-a2', A);
 
     var a = new A;
     assert.equal(createdCalls, 1);
     assert.equal(self, a);
+  });
+
+  test('document.register createdCallback upgrade', function() {
+    if (!document.register)
+      return;
+
+    div = document.body.appendChild(document.createElement('div'));
+    div.innerHTML = '<x-a2-1></x-a2-1>';
+
+    function A() {}
+    A.prototype = {
+      __proto__: HTMLElement.prototype,
+      createdCallback: function() {
+        assert.isTrue(this.isCustom);
+        assert.instanceOf(this, A);
+      },
+      isCustom: true
+    };
+
+    A = document.register('x-a2-1', A);
   });
 
   test('document.register enteredViewCallback, leftViewCallback',
@@ -460,7 +480,7 @@ htmlSuite('Document', function() {
         assert.instanceOf(this, A);
         assert.equal(a, this);
       }
-    }
+    };
 
     A = document.register('x-a3', A);
 
@@ -499,7 +519,7 @@ htmlSuite('Document', function() {
         }
         console.log(arguments);
       }
-    }
+    };
 
     A = document.register('x-a4', A);
 
@@ -511,6 +531,27 @@ htmlSuite('Document', function() {
     assert.equal(attributeChangedCalls, 2);
     a.removeAttribute('foo');
     assert.equal(attributeChangedCalls, 3);
+  });
+
+  test('document.register get reference, upgrade, rewrap', function() {
+    if (!document.register)
+      return;
+
+    div = document.body.appendChild(document.createElement('div'));
+    div.innerHTML = '<x-a6></x-a6>';
+    // get reference (creates wrapper)
+    div.firstChild;
+
+    function A() {}
+    A.prototype = {
+      __proto__: HTMLElement.prototype,
+      isCustom: true
+    };
+
+    A = document.register('x-a6', A);
+    // re-wrap after registration to update wrapper
+    ShadowDOMPolyfill.rewrap(ShadowDOMPolyfill.unwrap(div.firstChild));
+    assert.isTrue(div.firstChild.isCustom);
   });
 
   htmlTest('html/document-write.html');
