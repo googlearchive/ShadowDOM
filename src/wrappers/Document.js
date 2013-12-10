@@ -18,6 +18,7 @@
   var registerWrapper = scope.registerWrapper;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
+  var rewrap = scope.rewrap;
   var wrapEventTargetMethods = scope.wrapEventTargetMethods;
   var wrapNodeList = scope.wrapNodeList;
 
@@ -159,6 +160,11 @@
         if (!f)
           return;
         newPrototype[name] = function() {
+          // if this element has been wrapped prior to registration,
+          // the wrapper is stale; in this case rewrap
+          if (!(wrap(this) instanceof GeneratedWrapper)) {
+            rewrap(this);
+          }
           f.apply(wrap(this), arguments);
         };
       });
@@ -166,7 +172,6 @@
       var p = {prototype: newPrototype};
       if (object.extends)
         p.extends = object.extends;
-      var nativeConstructor = originalRegister.call(unwrap(this), tagName, p);
 
       function GeneratedWrapper(node) {
         if (!node) {
@@ -184,6 +189,8 @@
       scope.constructorTable.set(newPrototype, GeneratedWrapper);
       scope.nativePrototypeTable.set(prototype, newPrototype);
 
+      // registration is synchronous so do it last
+      var nativeConstructor = originalRegister.call(unwrap(this), tagName, p);
       return GeneratedWrapper;
     };
 
