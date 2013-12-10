@@ -88,9 +88,11 @@
     }
   });
 
-  Element.prototype[matchesName] = function(selector) {
-    return this.matches(selector);
-  };
+  if (matchesName != "matches") {
+    Element.prototype[matchesName] = function(selector) {
+      return this.matches(selector);
+    };
+  }
 
   if (OriginalElement.prototype.webkitCreateShadowRoot) {
     Element.prototype.webkitCreateShadowRoot =
