@@ -430,7 +430,7 @@ htmlSuite('Document', function() {
         assert.instanceOf(this, A);
         self = this;
       }
-    }
+    };
 
     A = document.register('x-a2', A);
 
@@ -454,7 +454,7 @@ htmlSuite('Document', function() {
         assert.instanceOf(this, A);
       },
       isCustom: true
-    }
+    };
 
     A = document.register('x-a2-1', A);
   });
@@ -480,7 +480,7 @@ htmlSuite('Document', function() {
         assert.instanceOf(this, A);
         assert.equal(a, this);
       }
-    }
+    };
 
     A = document.register('x-a3', A);
 
@@ -519,7 +519,7 @@ htmlSuite('Document', function() {
         }
         console.log(arguments);
       }
-    }
+    };
 
     A = document.register('x-a4', A);
 
@@ -546,7 +546,7 @@ htmlSuite('Document', function() {
     A.prototype = {
       __proto__: HTMLElement.prototype,
       isCustom: true
-    }
+    };
 
     A = document.register('x-a6', A);
     // re-wrap after registration to update wrapper
