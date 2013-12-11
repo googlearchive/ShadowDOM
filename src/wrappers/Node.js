@@ -306,6 +306,7 @@
         }
       } else {
         refWrapper = null;
+        refNode = null;
       }
 
       refWrapper && assert(refWrapper.parentNode === this);
