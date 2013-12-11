@@ -1,7 +1,6 @@
 {
   "name": "ShadowDOM",
   "main": "shadowdom.js",
-  "version": "0.0.20131107",
   "homepage": "https://github.com/Polymer/ShadowDOM",
   "authors": [
     "The Polymer Authors"
