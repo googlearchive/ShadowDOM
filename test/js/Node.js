@@ -290,4 +290,18 @@ suite('Node', function() {
     assert.equal(unwrap(clone).innerHTML, '<a></a>');
   });
 
+  test('insertBefore', function() {
+    var parent = document.createElement('div');
+    var c1 = document.createElement('div');
+    var c2 = document.createElement('div');
+    var c3 = document.createElement('div');
+    parent.insertBefore(c3);
+    parent.insertBefore(c2, c3);
+    parent.insertBefore(c1, c2);
+    
+    assert.equal(parent.firstChild, c1);
+    assert.equal(c1.nextElementSibling, c2);
+    assert.equal(c2.nextElementSibling, c3);
+  });
+
 });
