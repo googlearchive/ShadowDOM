@@ -11,7 +11,12 @@
   // for.
   var elements = {
     'a': 'HTMLAnchorElement',
-    'applet': 'HTMLAppletElement',
+
+    // Do not create an applet element by default since it shows a warning in
+    // IE.
+    // https://github.com/Polymer/polymer/issues/217
+    // 'applet': 'HTMLAppletElement',
+
     'area': 'HTMLAreaElement',
     'br': 'HTMLBRElement',
     'base': 'HTMLBaseElement',
