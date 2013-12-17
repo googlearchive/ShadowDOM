@@ -656,9 +656,61 @@
       }
     },
     dispatchEvent: function(event) {
-      dispatchEvent(event, this);
+      // We want to use the native dispatchEvent because it triggers the default
+      // actions (like checking a checkbox). However, if there are no listeners
+      // in the composed tree then there are no events that will trigger and
+      // listeners in the non composed tree that are part of the event path are
+      // not notified.
+      //
+      // If we find out that there are no listeners in the composed tree we add
+      // a temporary listener to the target which makes us get called back even
+      // in that case.
+
+      var nativeEvent = unwrap(event);
+      var eventType = nativeEvent.type;
+
+      // Allow dispatching the same event again. This is safe because if user
+      // code calls this during an existing dispatch of the same event the
+      // native dispatchEvent throws (that is required by the spec).
+      handledEventsTable.set(nativeEvent, false);
+
+      // Force rendering since we prefer native dispatch and that works on the
+      // composed tree.
+      scope.renderAllPending();
+
+      var tempListener;
+      if (!hasListenerInAncestors(this, eventType)) {
+        tempListener = function() {};
+        this.addEventListener(eventType, tempListener, true);
+      }
+
+      try {
+        return unwrap(this).dispatchEvent_(nativeEvent);
+      } finally {
+        if (tempListener)
+          this.removeEventListener(eventType, tempListener, true);
+      }
     }
   };
+
+  function hasListener(node, type) {
+    var listeners = listenersTable.get(node);
+    if (listeners) {
+      for (var i = 0; i < listeners.length; i++) {
+        if (!listeners[i].removed && listeners[i].type === type)
+          return true;
+      }
+    }
+    return false;
+  }
+
+  function hasListenerInAncestors(target, type) {
+    for (var node = unwrap(target); node; node = node.parentNode) {
+      if (hasListener(wrap(node), type))
+        return true;
+    }
+    return false;
+  }
 
   if (OriginalEventTarget)
     registerWrapper(OriginalEventTarget, EventTarget);

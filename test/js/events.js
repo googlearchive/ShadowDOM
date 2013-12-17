@@ -1361,4 +1361,28 @@ test('retarget order (multiple shadow roots)', function() {
     assert.equal(data, 'b');
   });
 
+  test('dispatch should trigger default actions', function() {
+    var div = document.createElement('div');
+    div.innerHTML = '<input type="checkbox">';
+    var checkbox = div.firstChild;
+    assert.isFalse(checkbox.checked);
+    checkbox.dispatchEvent(new MouseEvent('click'));
+    assert.isTrue(checkbox.checked);
+  });
+
+  test('dispatch should trigger default actions 2', function() {
+    var div = document.createElement('div');
+    div.innerHTML = '<input type="checkbox">';
+    var checkbox = div.firstChild;
+    var sr = div.createShadowRoot();
+
+    assert.isFalse(checkbox.checked);
+    checkbox.dispatchEvent(new MouseEvent('click'));
+    assert.isTrue(checkbox.checked);
+
+    div.offsetWidth;
+    checkbox.dispatchEvent(new MouseEvent('click'));
+    assert.isFalse(checkbox.checked);
+  });
+
 });
