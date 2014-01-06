@@ -296,8 +296,8 @@ htmlSuite('Document', function() {
     assert.isTrue(document.contains(document.querySelector('html')));
   });
 
-  test('document.register', function() {
-    if (!document.register)
+  test('document.registerElement', function() {
+    if (!document.registerElement)
       return;
 
     var aPrototype = Object.create(HTMLElement.prototype);
@@ -305,7 +305,7 @@ htmlSuite('Document', function() {
       return 'a';
     };
 
-    var A = document.register('x-a', {prototype: aPrototype});
+    var A = document.registerElement('x-a', {prototype: aPrototype});
 
     var a1 = document.createElement('x-a');
     assert.equal('x-a', a1.localName);
@@ -328,7 +328,7 @@ htmlSuite('Document', function() {
       return 'b';
     };
 
-    var B = document.register('x-b', {prototype: bPrototype});
+    var B = document.registerElement('x-b', {prototype: bPrototype});
 
     var b1 = document.createElement('x-b');
     assert.equal('x-b', b1.localName);
@@ -347,8 +347,8 @@ htmlSuite('Document', function() {
     assert.equal(b2.getName(), 'b');
   });
 
-  test('document.register type extension', function() {
-    if (!document.register)
+  test('document.registerElement type extension', function() {
+    if (!document.registerElement)
       return;
 
     var aPrototype = Object.create(HTMLSpanElement.prototype);
@@ -356,7 +356,7 @@ htmlSuite('Document', function() {
       return 'a';
     };
 
-    var A = document.register('x-a-span',
+    var A = document.registerElement('x-a-span',
       {prototype: aPrototype, extends: 'span'});
 
     var a1 = document.createElement('span', 'x-a-span');
@@ -376,8 +376,8 @@ htmlSuite('Document', function() {
     assert.equal(a2.getName(), 'a');
   });
 
-  test('document.register deeper', function() {
-    if (!document.register)
+  test('document.registerElement deeper', function() {
+    if (!document.registerElement)
       return;
 
     function C() {}
@@ -395,7 +395,7 @@ htmlSuite('Document', function() {
       __proto__: B.prototype
     };
 
-    A = document.register('x-a5', A);
+    A = document.registerElement('x-a5', A);
 
     var a1 = document.createElement('x-a5');
     assert.equal('x-a5', a1.localName);
@@ -414,8 +414,8 @@ htmlSuite('Document', function() {
                  HTMLElement.prototype);
   });
 
-  test('document.register createdCallback', function() {
-    if (!document.register)
+  test('document.registerElement createdCallback', function() {
+    if (!document.registerElement)
       return;
 
     var self;
@@ -432,15 +432,15 @@ htmlSuite('Document', function() {
       }
     };
 
-    A = document.register('x-a2', A);
+    A = document.registerElement('x-a2', A);
 
     var a = new A;
     assert.equal(createdCalls, 1);
     assert.equal(self, a);
   });
 
-  test('document.register createdCallback upgrade', function() {
-    if (!document.register)
+  test('document.registerElement createdCallback upgrade', function() {
+    if (!document.registerElement)
       return;
 
     div = document.body.appendChild(document.createElement('div'));
@@ -456,43 +456,43 @@ htmlSuite('Document', function() {
       isCustom: true
     };
 
-    A = document.register('x-a2-1', A);
+    A = document.registerElement('x-a2-1', A);
   });
 
-  test('document.register enteredViewCallback, leftViewCallback',
+  test('document.registerElement attachedCallback, detachedCallback',
       function() {
-    if (!document.register)
+    if (!document.registerElement)
       return;
 
-    var enteredViewCalls = 0;
-    var leftViewCalls = 0;
+    var attachedCalls = 0;
+    var detachedCalls = 0;
 
     function A() {}
     A.prototype = {
       __proto__: HTMLElement.prototype,
-      enteredViewCallback: function() {
-        enteredViewCalls++;
+      attachedCallback: function() {
+        attachedCalls++;
         assert.instanceOf(this, A);
         assert.equal(a, this);
       },
-      leftViewCallback: function() {
-        leftViewCalls++;
+      detachedCallback: function() {
+        detachedCalls++;
         assert.instanceOf(this, A);
         assert.equal(a, this);
       }
     };
 
-    A = document.register('x-a3', A);
+    A = document.registerElement('x-a3', A);
 
     var a = new A;
     document.body.appendChild(a);
-    assert.equal(enteredViewCalls, 1);
+    assert.equal(attachedCalls, 1);
     document.body.removeChild(a);
-    assert.equal(leftViewCalls, 1);
+    assert.equal(detachedCalls, 1);
   });
 
-  test('document.register attributeChangedCallback', function() {
-    if (!document.register)
+  test('document.registerElement attributeChangedCallback', function() {
+    if (!document.registerElement)
       return;
 
     var attributeChangedCalls = 0;
@@ -521,7 +521,7 @@ htmlSuite('Document', function() {
       }
     };
 
-    A = document.register('x-a4', A);
+    A = document.registerElement('x-a4', A);
 
     var a = new A;
     assert.equal(attributeChangedCalls, 0);
@@ -533,8 +533,8 @@ htmlSuite('Document', function() {
     assert.equal(attributeChangedCalls, 3);
   });
 
-  test('document.register get reference, upgrade, rewrap', function() {
-    if (!document.register)
+  test('document.registerElement get reference, upgrade, rewrap', function() {
+    if (!document.registerElement)
       return;
 
     div = document.body.appendChild(document.createElement('div'));
@@ -548,7 +548,7 @@ htmlSuite('Document', function() {
       isCustom: true
     };
 
-    A = document.register('x-a6', A);
+    A = document.registerElement('x-a6', A);
     // re-wrap after registration to update wrapper
     ShadowDOMPolyfill.rewrap(ShadowDOMPolyfill.unwrap(div.firstChild));
     assert.isTrue(div.firstChild.isCustom);

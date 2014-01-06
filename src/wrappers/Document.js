@@ -106,9 +106,9 @@
     }
   });
 
-  if (document.register) {
-    var originalRegister = document.register;
-    Document.prototype.register = function(tagName, object) {
+  if (document.registerElement) {
+    var originalRegisterElement = document.registerElement;
+    Document.prototype.registerElement = function(tagName, object) {
       var prototype = object.prototype;
 
       // If we already used the object as a prototype for another custom
@@ -152,8 +152,8 @@
       // and not from the spec since the spec is out of date.
       [
         'createdCallback',
-        'enteredViewCallback',
-        'leftViewCallback',
+        'attachedCallback',
+        'detachedCallback',
         'attributeChangedCallback',
       ].forEach(function(name) {
         var f = prototype[name];
@@ -190,14 +190,15 @@
       scope.nativePrototypeTable.set(prototype, newPrototype);
 
       // registration is synchronous so do it last
-      var nativeConstructor = originalRegister.call(unwrap(this), tagName, p);
+      var nativeConstructor = originalRegisterElement.call(unwrap(this),
+          tagName, p);
       return CustomElementConstructor;
     };
 
     forwardMethodsToWrapper([
       window.HTMLDocument || window.Document,  // Gecko adds these to HTMLDocument
     ], [
-      'register',
+      'registerElement',
     ]);
   }
 
