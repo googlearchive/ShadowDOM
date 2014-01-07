@@ -16,6 +16,8 @@
   var shadowHostTable = new WeakMap();
   var nextOlderShadowTreeTable = new WeakMap();
 
+  var spaceCharRe = /[ \t\n\r\f]/;
+
   function ShadowRoot(hostWrapper) {
     var node = unwrap(hostWrapper.impl.ownerDocument.createDocumentFragment());
     DocumentFragment.call(this, node);
@@ -56,7 +58,9 @@
     },
 
     getElementById: function(id) {
-      return this.querySelector('#' + id);
+      if (spaceCharRe.test(id))
+        return null;
+      return this.querySelector('[id="' + id + '"]');
     }
   });
 
