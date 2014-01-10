@@ -249,12 +249,14 @@ window.ShadowDOMPolyfill = {};
   }
 
   var OriginalDOMImplementation = window.DOMImplementation;
+  var OriginalEventTarget = window.EventTarget;
   var OriginalEvent = window.Event;
   var OriginalNode = window.Node;
   var OriginalWindow = window.Window;
   var OriginalRange = window.Range;
   var OriginalCanvasRenderingContext2D = window.CanvasRenderingContext2D;
   var OriginalWebGLRenderingContext = window.WebGLRenderingContext;
+  var OriginalSVGElementInstance = window.SVGElementInstance;
 
   function isWrapper(object) {
     return object instanceof wrappers.EventTarget ||
@@ -267,14 +269,17 @@ window.ShadowDOMPolyfill = {};
   }
 
   function isNative(object) {
-    return object instanceof OriginalNode ||
+    return OriginalEventTarget && object instanceof OriginalEventTarget ||
+           object instanceof OriginalNode ||
            object instanceof OriginalEvent ||
            object instanceof OriginalWindow ||
            object instanceof OriginalRange ||
            object instanceof OriginalDOMImplementation ||
            object instanceof OriginalCanvasRenderingContext2D ||
            OriginalWebGLRenderingContext &&
-               object instanceof OriginalWebGLRenderingContext;
+               object instanceof OriginalWebGLRenderingContext ||
+           OriginalSVGElementInstance &&
+               object instanceof OriginalSVGElementInstance;
   }
 
   /**
