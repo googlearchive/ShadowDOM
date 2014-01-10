@@ -360,7 +360,12 @@
   };
 
   var OriginalEvent = window.Event;
-  OriginalEvent.prototype.polymerBlackList_ = {returnValue: true};
+  OriginalEvent.prototype.polymerBlackList_ = {
+    returnValue: true,
+    // TODO(arv): keyLocation is part of KeyboardEvent but Firefox does not
+    // support constructable KeyboardEvent so we keep it here for now.
+    keyLocation: true
+  };
 
   /**
    * Creates a new Event wrapper or wraps an existin native Event object.
