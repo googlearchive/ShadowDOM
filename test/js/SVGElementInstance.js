@@ -51,6 +51,11 @@ suite('SVGElementInstance', function() {
       return;
 
     var instanceRoot = getInstanceRoot();
+
+    // Safari 6 seems to return null here in some cases.
+    if (!instanceRoot)
+      return;
+
     assert.instanceOf(instanceRoot, SVGElementInstance);
     assert.instanceOf(instanceRoot, EventTarget);
   });
@@ -65,6 +70,11 @@ suite('SVGElementInstance', function() {
     var svg = div.firstElementChild;
     var useElement = svg.firstElementChild.nextElementSibling;
     var instanceRoot = useElement.instanceRoot;
+
+    // Safari 6 seems to return null here in some cases.
+    if (!instanceRoot)
+      return;
+
     assert.equal(useElement, instanceRoot.correspondingUseElement);
   });
 
@@ -74,6 +84,11 @@ suite('SVGElementInstance', function() {
       return;
 
     var instanceRoot = getInstanceRoot();
+
+    // Safari 6 seems to return null here in some cases.
+    if (!instanceRoot)
+      return;
+
     assert.equal('g', instanceRoot.correspondingElement.localName);
   });
 
@@ -83,6 +98,10 @@ suite('SVGElementInstance', function() {
       return;
 
     var instanceRoot = getInstanceRoot();
+
+    // Safari 6 seems to return null here in some cases.
+    if (!instanceRoot)
+      return;
 
     assert.equal('line', instanceRoot.firstChild.correspondingElement.localName);
     assert.equal('line', instanceRoot.lastChild.correspondingElement.localName);
