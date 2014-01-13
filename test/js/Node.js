@@ -298,10 +298,21 @@ suite('Node', function() {
     parent.insertBefore(c3);
     parent.insertBefore(c2, c3);
     parent.insertBefore(c1, c2);
-    
+
     assert.equal(parent.firstChild, c1);
     assert.equal(c1.nextElementSibling, c2);
     assert.equal(c2.nextElementSibling, c3);
+  });
+
+  test('textContent of comment', function() {
+    var comment = document.createComment('abc');
+    assert.equal(comment.textContent, 'abc');
+  });
+
+  test('textContent ignores comments', function() {
+    var div = document.createElement('div');
+    div.innerHTML = 'ab<!--cd-->ef';
+    assert.equal(div.textContent, 'abef');
   });
 
 });
