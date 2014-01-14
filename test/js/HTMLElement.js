@@ -80,4 +80,11 @@ suite('HTMLElement', function() {
     assert.equal(div.offsetWidth, 120);
   });
 
+  test('innerHTML', function() {
+    var script = document.createElement('script');
+    var html = '<x>{{y}}</x>';
+    script.innerHTML = html;
+    assert.equal(script.innerHTML, html);
+  });
+
 });
