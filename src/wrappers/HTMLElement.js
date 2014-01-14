@@ -19,7 +19,9 @@
   /////////////////////////////////////////////////////////////////////////////
   // innerHTML and outerHTML
 
-  var escapeRegExp = /&|<|"/g;
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-end.html#escapingString
+  var escapeAttrRegExp = /[&\u00A0"]/g;
+  var escapeDataRegExp = /[&\u00A0<>]/g;
 
   function escapeReplace(c) {
     switch (c) {
@@ -27,43 +29,70 @@
         return '&amp;';
       case '<':
         return '&lt;';
+      case '>':
+        return '&gt;';
       case '"':
         return '&quot;'
+      case '\u00A0':
+        return '&nbsp;';
     }
   }
 
-  function escape(s) {
-    return s.replace(escapeRegExp, escapeReplace);
+  function escapeAttr(s) {
+    return s.replace(escapeAttrRegExp, escapeReplace);
+  }
+
+  function escapeData(s) {
+    return s.replace(escapeDataRegExp, escapeReplace);
+  }
+
+  function makeSet(arr) {
+    var set = {};
+    for (var i = 0; i < arr.length; i++) {
+      set[arr[i]] = true;
+    }
+    return set;
   }
 
   // http://www.whatwg.org/specs/web-apps/current-work/#void-elements
-  var voidElements = {
-    'area': true,
-    'base': true,
-    'br': true,
-    'col': true,
-    'command': true,
-    'embed': true,
-    'hr': true,
-    'img': true,
-    'input': true,
-    'keygen': true,
-    'link': true,
-    'meta': true,
-    'param': true,
-    'source': true,
-    'track': true,
-    'wbr': true
-  };
+  var voidElements = makeSet([
+    'area',
+    'base',
+    'br',
+    'col',
+    'command',
+    'embed',
+    'hr',
+    'img',
+    'input',
+    'keygen',
+    'link',
+    'meta',
+    'param',
+    'source',
+    'track',
+    'wbr'
+  ]);
 
-  function getOuterHTML(node) {
+  var plaintextParents = makeSet([
+    'style',
+    'script',
+    'xmp',
+    'iframe',
+    'noembed',
+    'noframes',
+    'plaintext',
+    'noscript'
+  ]);
+
+  function getOuterHTML(node, parentNode) {
     switch (node.nodeType) {
       case Node.ELEMENT_NODE:
         var tagName = node.tagName.toLowerCase();
         var s = '<' + tagName;
         var attrs = node.attributes;
         for (var i = 0, attr; attr = attrs[i]; i++) {
-          s += ' ' + attr.name + '="' + escape(attr.value) + '"';
+          s += ' ' + attr.name + '="' + escapeAttr(attr.value) + '"';
         }
         s += '>';
         if (voidElements[tagName])
@@ -72,10 +101,14 @@
         return s + getInnerHTML(node) + '</' + tagName + '>';
 
       case Node.TEXT_NODE:
-        return escape(node.nodeValue);
+        var data = node.data;
+        if (parentNode && plaintextParents[parentNode.localName])
+          return data;
+        return escapeData(data);
 
       case Node.COMMENT_NODE:
-        return '<!--' + escape(node.nodeValue) + '-->';
+        return '<!--' + node.data + '-->';
+
       default:
         console.error(node);
         throw new Error('not implemented');
@@ -85,7 +118,7 @@
   function getInnerHTML(node) {
     var s = '';
     for (var child = node.firstChild; child; child = child.nextSibling) {
-      s += getOuterHTML(child);
+      s += getOuterHTML(child, node);
     }
     return s;
   }
@@ -132,9 +165,7 @@
     },
 
     get outerHTML() {
-      // TODO(arv): This should fallback to HTMLElement_prototype.outerHTML if there
-      // are no shadow trees below or above the context node.
-      return getOuterHTML(this);
+      return getOuterHTML(this, this.parentNode);
     },
     set outerHTML(value) {
       var p = this.parentNode;
