@@ -543,7 +543,9 @@
       // are no shadow trees below or above the context node.
       var s = '';
       for (var child = this.firstChild; child; child = child.nextSibling) {
-        s += child.textContent;
+        if (child.nodeType != Node.COMMENT_NODE) {
+          s += child.textContent;
+        }
       }
       return s;
     },
