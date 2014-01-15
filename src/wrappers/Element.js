@@ -126,7 +126,8 @@
   mixin(Element.prototype, ParentNodeInterface);
   mixin(Element.prototype, SelectorsInterface);
 
-  registerWrapper(OriginalElement, Element, document.createElement(null, 'x'));
+  registerWrapper(OriginalElement, Element,
+                  document.createElementNS(null, 'x'));
 
   // TODO(arv): Export setterDirtiesAttribute and apply it to more bindings
   // that reflect attributes.
