@@ -13,7 +13,7 @@
   var defineWrapGetter = scope.defineWrapGetter;
   var elementFromPoint = scope.elementFromPoint;
   var forwardMethodsToWrapper = scope.forwardMethodsToWrapper;
-  var matchesName = scope.matchesName;
+  var matchesNames = scope.matchesNames;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
   var unwrap = scope.unwrap;
@@ -221,8 +221,7 @@
     'querySelectorAll',
     'removeChild',
     'replaceChild',
-    matchesName,
-  ]);
+  ].concat(matchesNames));
 
   forwardMethodsToWrapper([
     window.HTMLDocument || window.Document,  // Gecko adds these to HTMLDocument
