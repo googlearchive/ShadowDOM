@@ -110,6 +110,7 @@ var modules = [
   'Node.js',
   'ParentNodeInterface.js',
   'Range.js',
+  'SVGElement.js',
   'SVGElementInstance.js',
   'ShadowRoot.js',
   'Text.js',
