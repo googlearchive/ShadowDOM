@@ -491,4 +491,28 @@ suite('Shadow DOM', function() {
     assert.equal(count, 0);
   });
   */
+
+  test('moving nodes from light to shadow - issue 48', function() {
+    var div = document.createElement('div');
+    div.innerHTML = '<a></a><b></b>';
+    var a = div.firstChild;
+    var b = div.lastChild;
+
+    var sr = div.createShadowRoot();
+    sr.innerHTML = '<c></c>';
+    var c = sr.firstChild;
+
+    assert.equal(getVisualInnerHtml(div), '<c></c>');
+
+    c.appendChild(a);
+    assert.equal(getVisualInnerHtml(div), '<c><a></a></c>');
+
+    c.textContent = '';
+    assert.equal(getVisualInnerHtml(div), '<c></c>');
+
+    c.appendChild(b);
+    assert.equal(getVisualInnerHtml(div), '<c><b></b></c>');
+
+  });
+
 });

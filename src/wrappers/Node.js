@@ -184,6 +184,18 @@
     return df;
   }
 
+  function clearChildNodes(wrapper) {
+    if (wrapper.firstChild_ !== undefined) {
+      var child = wrapper.firstChild_;
+      while (child) {
+        var tmp = child;
+        child = child.nextSibling_;
+        tmp.parentNode_ = tmp.previousSibling_ = tmp.nextSibling_ = undefined;
+      }
+    }
+    wrapper.firstChild_ = wrapper.lastChild_ = undefined;
+  }
+
   function removeAllChildNodes(wrapper) {
     if (wrapper.invalidateShadowRenderer()) {
       var childWrapper = wrapper.firstChild;
@@ -325,6 +337,7 @@
 
       if (useNative) {
         ensureSameOwnerDocument(this, childWrapper);
+        clearChildNodes(this);
         originalInsertBefore.call(this.impl, unwrap(childWrapper), refNode);
       } else {
         if (!previousNode)
@@ -402,6 +415,7 @@
         childWrapper.previousSibling_ = childWrapper.nextSibling_ =
             childWrapper.parentNode_ = undefined;
       } else {
+        clearChildNodes(this);
         removeChildOriginalHelper(this.impl, childNode);
       }
 
@@ -467,6 +481,7 @@
         }
       } else {
         ensureSameOwnerDocument(this, newChildWrapper);
+        clearChildNodes(this);
         originalReplaceChild.call(this.impl, unwrap(newChildWrapper),
                                   oldChildNode);
       }
@@ -559,6 +574,7 @@
           this.appendChild(textNode);
         }
       } else {
+        clearChildNodes(this);
         this.impl.textContent = textContent;
       }
 
