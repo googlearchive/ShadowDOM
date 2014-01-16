@@ -80,4 +80,25 @@ suite('HTMLElement', function() {
     assert.equal(div.offsetWidth, 120);
   });
 
+  test('script innerHTML', function() {
+    var script = document.createElement('script');
+    var html = '<x>{{y}}</x>';
+    script.innerHTML = html;
+    assert.equal(script.innerHTML, html);
+  });
+
+  test('script textContent', function() {
+    var script = document.createElement('script');
+    var html = '<x>{{y}}</x>';
+    script.innerHTML = html;
+    assert.equal(script.textContent, html);
+  });
+
+  test('comment innerHTML', function() {
+    var div = document.createElement('div');
+    var comment = document.createComment('&\u00A0<>"');
+    div.appendChild(comment);
+    assert.equal(div.innerHTML, '<!--&\u00A0<>"-->');
+  });
+
 });
