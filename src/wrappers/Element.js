@@ -19,12 +19,16 @@
 
   var OriginalElement = window.Element;
 
-  var matchesName = oneOf(OriginalElement.prototype, [
-    'matches',
+  var matchesNames = [
+    'matches',  // needs to come first.
     'mozMatchesSelector',
     'msMatchesSelector',
     'webkitMatchesSelector',
-  ]);
+  ].filter(function(name) {
+    return OriginalElement.prototype[name];
+  });
+
+  var matchesName = matchesNames[0];
 
   var originalMatches = OriginalElement.prototype[matchesName];
 
@@ -88,11 +92,13 @@
     }
   });
 
-  if (matchesName != "matches") {
-    Element.prototype[matchesName] = function(selector) {
-      return this.matches(selector);
-    };
-  }
+  matchesNames.forEach(function(name) {
+    if (name !== 'matches') {
+      Element.prototype[name] = function(selector) {
+        return this.matches(selector);
+      };
+    }
+  });
 
   if (OriginalElement.prototype.webkitCreateShadowRoot) {
     Element.prototype.webkitCreateShadowRoot =
@@ -131,6 +137,6 @@
 
   // TODO(arv): Export setterDirtiesAttribute and apply it to more bindings
   // that reflect attributes.
-  scope.matchesName = matchesName;
+  scope.matchesNames = matchesNames;
   scope.wrappers.Element = Element;
 })(window.ShadowDOMPolyfill);
