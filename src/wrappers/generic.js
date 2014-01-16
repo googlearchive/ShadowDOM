@@ -16,11 +16,9 @@
   mixin(DocumentFragment.prototype, SelectorsInterface);
   mixin(DocumentFragment.prototype, GetElementsByInterface);
 
-  var Text = registerObject(document.createTextNode(''));
   var Comment = registerObject(document.createComment(''));
 
   scope.wrappers.Comment = Comment;
   scope.wrappers.DocumentFragment = DocumentFragment;
-  scope.wrappers.Text = Text;
 
 })(window.ShadowDOMPolyfill);
