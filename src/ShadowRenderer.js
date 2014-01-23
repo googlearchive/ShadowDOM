@@ -190,10 +190,18 @@
     if (!(node instanceof Element))
       return false;
 
+    // The native matches function in IE9 does not correctly work with elements
+    // that are not in the document.
+    // TODO(arv): Implement matching in JS.
+    // https://github.com/Polymer/ShadowDOM/issues/361
+    if (select === '*' || select === node.localName)
+      return true;
+
     // TODO(arv): This does not seem right. Need to check for a simple selector.
     if (!selectorMatchRegExp.test(select))
       return false;
 
+    // TODO(arv): This no longer matches the spec.
     if (select[0] === ':' && !allowedPseudoRegExp.test(select))
       return false;
 

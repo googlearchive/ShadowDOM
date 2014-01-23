@@ -274,7 +274,7 @@
      * @private
      */
     this.previousSibling_ = undefined;
-  };
+  }
 
   var OriginalDocumentFragment = window.DocumentFragment;
   var originalAppendChild = OriginalNode.prototype.appendChild;
