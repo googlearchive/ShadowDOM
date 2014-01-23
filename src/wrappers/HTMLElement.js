@@ -134,6 +134,9 @@
     }
   }
 
+  // IE11 does not have MSIE in the user agent string.
+  var oldIe = /MSIE/.test(navigator.userAgent);
+
   var OriginalHTMLElement = window.HTMLElement;
 
   function HTMLElement(node) {
@@ -147,6 +150,17 @@
       return getInnerHTML(this);
     },
     set innerHTML(value) {
+      // IE9 does not handle set innerHTML correctly on plaintextParents. It
+      // creates element children. For example
+      //
+      //   scriptElement.innerHTML = '<a>test</a>'
+      //
+      // Creates a single HTMLAnchorElement child.
+      if (oldIe && plaintextParents[this.localName]) {
+        this.textContent = value;
+        return;
+      }
+
       var removedNodes = snapshotNodeList(this.childNodes);
 
       if (this.invalidateShadowRenderer())
