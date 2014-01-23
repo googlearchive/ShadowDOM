@@ -8,6 +8,14 @@ suite('Range', function() {
 
   var wrap = ShadowDOMPolyfill.wrap;
 
+  var div;
+
+  teardown(function() {
+    if (div && div.parentNode)
+      div.parentNode.removeChild(div);
+    div = undefined;
+  });
+
   test('instanceof', function() {
     var range = document.createRange();
     assert.instanceOf(range, Range);
@@ -53,6 +61,17 @@ suite('Range', function() {
 
     assert.isTrue('startOffset' in range);
     assert.isFalse(range.hasOwnProperty('startOffset'));
+  });
+
+  test('toString', function() {
+    var range = document.createRange();
+    div = document.createElement('div');
+    document.body.appendChild(div);
+    div.innerHTML = '<a>a</a><b>b</b><c>c</c>';
+    var a = div.firstChild;
+    var b = a.nextSibling;
+    range.selectNode(b);
+    assert.equal(range.toString(), 'b');
   });
 
 });

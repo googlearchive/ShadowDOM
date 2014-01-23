@@ -48,6 +48,7 @@
     'src/wrappers/ShadowRoot.js',
     'src/ShadowRenderer.js',
     'src/wrappers/elements-with-form-property.js',
+    'src/wrappers/Selection.js',
     'src/wrappers/Document.js',
     'src/wrappers/Window.js',
     'src/wrappers/override-constructors.js'

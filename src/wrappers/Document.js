@@ -8,6 +8,7 @@
   var GetElementsByInterface = scope.GetElementsByInterface;
   var Node = scope.wrappers.Node;
   var ParentNodeInterface = scope.ParentNodeInterface;
+  var Selection = scope.wrappers.Selection;
   var SelectorsInterface = scope.SelectorsInterface;
   var ShadowRoot = scope.wrappers.ShadowRoot;
   var defineWrapGetter = scope.defineWrapGetter;
@@ -16,9 +17,10 @@
   var matchesNames = scope.matchesNames;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
+  var renderAllPending = scope.renderAllPending;
+  var rewrap = scope.rewrap;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
-  var rewrap = scope.rewrap;
   var wrapEventTargetMethods = scope.wrapEventTargetMethods;
   var wrapNodeList = scope.wrapNodeList;
 
@@ -55,7 +57,7 @@
     'createEventNS',
     'createRange',
     'createTextNode',
-    'getElementById',
+    'getElementById'
   ].forEach(wrapMethod);
 
   var originalAdoptNode = document.adoptNode;
@@ -82,6 +84,7 @@
   }
 
   var originalImportNode = document.importNode;
+  var originalGetSelection = document.getSelection;
 
   mixin(Document.prototype, {
     adoptNode: function(node) {
@@ -103,6 +106,10 @@
         }
       }
       return clone;
+    },
+    getSelection: function() {
+      renderAllPending();
+      return new Selection(originalGetSelection.call(unwrap(this)));
     }
   });
 
@@ -239,6 +246,7 @@
     'createTextNode',
     'elementFromPoint',
     'getElementById',
+    'getSelection',
   ]);
 
   mixin(Document.prototype, GetElementsByInterface);

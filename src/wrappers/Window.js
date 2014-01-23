@@ -6,29 +6,34 @@
   'use strict';
 
   var EventTarget = scope.wrappers.EventTarget;
+  var Selection = scope.wrappers.Selection;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
+  var renderAllPending = scope.renderAllPending;
   var unwrap = scope.unwrap;
   var unwrapIfNeeded = scope.unwrapIfNeeded;
   var wrap = scope.wrap;
-  var renderAllPending = scope.renderAllPending;
 
   var OriginalWindow = window.Window;
+  var originalGetComputedStyle = window.getComputedStyle;
+  var originalGetSelection = window.getSelection;
 
   function Window(impl) {
     EventTarget.call(this, impl);
   }
   Window.prototype = Object.create(EventTarget.prototype);
 
-  var originalGetComputedStyle = window.getComputedStyle;
   OriginalWindow.prototype.getComputedStyle = function(el, pseudo) {
-    renderAllPending();
-    return originalGetComputedStyle.call(this || window, unwrapIfNeeded(el),
-                                         pseudo);
+    return wrap(this || window).getComputedStyle(unwrapIfNeeded(el), pseudo);
+  };
+
+  OriginalWindow.prototype.getSelection = function() {
+    return wrap(this || window).getSelection();
   };
 
   // Work around for https://bugzilla.mozilla.org/show_bug.cgi?id=943065
   delete window.getComputedStyle;
+  delete window.getSelection;
 
   ['addEventListener', 'removeEventListener', 'dispatchEvent'].forEach(
       function(name) {
@@ -43,9 +48,14 @@
 
   mixin(Window.prototype, {
     getComputedStyle: function(el, pseudo) {
+      renderAllPending();
       return originalGetComputedStyle.call(unwrap(this), unwrapIfNeeded(el),
                                            pseudo);
-    }
+    },
+    getSelection: function() {
+      renderAllPending();
+      return new Selection(originalGetSelection.call(unwrap(this)));
+    },
   });
 
   registerWrapper(OriginalWindow, Window);

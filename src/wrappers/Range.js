@@ -75,6 +75,9 @@
     },
     intersectsNode: function(node) {
       return this.impl.intersectsNode(unwrapIfNeeded(node));
+    },
+    toString: function() {
+      return this.impl.toString();
     }
   };
 

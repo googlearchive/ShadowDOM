@@ -112,6 +112,7 @@ var modules = [
   'Range.js',
   'SVGElement.js',
   'SVGElementInstance.js',
+  'Selection.js',
   'ShadowRoot.js',
   'Text.js',
   'Window.js',
