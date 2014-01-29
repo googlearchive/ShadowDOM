@@ -228,6 +228,13 @@
     return p && p.invalidateShadowRenderer();
   }
 
+  function cleanupNodes(nodes) {
+    for (var i = 0, n; i < nodes.length; i++) {
+      n = nodes[i];
+      n.parentNode.removeChild(n);
+    }
+  }
+
   var OriginalNode = window.Node;
 
   /**
@@ -629,6 +636,43 @@
       // This only wraps, it therefore only operates on the composed DOM and not
       // the logical DOM.
       return originalCompareDocumentPosition.call(this.impl, unwrap(otherNode));
+    },
+
+    normalize: function() {
+      var nodes = snapshotNodeList(this.childNodes);
+      var remNodes = [];
+      var s = '';
+      var modNode;
+
+      for (var i = 0, n; i < nodes.length; i++) {
+        n = nodes[i];
+        if (n.nodeType === Node.TEXT_NODE) {
+          if (!modNode && !n.data.length)
+            this.removeNode(n);
+          else if (!modNode)
+            modNode = n;
+          else {
+            s += n.data;
+            remNodes.push(n);
+          }
+        } else {
+          if (modNode && remNodes.length) {
+            modNode.data += s;
+            cleanUpNodes(remNodes);
+          }
+          remNodes = [];
+          s = '';
+          modNode = null;
+          if (n.childNodes.length)
+            n.normalize();
+        }
+      }
+
+      // handle case where >1 text nodes are the last children
+      if (modNode && remNodes.length) {
+        modNode.data += s;
+        cleanupNodes(remNodes);
+      }
     }
   });
 

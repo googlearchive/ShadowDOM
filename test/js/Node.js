@@ -315,4 +315,48 @@ suite('Node', function() {
     assert.equal(div.textContent, 'abef');
   });
 
+  test('normalize', function() {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode('foo\n'));
+    var span = document.createElement('span');
+    span.appendChild(document.createTextNode('buzz'));
+    span.appendChild(document.createTextNode('quux'));
+    div.appendChild(span);
+    div.appendChild(document.createTextNode('bar\n'));
+    assert.equal(div.textContent, 'foo\nbuzzquuxbar\n');
+
+    div.normalize();
+
+    assert.equal(div.textContent, 'foo\nbuzzquuxbar\n');
+    assert.equal(div.childNodes.length, 3);
+    assert.equal(div.firstChild.textContent, 'foo\n');
+    assert.equal(div.firstChild.nextSibling, span);
+    assert.equal(span.childNodes.length, 1);
+    assert.equal(span.firstChild.textContent, 'buzzquux');
+    assert.equal(span.nextSibling, div.lastChild);
+    assert.equal(div.lastChild.textContent, 'bar\n');
+
+  });
+
+  test('normalize with shadowroot', function() {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode('foo\n'));
+    var sr = div.createShadowRoot();
+    sr.appendChild(document.createTextNode('buzz'));
+    sr.appendChild(document.createTextNode('quux'));
+    div.appendChild(document.createTextNode('bar\n'));
+    assert.equal(div.textContent, 'foo\nbar\n');
+    assert.equal(sr.textContent, 'buzzquux');
+
+    div.normalize();
+
+    assert.equal(div.textContent, 'foo\nbar\n');
+    assert.equal(sr.textContent, 'buzzquux');
+    assert.equal(div.childNodes.length, 1);
+    assert.equal(div.firstChild.textContent, 'foo\nbar\n');
+    assert.equal(sr.childNodes.length, 2);
+    assert.equal(sr.firstChild.textContent, 'buzz');
+    assert.equal(sr.firstChild.nextSibling.textContent, 'quux');
+  });
+
 });
