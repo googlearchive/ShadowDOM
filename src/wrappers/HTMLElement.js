@@ -15,6 +15,7 @@
   var snapshotNodeList = scope.snapshotNodeList;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
+  var wrappers = scope.wrappers;
 
   /////////////////////////////////////////////////////////////////////////////
   // innerHTML and outerHTML
@@ -116,6 +117,9 @@
   }
 
   function getInnerHTML(node) {
+    if (node instanceof wrappers.HTMLTemplateElement)
+      node = node.content;
+
     var s = '';
     for (var child = node.firstChild; child; child = child.nextSibling) {
       s += getOuterHTML(child, node);
@@ -138,6 +142,7 @@
   var oldIe = /MSIE/.test(navigator.userAgent);
 
   var OriginalHTMLElement = window.HTMLElement;
+  var OriginalHTMLTemplateElement = window.HTMLTemplateElement;
 
   function HTMLElement(node) {
     Element.call(this, node);
@@ -145,8 +150,6 @@
   HTMLElement.prototype = Object.create(Element.prototype);
   mixin(HTMLElement.prototype, {
     get innerHTML() {
-      // TODO(arv): This should fallback to this.impl.innerHTML if there
-      // are no shadow trees below or above the context node.
       return getInnerHTML(this);
     },
     set innerHTML(value) {
@@ -163,10 +166,22 @@
 
       var removedNodes = snapshotNodeList(this.childNodes);
 
-      if (this.invalidateShadowRenderer())
-        setInnerHTML(this, value, this.tagName);
-      else
+      if (this.invalidateShadowRenderer()) {
+        if (this instanceof wrappers.HTMLTemplateElement)
+          setInnerHTML(this.content, value);
+        else
+          setInnerHTML(this, value, this.tagName);
+
+      // If we have a non native template element we need to handle this
+      // manually since setting impl.innerHTML would add the html as direct
+      // children and not be moved over to the content fragment.
+      } else if (!OriginalHTMLTemplateElement &&
+                 this instanceof wrappers.HTMLTemplateElement) {
+        setInnerHTML(this.content, value);
+      } else {
         this.impl.innerHTML = value;
+      }
+
       var addedNodes = snapshotNodeList(this.childNodes);
 
       enqueueMutation(this, 'childList', {

@@ -6,10 +6,8 @@
   'use strict';
 
   var HTMLElement = scope.wrappers.HTMLElement;
-  var getInnerHTML = scope.getInnerHTML;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
-  var setInnerHTML = scope.setInnerHTML;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
 
@@ -61,13 +59,6 @@
         return wrap(this.impl.content);
       return contentTable.get(this);
     },
-
-    get innerHTML() {
-      return getInnerHTML(this.content);
-    },
-    set innerHTML(value) {
-      setInnerHTML(this.content, value);
-    }
 
     // TODO(arv): cloneNode needs to clone content.
 
