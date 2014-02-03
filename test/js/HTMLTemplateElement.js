@@ -36,6 +36,18 @@ suite('HTML Template Element', function() {
     var template = div.firstChild;
 
     assert.equal(template.innerHTML, '<a></a><b></b>');
+
+    assert.equal(div.innerHTML, '<template><a></a><b></b></template>');
+  });
+
+  test('get outerHTML', function() {
+    var div = document.createElement('div');
+    div.innerHTML = '<template><a></a><b></b></template>';
+    var template = div.firstChild;
+
+    assert.equal(template.outerHTML, '<template><a></a><b></b></template>');
+    assert.equal(div.outerHTML,
+                 '<div><template><a></a><b></b></template></div>');
   });
 
   test('set innerHTML', function() {
