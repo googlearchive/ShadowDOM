@@ -17,6 +17,7 @@
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
   var wrapIfNeeded = scope.wrapIfNeeded;
+  var wrappers = scope.wrappers;
 
   function assertIsNodeWrapper(node) {
     assert(node instanceof Node);
@@ -233,6 +234,34 @@
       n = nodes[i];
       n.parentNode.removeChild(n);
     }
+  }
+
+  var originalImportNode = document.importNode;
+  var originalCloneNode = window.Node.prototype.cloneNode;
+
+  function cloneNode(node, deep, opt_doc) {
+    var clone;
+    if (opt_doc)
+      clone = wrap(originalImportNode.call(opt_doc, node.impl, false));
+    else
+      clone = wrap(originalCloneNode.call(node.impl, false));
+
+    if (deep) {
+      for (var child = node.firstChild; child; child = child.nextSibling) {
+        clone.appendChild(cloneNode(child, true, opt_doc));
+      }
+
+      if (node instanceof wrappers.HTMLTemplateElement) {
+        var cloneContent = clone.content;
+        for (var child = node.content.firstChild;
+             child;
+             child = child.nextSibling) {
+         cloneContent.appendChild(cloneNode(child, true, opt_doc));
+        }
+      }
+    }
+    // TODO(arv): Some HTML elements also clone other data like value.
+    return clone;
   }
 
   var OriginalNode = window.Node;
@@ -607,14 +636,7 @@
     },
 
     cloneNode: function(deep) {
-      var clone = wrap(this.impl.cloneNode(false));
-      if (deep) {
-        for (var child = this.firstChild; child; child = child.nextSibling) {
-          clone.appendChild(child.cloneNode(true));
-        }
-      }
-      // TODO(arv): Some HTML elements also clone other data like value.
-      return clone;
+      return cloneNode(this, deep);
     },
 
     contains: function(child) {
@@ -692,5 +714,6 @@
   scope.nodesWereRemoved = nodesWereRemoved;
   scope.snapshotNodeList = snapshotNodeList;
   scope.wrappers.Node = Node;
+  scope.cloneNode = cloneNode;
 
 })(window.ShadowDOMPolyfill);

@@ -117,4 +117,31 @@ suite('HTML Template Element', function() {
     assert.equal(count, 0);
   });
 
+  test('cloneNode', function() {
+    var div = document.createElement('div');
+    div.innerHTML = '<template><a></a><b></b></template>';
+    var template = div.firstChild;
+
+    var clone = template.cloneNode(true);
+    assert.equal(clone.outerHTML, '<template><a></a><b></b></template>');
+
+    clone = div.cloneNode(true);
+    assert.equal(clone.outerHTML,
+                 '<div><template><a></a><b></b></template></div>');
+  });
+
+  test('importNode', function() {
+    var doc2 = document.implementation.createHTMLDocument('');
+    var div = doc2.createElement('div');
+    div.innerHTML = '<template><a></a><b></b></template>';
+    var template = div.firstChild;
+
+    var clone = document.importNode(template, true);
+    assert.equal(clone.outerHTML, '<template><a></a><b></b></template>');
+
+    clone = document.importNode(div, true);
+    assert.equal(clone.outerHTML,
+                 '<div><template><a></a><b></b></template></div>');
+  });
+
 });
