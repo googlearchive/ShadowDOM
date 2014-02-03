@@ -11,6 +11,7 @@
   var Selection = scope.wrappers.Selection;
   var SelectorsInterface = scope.SelectorsInterface;
   var ShadowRoot = scope.wrappers.ShadowRoot;
+  var cloneNode = scope.cloneNode;
   var defineWrapGetter = scope.defineWrapGetter;
   var elementFromPoint = scope.elementFromPoint;
   var forwardMethodsToWrapper = scope.forwardMethodsToWrapper;
@@ -83,7 +84,6 @@
       doc.adoptNode(oldShadowRoot);
   }
 
-  var originalImportNode = document.importNode;
   var originalGetSelection = document.getSelection;
 
   mixin(Document.prototype, {
@@ -97,15 +97,7 @@
       return elementFromPoint(this, this, x, y);
     },
     importNode: function(node, deep) {
-      // We need to manually walk the tree to ensure we do not include rendered
-      // shadow trees.
-      var clone = wrap(originalImportNode.call(this.impl, unwrap(node), false));
-      if (deep) {
-        for (var child = node.firstChild; child; child = child.nextSibling) {
-          clone.appendChild(this.importNode(child, true));
-        }
-      }
-      return clone;
+      return cloneNode(node, deep, this.impl);
     },
     getSelection: function() {
       renderAllPending();
