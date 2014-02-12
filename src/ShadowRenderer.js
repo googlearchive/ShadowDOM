@@ -116,7 +116,10 @@
   }
 
   function getDistributedChildNodes(insertionPoint) {
-    return distributedChildNodesTable.get(insertionPoint);
+    var rv = distributedChildNodesTable.get(insertionPoint);
+    if (!rv)
+      distributedChildNodesTable.set(insertionPoint, rv = []);
+    return rv;
   }
 
   function getChildNodesSnapshot(node) {
