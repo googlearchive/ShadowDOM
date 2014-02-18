@@ -223,4 +223,9 @@ suite('HTMLContentElement', function() {
     host.offsetHeight;
     assert.equal(unwrap(host).innerHTML, '<b>fallback</b>');
   });
+
+  test('getDistributedNodes outside shadow dom', function() {
+    var content = document.createElement('content');
+    assert.deepEqual(content.getDistributedNodes(), []);
+  });
 });
