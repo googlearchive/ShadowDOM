@@ -22,7 +22,7 @@
     'HTMLObjectElement',
     // HTMLOptionElement is handled in HTMLOptionElement.js
     'HTMLOutputElement',
-    'HTMLSelectElement',
+    // HTMLSelectElement is handled in HTMLSelectElement.js
     'HTMLTextAreaElement',
   ];
 
