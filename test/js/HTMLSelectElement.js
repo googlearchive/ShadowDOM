@@ -13,4 +13,54 @@ suite('HTMLSelectElement', function() {
     assert.equal(select.form, form);
   });
 
+  test('add', function() {
+    var select = document.createElement('select');
+
+    var a = document.createElement('option');
+    a.text = 'a';
+    select.add(a);
+    assert.equal(select.firstChild, a);
+
+    var b = document.createElement('option');
+    b.text = 'b';
+    select.add(b, a);
+    assert.equal(select.firstChild, b);
+    assert.equal(select.lastChild, a);
+
+    // https://code.google.com/p/chromium/issues/detail?id=345345
+    if (/WebKit/.test(navigator.userAgent))
+      return;
+
+    var c = document.createElement('option');
+    c.text = 'c';
+    select.add(c, 1);
+    assert.equal(select.firstChild, b);
+    assert.equal(b.nextSibling, c);
+    assert.equal(select.lastChild, a);
+  });
+
+  test('remove', function() {
+    var select = document.createElement('select');
+
+    var a = document.createElement('option');
+    a.text = 'a';
+    select.appendChild(a);
+
+    var b = document.createElement('option');
+    b.text = 'b';
+    select.appendChild(b);
+
+    var c = document.createElement('option');
+    c.text = 'c';
+    select.appendChild(c);
+
+    select.remove(a);
+    assert.equal(select.firstChild, b);
+    assert.equal(select.lastChild, c);
+
+    select.remove(1);
+    assert.equal(select.firstChild, b);
+    assert.equal(select.lastChild, b);
+  });
+
 });

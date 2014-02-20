@@ -37,6 +37,7 @@
     'src/wrappers/HTMLMediaElement.js',
     'src/wrappers/HTMLAudioElement.js',
     'src/wrappers/HTMLOptionElement.js',
+    'src/wrappers/HTMLSelectElement.js',
     'src/wrappers/HTMLUnknownElement.js',
     'src/wrappers/SVGElement.js',
     'src/wrappers/SVGUseElement.js',
