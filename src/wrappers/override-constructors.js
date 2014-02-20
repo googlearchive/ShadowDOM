@@ -11,38 +11,44 @@
   // for.
   var elements = {
     'a': 'HTMLAnchorElement',
-
     // Do not create an applet element by default since it shows a warning in
     // IE.
     // https://github.com/Polymer/polymer/issues/217
     // 'applet': 'HTMLAppletElement',
-
     'area': 'HTMLAreaElement',
-    'br': 'HTMLBRElement',
+    'audio': 'HTMLAudioElement',
     'base': 'HTMLBaseElement',
     'body': 'HTMLBodyElement',
+    'br': 'HTMLBRElement',
     'button': 'HTMLButtonElement',
+    'canvas': 'HTMLCanvasElement',
+    'caption': 'HTMLTableCaptionElement',
+    'col': 'HTMLTableColElement',
     // 'command': 'HTMLCommandElement',  // Not fully implemented in Gecko.
-    'dl': 'HTMLDListElement',
-    'datalist': 'HTMLDataListElement',
+    'content': 'HTMLContentElement',
     'data': 'HTMLDataElement',
+    'datalist': 'HTMLDataListElement',
+    'del': 'HTMLModElement',
     'dir': 'HTMLDirectoryElement',
     'div': 'HTMLDivElement',
+    'dl': 'HTMLDListElement',
     'embed': 'HTMLEmbedElement',
     'fieldset': 'HTMLFieldSetElement',
     'font': 'HTMLFontElement',
     'form': 'HTMLFormElement',
     'frame': 'HTMLFrameElement',
     'frameset': 'HTMLFrameSetElement',
-    'hr': 'HTMLHRElement',
-    'head': 'HTMLHeadElement',
     'h1': 'HTMLHeadingElement',
+    'head': 'HTMLHeadElement',
+    'hr': 'HTMLHRElement',
     'html': 'HTMLHtmlElement',
     'iframe': 'HTMLIFrameElement',
+    'img': 'HTMLImageElement',
     'input': 'HTMLInputElement',
-    'li': 'HTMLLIElement',
+    'keygen': 'HTMLKeygenElement',
     'label': 'HTMLLabelElement',
     'legend': 'HTMLLegendElement',
+    'li': 'HTMLLIElement',
     'link': 'HTMLLinkElement',
     'map': 'HTMLMapElement',
     'marquee': 'HTMLMarqueeElement',
@@ -50,9 +56,8 @@
     'menuitem': 'HTMLMenuItemElement',
     'meta': 'HTMLMetaElement',
     'meter': 'HTMLMeterElement',
-    'del': 'HTMLModElement',
-    'ol': 'HTMLOListElement',
     'object': 'HTMLObjectElement',
+    'ol': 'HTMLOListElement',
     'optgroup': 'HTMLOptGroupElement',
     'option': 'HTMLOptionElement',
     'output': 'HTMLOutputElement',
@@ -63,23 +68,23 @@
     'q': 'HTMLQuoteElement',
     'script': 'HTMLScriptElement',
     'select': 'HTMLSelectElement',
+    'shadow': 'HTMLShadowElement',
     'source': 'HTMLSourceElement',
     'span': 'HTMLSpanElement',
     'style': 'HTMLStyleElement',
-    'time': 'HTMLTimeElement',
-    'caption': 'HTMLTableCaptionElement',
+    'table': 'HTMLTableElement',
+    'tbody': 'HTMLTableSectionElement',
     // WebKit and Moz are wrong:
     // https://bugs.webkit.org/show_bug.cgi?id=111469
     // https://bugzilla.mozilla.org/show_bug.cgi?id=848096
     // 'td': 'HTMLTableCellElement',
-    'col': 'HTMLTableColElement',
-    'table': 'HTMLTableElement',
-    'tr': 'HTMLTableRowElement',
-    'thead': 'HTMLTableSectionElement',
-    'tbody': 'HTMLTableSectionElement',
+    'template': 'HTMLTemplateElement',
     'textarea': 'HTMLTextAreaElement',
-    'track': 'HTMLTrackElement',
+    'thead': 'HTMLTableSectionElement',
+    'time': 'HTMLTimeElement',
     'title': 'HTMLTitleElement',
+    'tr': 'HTMLTableRowElement',
+    'track': 'HTMLTrackElement',
     'ul': 'HTMLUListElement',
     'video': 'HTMLVideoElement',
   };
@@ -99,8 +104,5 @@
   Object.getOwnPropertyNames(scope.wrappers).forEach(function(name) {
     window[name] = scope.wrappers[name]
   });
-
-  // Export for testing.
-  scope.knownElements = elements;
 
 })(window.ShadowDOMPolyfill);
