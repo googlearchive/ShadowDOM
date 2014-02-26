@@ -227,9 +227,12 @@
   var renderTimer;
 
   function renderAllPending() {
+    // TODO(arv): Order these in document order. That way we do not have to
+    // render something twice.
     for (var i = 0; i < pendingDirtyRenderers.length; i++) {
       pendingDirtyRenderers[i].render();
     }
+
     pendingDirtyRenderers = [];
   }
 
@@ -403,7 +406,8 @@
 
       if (isShadowHost(node)) {
         var renderer = getRendererForHost(node);
-        renderNode.skip = !renderer.dirty;
+        // renderNode.skip = !renderer.dirty;
+        renderer.invalidate();
         renderer.render(renderNode);
       } else {
         for (var child = node.firstChild; child; child = child.nextSibling) {
