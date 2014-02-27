@@ -190,7 +190,7 @@
       });
 
       nodesWereRemoved(removedNodes);
-      nodesWereAdded(addedNodes);
+      nodesWereAdded(addedNodes, this);
     },
 
     get outerHTML() {

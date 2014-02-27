@@ -11,6 +11,7 @@
   var Node = scope.wrappers.Node;
   var ShadowRoot = scope.wrappers.ShadowRoot;
   var assert = scope.assert;
+  var getTreeScope = scope.getTreeScope;
   var mixin = scope.mixin;
   var oneOf = scope.oneOf;
   var unwrap = scope.unwrap;
@@ -230,7 +231,11 @@
     // TODO(arv): Order these in document order. That way we do not have to
     // render something twice.
     for (var i = 0; i < pendingDirtyRenderers.length; i++) {
-      pendingDirtyRenderers[i].render();
+      var renderer = pendingDirtyRenderers[i];
+      var parentRenderer = renderer.parentRenderer;
+      if (parentRenderer && parentRenderer.dirty)
+        continue;
+      renderer.render();
     }
 
     pendingDirtyRenderers = [];
@@ -256,10 +261,9 @@
   }
 
   function getShadowRootAncestor(node) {
-    for (; node; node = node.parentNode) {
-      if (node instanceof ShadowRoot)
-        return node;
-    }
+    var root = getTreeScope(node).root;
+    if (root instanceof ShadowRoot)
+      return root;
     return null;
   }
 
@@ -376,6 +380,10 @@
       this.dirty = false;
     },
 
+    get parentRenderer() {
+      return getTreeScope(this.host).renderer;
+    },
+
     invalidate: function() {
       if (!this.dirty) {
         this.dirty = true;
@@ -406,8 +414,7 @@
 
       if (isShadowHost(node)) {
         var renderer = getRendererForHost(node);
-        // renderNode.skip = !renderer.dirty;
-        renderer.invalidate();
+        renderNode.skip = !renderer.dirty;
         renderer.render(renderNode);
       } else {
         for (var child = node.firstChild; child; child = child.nextSibling) {

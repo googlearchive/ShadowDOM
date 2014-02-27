@@ -6,6 +6,7 @@
   'use strict';
 
   var forwardMethodsToWrapper = scope.forwardMethodsToWrapper;
+  var getTreeScope = scope.getTreeScope;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
   var unwrap = scope.unwrap;
@@ -160,26 +161,9 @@
     return getInsertionParent(node);
   }
 
-  function rootOfNode(node) {
-    var p;
-    while (p = node.parentNode) {
-      node = p;
-    }
-    return node;
-  }
-
   function inSameTree(a, b) {
-    return rootOfNode(a) === rootOfNode(b);
+    return getTreeScope(a) === getTreeScope(b);
   }
-
-  function enclosedBy(a, b) {
-    if (a === b)
-      return true;
-    if (a instanceof wrappers.ShadowRoot)
-      return enclosedBy(rootOfNode(a.host), b);
-    return false;
-  }
-
 
   function dispatchOriginalEvent(originalEvent) {
     // Make sure this event is only dispatched once.
@@ -395,12 +379,12 @@
       if (eventPath) {
         var index = 0;
         var lastIndex = eventPath.length - 1;
-        var baseRoot = rootOfNode(currentTargetTable.get(this));
+        var baseRoot = getTreeScope(currentTargetTable.get(this));
 
         for (var i = 0; i <= lastIndex; i++) {
           var currentTarget = eventPath[i].currentTarget;
-          var currentRoot = rootOfNode(currentTarget);
-          if (enclosedBy(baseRoot, currentRoot) &&
+          var currentRoot = getTreeScope(currentTarget);
+          if (currentRoot.contains(baseRoot) &&
               // Make sure we do not add Window to the path.
               (i !== lastIndex || currentTarget instanceof wrappers.Node)) {
             nodeList[index++] = currentTarget;
