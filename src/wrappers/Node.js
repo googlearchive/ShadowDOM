@@ -1,19 +1,24 @@
-// Copyright 2012 The Polymer Authors. All rights reserved.
-// Use of this source code is goverened by a BSD-style
-// license that can be found in the LICENSE file.
+/**
+ * Copyright 2012 The Polymer Authors. All rights reserved.
+ * Use of this source code is goverened by a BSD-style
+ * license that can be found in the LICENSE file.
+ */
 
 (function(scope) {
   'use strict';
 
   var EventTarget = scope.wrappers.EventTarget;
   var NodeList = scope.wrappers.NodeList;
+  var TreeScope = scope.TreeScope;
   var assert = scope.assert;
   var defineWrapGetter = scope.defineWrapGetter;
   var enqueueMutation = scope.enqueueMutation;
+  var getTreeScope = scope.getTreeScope;
   var isWrapper = scope.isWrapper;
   var mixin = scope.mixin;
   var registerTransientObservers = scope.registerTransientObservers;
   var registerWrapper = scope.registerWrapper;
+  var setTreeScope = scope.setTreeScope;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
   var wrapIfNeeded = scope.wrapIfNeeded;
@@ -130,23 +135,27 @@
   }
 
   // http://dom.spec.whatwg.org/#node-is-inserted
-  function nodeWasAdded(node) {
+  function nodeWasAdded(node, treeScope) {
+    setTreeScope(node, treeScope);
     node.nodeIsInserted_();
   }
 
-  function nodesWereAdded(nodes) {
+  function nodesWereAdded(nodes, parent) {
+    var treeScope = getTreeScope(parent);
     for (var i = 0; i < nodes.length; i++) {
-      nodeWasAdded(nodes[i]);
+      nodeWasAdded(nodes[i], treeScope);
     }
   }
 
   // http://dom.spec.whatwg.org/#node-is-removed
   function nodeWasRemoved(node) {
-    // Nothing at this point in time.
+    setTreeScope(node, new TreeScope(node, null));
   }
 
   function nodesWereRemoved(nodes) {
-    // Nothing at this point in time.
+    for (var i = 0; i < nodes.length; i++) {
+      nodeWasRemoved(nodes[i]);
+    }
   }
 
   function ensureSameOwnerDocument(parent, child) {
@@ -265,7 +274,9 @@
   }
 
   function contains(self, child) {
-    // TODO(arv): Optimize using ownerDocument etc.
+    if (!child || getTreeScope(self) !== getTreeScope(child))
+      return false;
+
     for (var node = child; node; node = node.parentNode) {
       if (node === self)
         return true;
@@ -319,6 +330,8 @@
      * @private
      */
     this.previousSibling_ = undefined;
+
+    this.treeScope_ = undefined;
   }
 
   var OriginalDocumentFragment = window.DocumentFragment;
@@ -407,7 +420,7 @@
         previousSibling: previousNode
       });
 
-      nodesWereAdded(nodes);
+      nodesWereAdded(nodes, this);
 
       return childWrapper;
     },
@@ -539,7 +552,7 @@
       });
 
       nodeWasRemoved(oldChildWrapper);
-      nodesWereAdded(nodes);
+      nodesWereAdded(nodes, this);
 
       return oldChildWrapper;
     },
@@ -631,7 +644,7 @@
       });
 
       nodesWereRemoved(removedNodes);
-      nodesWereAdded(addedNodes);
+      nodesWereAdded(addedNodes, this);
     },
 
     get childNodes() {
@@ -706,12 +719,12 @@
   delete Node.prototype.querySelectorAll;
   Node.prototype = mixin(Object.create(EventTarget.prototype), Node.prototype);
 
+  scope.cloneNode = cloneNode;
   scope.nodeWasAdded = nodeWasAdded;
   scope.nodeWasRemoved = nodeWasRemoved;
   scope.nodesWereAdded = nodesWereAdded;
   scope.nodesWereRemoved = nodesWereRemoved;
   scope.snapshotNodeList = snapshotNodeList;
   scope.wrappers.Node = Node;
-  scope.cloneNode = cloneNode;
 
 })(window.ShadowDOMPolyfill);

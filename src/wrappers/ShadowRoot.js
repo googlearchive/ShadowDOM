@@ -6,8 +6,10 @@
   'use strict';
 
   var DocumentFragment = scope.wrappers.DocumentFragment;
+  var TreeScope = scope.TreeScope;
   var elementFromPoint = scope.elementFromPoint;
   var getInnerHTML = scope.getInnerHTML;
+  var getTreeScope = scope.getTreeScope;
   var mixin = scope.mixin;
   var rewrap = scope.rewrap;
   var setInnerHTML = scope.setInnerHTML;
@@ -25,6 +27,8 @@
     // createDocumentFragment associates the node with a wrapper
     // DocumentFragment instance. Override that.
     rewrap(node, this);
+
+    this.treeScope_ = new TreeScope(this, getTreeScope(hostWrapper));
 
     var oldShadowRoot = hostWrapper.shadowRoot;
     nextOlderShadowTreeTable.set(this, oldShadowRoot);

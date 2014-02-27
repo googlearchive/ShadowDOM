@@ -11,6 +11,7 @@
   var Selection = scope.wrappers.Selection;
   var SelectorsInterface = scope.SelectorsInterface;
   var ShadowRoot = scope.wrappers.ShadowRoot;
+  var TreeScope = scope.TreeScope;
   var cloneNode = scope.cloneNode;
   var defineWrapGetter = scope.defineWrapGetter;
   var elementFromPoint = scope.elementFromPoint;
@@ -29,6 +30,7 @@
 
   function Document(node) {
     Node.call(this, node);
+    this.treeScope_ = new TreeScope(this, null);
   }
   Document.prototype = Object.create(Node.prototype);
 
