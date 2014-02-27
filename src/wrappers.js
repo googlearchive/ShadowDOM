@@ -214,6 +214,8 @@ window.ShadowDOMPolyfill = {};
       enumerable: false,
       writable: true
     });
+    // Set it again. Some VMs optimizes objects that are used as prototypes.
+    wrapperConstructor.prototype = wrapperPrototype;
   }
 
   function isWrapperFor(wrapperConstructor, nativeConstructor) {
@@ -241,9 +243,9 @@ window.ShadowDOMPolyfill = {};
     function GeneratedWrapper(node) {
       superWrapperConstructor.call(this, node);
     }
-    GeneratedWrapper.prototype =
-        Object.create(superWrapperConstructor.prototype);
-    GeneratedWrapper.prototype.constructor = GeneratedWrapper;
+    var p = Object.create(superWrapperConstructor.prototype);
+    p.constructor = GeneratedWrapper;
+    GeneratedWrapper.prototype = p;
 
     return GeneratedWrapper;
   }
