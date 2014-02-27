@@ -264,6 +264,15 @@
     return clone;
   }
 
+  function contains(self, child) {
+    // TODO(arv): Optimize using ownerDocument etc.
+    for (var node = child; node; node = node.parentNode) {
+      if (node === self)
+        return true;
+    }
+    return false;
+  }
+
   var OriginalNode = window.Node;
 
   /**
@@ -640,18 +649,7 @@
     },
 
     contains: function(child) {
-      if (!child)
-        return false;
-
-      child = wrapIfNeeded(child);
-
-      // TODO(arv): Optimize using ownerDocument etc.
-      if (child === this)
-        return true;
-      var parentNode = child.parentNode;
-      if (!parentNode)
-        return false;
-      return this.contains(parentNode);
+      return contains(this, wrapIfNeeded(child));
     },
 
     compareDocumentPosition: function(otherNode) {
