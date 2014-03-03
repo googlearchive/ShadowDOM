@@ -10,7 +10,8 @@
   var UIEvent = scope.wrappers.UIEvent;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
-  var unwrap = scope.unwrap;
+  var setWrapper = scope.setWrapper;
+  var unsafeUnwrap = scope.unsafeUnwrap;
   var wrap = scope.wrap;
 
   // TouchEvent is WebKit/Blink only.
@@ -34,12 +35,12 @@
   }
 
   function Touch(impl) {
-    this.impl = impl;
+    setWrapper(impl, this);
   }
 
   Touch.prototype = {
     get target() {
-      return wrap(this.impl.target);
+      return wrap(unsafeUnwrap(this).target);
     }
   };
 
@@ -63,7 +64,7 @@
     'webkitForce'
   ].forEach(function(name) {
     descr.get = function() {
-      return this.impl[name];
+      return unsafeUnwrap(this)[name];
     };
     Object.defineProperty(Touch.prototype, name, descr);
   });
@@ -96,15 +97,15 @@
 
   mixin(TouchEvent.prototype, {
     get touches() {
-      return wrapTouchList(unwrap(this).touches);
+      return wrapTouchList(unsafeUnwrap(this).touches);
     },
 
     get targetTouches() {
-      return wrapTouchList(unwrap(this).targetTouches);
+      return wrapTouchList(unsafeUnwrap(this).targetTouches);
     },
 
     get changedTouches() {
-      return wrapTouchList(unwrap(this).changedTouches);
+      return wrapTouchList(unsafeUnwrap(this).changedTouches);
     },
 
     initTouchEvent: function() {

@@ -8,6 +8,7 @@
   var HTMLCollection = scope.wrappers.HTMLCollection;
   var NodeList = scope.wrappers.NodeList;
   var getTreeScope = scope.getTreeScope;
+  var unsafeUnwrap = scope.unsafeUnwrap;
   var wrap = scope.wrap;
 
   var originalDocumentQuerySelector = document.querySelector;
@@ -37,7 +38,7 @@
       }
       result[index++] = wrappedItem;
     }
-    
+
     return index;
   }
 
@@ -98,7 +99,7 @@
   // http://www.w3.org/TR/css3-selectors/#simple-selectors
 
   function querySelectorAllFiltered (p, index, result, selector) {
-    var target = this.impl;
+    var target = unsafeUnwrap(this);
     var list;
     var root = getTreeScope(this).root;
     if (root instanceof scope.wrappers.ShadowRoot) {
@@ -120,7 +121,7 @@
 
   var SelectorsInterface = {
     querySelector: function(selector) {
-      var target = this.impl;
+      var target = unsafeUnwrap(this);
       var wrappedItem;
       var root = getTreeScope(this).root;
       if (root instanceof scope.wrappers.ShadowRoot) {
@@ -165,7 +166,7 @@
   };
 
   function getElementsByTagNameFiltered (p, index, result, localName, lowercase) {
-    var target = this.impl;
+    var target = unsafeUnwrap(this);
     var list;
     var root = getTreeScope(this).root;
     if (root instanceof scope.wrappers.ShadowRoot) {
@@ -186,7 +187,7 @@
   }
 
   function getElementsByTagNameNSFiltered (p, index, result, ns, localName) {
-    var target = this.impl;
+    var target = unsafeUnwrap(this);
     var list;
     var root = getTreeScope(this).root;
     if (root instanceof scope.wrappers.ShadowRoot) {

@@ -21,6 +21,8 @@
   var registerWrapper = scope.registerWrapper;
   var renderAllPending = scope.renderAllPending;
   var rewrap = scope.rewrap;
+  var setWrapper = scope.setWrapper;
+  var unsafeUnwrap = scope.unsafeUnwrap;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
   var wrapEventTargetMethods = scope.wrapEventTargetMethods;
@@ -47,7 +49,7 @@
   function wrapMethod(name) {
     var original = document[name];
     Document.prototype[name] = function() {
-      return wrap(original.apply(this.impl, arguments));
+      return wrap(original.apply(unsafeUnwrap(this), arguments));
     };
   }
 
@@ -66,7 +68,7 @@
   var originalAdoptNode = document.adoptNode;
 
   function adoptNodeNoRemove(node, doc) {
-    originalAdoptNode.call(doc.impl, unwrap(node));
+    originalAdoptNode.call(unsafeUnwrap(doc), unwrap(node));
     adoptSubtree(node, doc);
   }
 
@@ -99,7 +101,7 @@
       return elementFromPoint(this, this, x, y);
     },
     importNode: function(node, deep) {
-      return cloneNode(node, deep, this.impl);
+      return cloneNode(node, deep, unsafeUnwrap(this));
     },
     getSelection: function() {
       renderAllPending();
@@ -194,7 +196,7 @@
             return document.createElement(tagName);
           }
         }
-        this.impl = node;
+        setWrapper(node, this);
       }
       CustomElementConstructor.prototype = prototype;
       CustomElementConstructor.prototype.constructor = CustomElementConstructor;
@@ -291,20 +293,20 @@
   ]);
 
   function DOMImplementation(impl) {
-    this.impl = impl;
+    setWrapper(impl, this);
   }
 
   function wrapImplMethod(constructor, name) {
     var original = document.implementation[name];
     constructor.prototype[name] = function() {
-      return wrap(original.apply(this.impl, arguments));
+      return wrap(original.apply(unsafeUnwrap(this), arguments));
     };
   }
 
   function forwardImplMethod(constructor, name) {
     var original = document.implementation[name];
     constructor.prototype[name] = function() {
-      return original.apply(this.impl, arguments);
+      return original.apply(unsafeUnwrap(this), arguments);
     };
   }
 

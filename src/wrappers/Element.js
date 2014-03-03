@@ -16,7 +16,7 @@
   var mixin = scope.mixin;
   var oneOf = scope.oneOf;
   var registerWrapper = scope.registerWrapper;
-  var unwrap = scope.unwrap;
+  var unsafeUnwrap = scope.unsafeUnwrap;
   var wrappers = scope.wrappers;
 
   var OriginalElement = window.Element;
@@ -65,7 +65,7 @@
   mixin(Element.prototype, {
     createShadowRoot: function() {
       var newShadowRoot = new wrappers.ShadowRoot(this);
-      this.impl.polymerShadowRoot_ = newShadowRoot;
+      unsafeUnwrap(this).polymerShadowRoot_ = newShadowRoot;
 
       var renderer = scope.getRendererForHost(this);
       renderer.invalidate();
@@ -74,40 +74,40 @@
     },
 
     get shadowRoot() {
-      return this.impl.polymerShadowRoot_ || null;
+      return unsafeUnwrap(this).polymerShadowRoot_ || null;
     },
 
     // getDestinationInsertionPoints added in ShadowRenderer.js
 
     setAttribute: function(name, value) {
-      var oldValue = this.impl.getAttribute(name);
-      this.impl.setAttribute(name, value);
+      var oldValue = unsafeUnwrap(this).getAttribute(name);
+      unsafeUnwrap(this).setAttribute(name, value);
       enqueAttributeChange(this, name, oldValue);
       invalidateRendererBasedOnAttribute(this, name);
     },
 
     removeAttribute: function(name) {
-      var oldValue = this.impl.getAttribute(name);
-      this.impl.removeAttribute(name);
+      var oldValue = unsafeUnwrap(this).getAttribute(name);
+      unsafeUnwrap(this).removeAttribute(name);
       enqueAttributeChange(this, name, oldValue);
       invalidateRendererBasedOnAttribute(this, name);
     },
 
     matches: function(selector) {
-      return originalMatches.call(this.impl, selector);
+      return originalMatches.call(unsafeUnwrap(this), selector);
     },
 
     get classList() {
       var list = classListTable.get(this);
       if (!list) {
         classListTable.set(this,
-            list = new DOMTokenList(unwrap(this).classList, this));
+            list = new DOMTokenList(unsafeUnwrap(this).classList, this));
       }
       return list;
     },
 
     get className() {
-      return unwrap(this).className;
+      return unsafeUnwrap(this).className;
     },
 
     set className(v) {
@@ -115,7 +115,7 @@
     },
 
     get id() {
-      return unwrap(this).id;
+      return unsafeUnwrap(this).id;
     },
 
     set id(v) {

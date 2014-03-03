@@ -6,6 +6,8 @@
   'use strict';
 
   var registerWrapper = scope.registerWrapper;
+  var setWrapper = scope.setWrapper;
+  var unsafeUnwrap = scope.unsafeUnwrap;
   var unwrap = scope.unwrap;
   var unwrapIfNeeded = scope.unwrapIfNeeded;
   var wrap = scope.wrap;
@@ -13,38 +15,38 @@
   var OriginalSelection = window.Selection;
 
   function Selection(impl) {
-    this.impl = impl;
+    setWrapper(impl, this);
   }
   Selection.prototype = {
     get anchorNode() {
-      return wrap(this.impl.anchorNode);
+      return wrap(unsafeUnwrap(this).anchorNode);
     },
     get focusNode() {
-      return wrap(this.impl.focusNode);
+      return wrap(unsafeUnwrap(this).focusNode);
     },
     addRange: function(range) {
-      this.impl.addRange(unwrap(range));
+      unsafeUnwrap(this).addRange(unwrap(range));
     },
     collapse: function(node, index) {
-      this.impl.collapse(unwrapIfNeeded(node), index);
+      unsafeUnwrap(this).collapse(unwrapIfNeeded(node), index);
     },
     containsNode: function(node, allowPartial) {
-      return this.impl.containsNode(unwrapIfNeeded(node), allowPartial);
+      return unsafeUnwrap(this).containsNode(unwrapIfNeeded(node), allowPartial);
     },
     extend: function(node, offset) {
-      this.impl.extend(unwrapIfNeeded(node), offset);
+      unsafeUnwrap(this).extend(unwrapIfNeeded(node), offset);
     },
     getRangeAt: function(index) {
-      return wrap(this.impl.getRangeAt(index));
+      return wrap(unsafeUnwrap(this).getRangeAt(index));
     },
     removeRange: function(range) {
-      this.impl.removeRange(unwrap(range));
+      unsafeUnwrap(this).removeRange(unwrap(range));
     },
     selectAllChildren: function(node) {
-      this.impl.selectAllChildren(unwrapIfNeeded(node));
+      unsafeUnwrap(this).selectAllChildren(unwrapIfNeeded(node));
     },
     toString: function() {
-      return this.impl.toString();
+      return unsafeUnwrap(this).toString();
     }
   };
 

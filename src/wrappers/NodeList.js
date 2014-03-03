@@ -5,6 +5,7 @@
 (function(scope) {
   'use strict';
 
+  var unsafeUnwrap = scope.unsafeUnwrap;
   var wrap = scope.wrap;
 
   var nonEnumDescriptor = {enumerable: false};
@@ -37,7 +38,8 @@
 
   function addWrapNodeListMethod(wrapperConstructor, name) {
     wrapperConstructor.prototype[name] = function() {
-      return wrapNodeList(this.impl[name].apply(this.impl, arguments));
+      return wrapNodeList(
+          unsafeUnwrap(this)[name].apply(unsafeUnwrap(this), arguments));
     };
   }
 

@@ -24,7 +24,7 @@ suite('FormData', function() {
     var fd = new FormData();
     var unwrapped = unwrap(fd);
     var wrapped = wrap(unwrapped);
-    assert.equal(fd.impl, wrapped.impl);
+    assert.equal(fd, wrapped);
   });
 
 });

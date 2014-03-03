@@ -13,6 +13,7 @@
   var nodesWereRemoved = scope.nodesWereRemoved;
   var registerWrapper = scope.registerWrapper;
   var snapshotNodeList = scope.snapshotNodeList;
+  var unsafeUnwrap = scope.unsafeUnwrap;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
   var wrappers = scope.wrappers;
@@ -179,7 +180,7 @@
                  this instanceof wrappers.HTMLTemplateElement) {
         setInnerHTML(this.content, value);
       } else {
-        this.impl.innerHTML = value;
+        unsafeUnwrap(this).innerHTML = value;
       }
 
       var addedNodes = snapshotNodeList(this.childNodes);
@@ -259,7 +260,7 @@
   function getter(name) {
     return function() {
       scope.renderAllPending();
-      return this.impl[name];
+      return unsafeUnwrap(this)[name];
     };
   }
 
@@ -285,7 +286,7 @@
       get: getter(name),
       set: function(v) {
         scope.renderAllPending();
-        this.impl[name] = v;
+        unsafeUnwrap(this)[name] = v;
       },
       configurable: true,
       enumerable: true
@@ -301,7 +302,7 @@
     Object.defineProperty(HTMLElement.prototype, name, {
       value: function() {
         scope.renderAllPending();
-        return this.impl[name].apply(this.impl, arguments);
+        return unsafeUnwrap(this)[name].apply(unsafeUnwrap(this), arguments);
       },
       configurable: true,
       enumerable: true

@@ -6,6 +6,7 @@
 
 suite('Shadow DOM rerender', function() {
 
+  var unsafeUnwrap = ShadowDOMPolyfill.unsafeUnwrap;
   var unwrap = ShadowDOMPolyfill.unwrap;
 
   function getVisualInnerHtml(el) {
@@ -501,40 +502,40 @@ suite('Shadow DOM rerender', function() {
     a.textContent = 'x';
 
     // Don't use getVisualInnerHtml but it does invalidation.
-    assert.equal(host.impl.innerHTML, '<b></b><a>x</a><c></c>');
+    assert.equal(unsafeUnwrap(host).innerHTML, '<b></b><a>x</a><c></c>');
 
     host.appendChild(document.createTextNode('y'));
-    assert.equal(host.impl.innerHTML, '<b></b><a>x</a><c></c>y');  //dirty
+    assert.equal(unsafeUnwrap(host).innerHTML, '<b></b><a>x</a><c></c>y');  //dirty
     host.offsetWidth;
-    assert.equal(host.impl.innerHTML, '<b></b><a>x</a>y<c></c>');
+    assert.equal(unsafeUnwrap(host).innerHTML, '<b></b><a>x</a>y<c></c>');
 
     sr.appendChild(document.createTextNode('z'));
-    assert.equal(host.impl.innerHTML, '<b></b><a>x</a>y<c></c>');  //dirty
+    assert.equal(unsafeUnwrap(host).innerHTML, '<b></b><a>x</a>y<c></c>');  //dirty
     host.offsetWidth;
-    assert.equal(host.impl.innerHTML, '<b></b><a>x</a>y<c></c>z');
+    assert.equal(unsafeUnwrap(host).innerHTML, '<b></b><a>x</a>y<c></c>z');
 
     sr.insertBefore(document.createTextNode('w'), content);
-    assert.equal(host.impl.innerHTML, '<b></b><a>x</a>y<c></c>z');  // dirty
+    assert.equal(unsafeUnwrap(host).innerHTML, '<b></b><a>x</a>y<c></c>z');  // dirty
     host.offsetWidth;
-    assert.equal(host.impl.innerHTML, '<b></b>w<a>x</a>y<c></c>z');
+    assert.equal(unsafeUnwrap(host).innerHTML, '<b></b>w<a>x</a>y<c></c>z');
 
     // This case does not need invalidation.
     // We could make the check a bit more specific (check for nextSibling being
     // null or a content/shadow).
     sr.insertBefore(document.createTextNode('v'), c);
-    assert.equal(host.impl.innerHTML, '<b></b>w<a>x</a>yv<c></c>z');
+    assert.equal(unsafeUnwrap(host).innerHTML, '<b></b>w<a>x</a>yv<c></c>z');
     host.offsetWidth;
-    assert.equal(host.impl.innerHTML, '<b></b>w<a>x</a>yv<c></c>z');
+    assert.equal(unsafeUnwrap(host).innerHTML, '<b></b>w<a>x</a>yv<c></c>z');
 
     content.select = '*';
-    assert.equal(host.impl.innerHTML, '<b></b>w<a>x</a>yv<c></c>z');  // dirty
+    assert.equal(unsafeUnwrap(host).innerHTML, '<b></b>w<a>x</a>yv<c></c>z');  // dirty
     host.offsetWidth;
-    assert.equal(host.impl.innerHTML, '<b></b>w<a>x</a>v<c></c>z');
+    assert.equal(unsafeUnwrap(host).innerHTML, '<b></b>w<a>x</a>v<c></c>z');
 
     content.setAttribute('SelecT', 'no-match');
-    assert.equal(host.impl.innerHTML, '<b></b>w<a>x</a>v<c></c>z');  // dirty
+    assert.equal(unsafeUnwrap(host).innerHTML, '<b></b>w<a>x</a>v<c></c>z');  // dirty
     host.offsetWidth;
-    assert.equal(host.impl.innerHTML, '<b></b>wv<c></c>z');
+    assert.equal(unsafeUnwrap(host).innerHTML, '<b></b>wv<c></c>z');
   });
 
   test('minimal dom changes', function() {

@@ -8,15 +8,19 @@
   'use strict';
 
   var registerWrapper = scope.registerWrapper;
+  var setWrapper = scope.setWrapper;
   var unwrap = scope.unwrap;
 
   var OriginalFormData = window.FormData;
 
   function FormData(formElement) {
-    if (formElement instanceof OriginalFormData)
-      this.impl = formElement;
-    else
-      this.impl = new OriginalFormData(formElement && unwrap(formElement));
+    var impl;
+    if (formElement instanceof OriginalFormData) {
+      impl = formElement;
+    } else {
+      impl = new OriginalFormData(formElement && unwrap(formElement));
+    }
+    setWrapper(impl, this);
   }
 
   registerWrapper(OriginalFormData, FormData, new OriginalFormData());
