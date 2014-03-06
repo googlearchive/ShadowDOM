@@ -1,0 +1,19 @@
+<!doctype html>
+<script src="../../shadowdom.js"></script>
+
+<p>Drag the div below the image. When dragging the image should be used as the
+drag image.
+
+<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAEklEQVQIW2NsYGj4zwAEjDAGACoaBAFwzZYuAAAAAElFTkSuQmCC" style="width: 100px; heigh: 100px">
+
+<p draggable=true>Drag me
+
+<script>
+
+var p = document.querySelector('[draggable]');
+var img = document.querySelector('img');
+p.ondragstart = function(e) {
+  e.dataTransfer.setDragImage(img, 50, 50);
+};
+
+</script>

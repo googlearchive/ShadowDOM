@@ -57,6 +57,7 @@
     'src/wrappers/Selection.js',
     'src/wrappers/Document.js',
     'src/wrappers/Window.js',
+    'src/wrappers/DataTransfer.js',
     'src/wrappers/override-constructors.js'
   ].forEach(function(src) {
     document.write('<script src="' + base + src + '"></script>');

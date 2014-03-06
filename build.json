@@ -41,5 +41,6 @@
   "src/wrappers/Selection.js",
   "src/wrappers/Document.js",
   "src/wrappers/Window.js",
+  "src/wrappers/DataTransfer.js",
   "src/wrappers/override-constructors.js"
 ]
