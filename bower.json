@@ -10,8 +10,8 @@
     "shadowdom"
   ],
   "dependencies": {
-    "WeakMap": "Polymer/WeakMap#master",
-    "observe-js": "Polymer/observe-js#master"
+    "WeakMap": "Polymer/WeakMap#0.2.1",
+    "observe-js": "Polymer/observe-js#0.2.1"
   },
   "license": "BSD",
   "private": true,
@@ -22,5 +22,6 @@
     "../",
     "test",
     "tests"
-  ]
+  ],
+  "version": "0.2.1"
 }
