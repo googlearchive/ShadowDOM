@@ -51,4 +51,16 @@ suite('ChildNodeInterface', function() {
     assert.equal(tree.j.previousElementSibling, tree.content);
   });
 
+  test('remove', function() {
+    var div = document.createElement('div');
+    div.innerHTML = '<a></a>';
+    var a = div.firstChild;
+    a.remove();
+    assert.equal(div.firstChild, null);
+    assert.equal(a.parentNode, null);
+
+    // no op.
+    div.remove();
+  });
+
 });
