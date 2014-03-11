@@ -63,4 +63,24 @@ suite('HTMLSelectElement', function() {
     assert.equal(select.lastChild, b);
   });
 
+  test('remove no args', function() {
+    var div = document.createElement('div');
+    var select = div.appendChild(document.createElement('select'));
+
+    var a = document.createElement('option');
+    a.text = 'a';
+    select.appendChild(a);
+    var b = document.createElement('option');
+    b.text = 'b';
+    select.appendChild(b);
+
+    assert.equal(select.parentNode, div);
+
+    select.remove();
+    assert.equal(select.firstChild, a);
+    assert.equal(select.lastChild, b);
+    assert.equal(select.parentNode, null);
+    assert.equal(div.firstChild, null);
+  });
+
 });

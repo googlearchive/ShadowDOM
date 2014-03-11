@@ -27,8 +27,14 @@
     remove: function(indexOrNode) {
       // Spec only allows index but implementations allow index or node.
       // remove() is also allowed which is same as remove(undefined)
+      if (indexOrNode === undefined) {
+        HTMLElement.prototype.remove.call(this);
+        return;
+      }
+
       if (typeof indexOrNode === 'object')
         indexOrNode = unwrap(indexOrNode);
+
       unwrap(this).remove(indexOrNode);
     },
 
