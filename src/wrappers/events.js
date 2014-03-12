@@ -261,12 +261,20 @@
 
     if ('relatedTarget' in event) {
       var originalEvent = unwrap(event);
+      var unwrappedRelatedTarget = originalEvent.relatedTarget;
+
       // X-Tag sets relatedTarget on a CustomEvent. If they do that there is no
       // way to have relatedTarget return the adjusted target but worse is that
       // the originalEvent might not have a relatedTarget so we hit an assert
       // when we try to wrap it.
-      if (originalEvent.relatedTarget) {
-        var relatedTarget = wrap(originalEvent.relatedTarget);
+
+      // In IE we can get objects that are not EventTargets at this point.
+      // Safari does not have an EventTarget interface so revert to checkin for
+      // addEventListener as an approximation.
+
+      if (unwrappedRelatedTarget && unwrappedRelatedTarget instanceof Object &&
+          unwrappedRelatedTarget.addEventListener) {
+        var relatedTarget = wrap(unwrappedRelatedTarget);
 
         var adjusted = adjustRelatedTarget(currentTarget, relatedTarget);
         if (adjusted === target)
