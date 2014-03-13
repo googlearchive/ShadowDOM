@@ -170,8 +170,17 @@
     if (handledEventsTable.get(originalEvent))
       return;
     handledEventsTable.set(originalEvent, true);
+    dispatchEvent(wrap(originalEvent), wrap(originalEvent.target));
+  }
 
-    return dispatchEvent(wrap(originalEvent), wrap(originalEvent.target));
+  function isLoadLikeEvent(event) {
+    switch (event.type) {
+      case 'beforeunload':
+      case 'load':
+      case 'unload':
+        return true;
+    }
+    return false;
   }
 
   function dispatchEvent(event, originalWrapperTarget) {
@@ -183,15 +192,15 @@
     scope.renderAllPending();
     var eventPath = retarget(originalWrapperTarget);
 
-    // For window load events the load event is dispatched at the window but
+    // For window "load" events the "load" event is dispatched at the window but
     // the target is set to the document.
     //
     // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-end.html#the-end
     //
     // TODO(arv): Find a less hacky way to do this.
-    if (event.type === 'load' &&
-        eventPath.length === 2 &&
-        eventPath[0].target instanceof wrappers.Document) {
+    if (eventPath.length === 2 &&
+        eventPath[0].target instanceof wrappers.Document &&
+        isLoadLikeEvent(event)) {
       eventPath.shift();
     }
 
@@ -542,7 +551,7 @@
   }
 
   function BeforeUnloadEvent(impl) {
-    Event.call(this);
+    Event.call(this, impl);
   }
   BeforeUnloadEvent.prototype = Object.create(Event.prototype);
   mixin(BeforeUnloadEvent.prototype, {
@@ -553,6 +562,8 @@
       this.impl.returnValue = v;
     }
   });
+
+  registerWrapper(window.BeforeUnloadEvent, BeforeUnloadEvent);
 
   function isValidListener(fun) {
     if (typeof fun === 'function')
