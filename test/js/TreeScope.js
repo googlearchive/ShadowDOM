@@ -46,4 +46,41 @@ suite('TreeScope', function() {
     assert.equal(getTreeScope(d), srTs);
   });
 
+  test('change parent in shadow', function() {
+    var div = document.createElement('div');
+    div.innerHTML = '<a></a>';
+    var a = div.firstChild;
+
+    var sr = a.createShadowRoot();
+    sr.innerHTML = '<b></b>';
+    var b = sr.firstChild;
+
+    var sr2 = b.createShadowRoot();
+    sr2.innerHTML = '<c></c>';
+    var c = sr2.firstChild;
+
+    var sr3 = a.createShadowRoot();
+    sr3.innerHTML = '<d></d>';
+    var d = sr3.firstChild;
+
+    var ts1 = getTreeScope(a);
+    var ts2 = getTreeScope(b);
+    var ts3 = getTreeScope(c);
+    var ts4 = getTreeScope(d);
+
+    assert.equal(ts1.parent, null);
+    assert.equal(ts2.parent, ts1);
+    assert.equal(ts3.parent, ts2);
+    assert.equal(ts4.parent, ts1);
+
+    var div2 = document.createElement('div');
+    div2.appendChild(a);
+
+    var ts5 = getTreeScope(a);
+    assert.notEqual(ts1, ts5);
+    assert.equal(ts2.parent, ts5);
+    assert.equal(ts3.parent, ts2);
+    assert.equal(ts4.parent, ts5);
+  });
+
 });
