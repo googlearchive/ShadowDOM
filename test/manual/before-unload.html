@@ -1,0 +1,11 @@
+<!doctype html>
+<script src="../../shadowdom.js"></script>
+<script>
+
+window.addEventListener('beforeunload', function(e) {
+  e.returnValue = 'OK';
+}, false);
+
+</script>
+
+<p>Reload this page and you should see a dialog saying "OK".
