@@ -375,10 +375,14 @@
    * @constructor
    */
   function Event(type, options) {
-    if (type instanceof OriginalEvent)
-      this.impl = type;
-    else
+    if (type instanceof OriginalEvent) {
+      var impl = type;
+      if (!OriginalBeforeUnloadEvent && impl.type === 'beforeunload')
+        return new BeforeUnloadEvent(impl);
+      this.impl = impl;
+    } else {
       return wrap(constructEvent(OriginalEvent, 'Event', type, options));
+    }
   }
   Event.prototype = {
     get target() {
@@ -550,6 +554,10 @@
     configureEventConstructor('FocusEvent', {relatedTarget: null}, 'UIEvent');
   }
 
+  // Safari 7 does not yet have BeforeUnloadEvent.
+  // https://bugs.webkit.org/show_bug.cgi?id=120849
+  var OriginalBeforeUnloadEvent = window.BeforeUnloadEvent;
+
   function BeforeUnloadEvent(impl) {
     Event.call(this, impl);
   }
@@ -563,7 +571,8 @@
     }
   });
 
-  registerWrapper(window.BeforeUnloadEvent, BeforeUnloadEvent);
+  if (OriginalBeforeUnloadEvent)
+    registerWrapper(OriginalBeforeUnloadEvent, BeforeUnloadEvent);
 
   function isValidListener(fun) {
     if (typeof fun === 'function')
