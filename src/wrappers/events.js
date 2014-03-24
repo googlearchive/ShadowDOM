@@ -276,19 +276,20 @@
       // way to have relatedTarget return the adjusted target but worse is that
       // the originalEvent might not have a relatedTarget so we hit an assert
       // when we try to wrap it.
+      if (unwrappedRelatedTarget) {
+        // In IE we can get objects that are not EventTargets at this point.
+        // Safari does not have an EventTarget interface so revert to checking
+        // for addEventListener as an approximation.
+        if (unwrappedRelatedTarget instanceof Object &&
+            unwrappedRelatedTarget.addEventListener) {
+          var relatedTarget = wrap(unwrappedRelatedTarget);
 
-      // In IE we can get objects that are not EventTargets at this point.
-      // Safari does not have an EventTarget interface so revert to checkin for
-      // addEventListener as an approximation.
-
-      if (unwrappedRelatedTarget && unwrappedRelatedTarget instanceof Object &&
-          unwrappedRelatedTarget.addEventListener) {
-        var relatedTarget = wrap(unwrappedRelatedTarget);
-
-        var adjusted = adjustRelatedTarget(currentTarget, relatedTarget);
-        if (adjusted === target)
-          return true;
-
+          var adjusted = adjustRelatedTarget(currentTarget, relatedTarget);
+          if (adjusted === target)
+            return true;
+        } else {
+          adjusted = null;
+        }
         relatedTargetTable.set(event, adjusted);
       }
     }
