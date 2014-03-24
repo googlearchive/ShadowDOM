@@ -110,7 +110,15 @@
   if (document.registerElement) {
     var originalRegisterElement = document.registerElement;
     Document.prototype.registerElement = function(tagName, object) {
-      var prototype = object.prototype;
+      var prototype, extendsOption;
+      if (object !== undefined) {
+        prototype = object.prototype;
+        extendsOption = object.extends;
+      }
+
+      if (!prototype)
+        prototype = Object.create(HTMLElement.prototype);
+
 
       // If we already used the object as a prototype for another custom
       // element.
@@ -171,13 +179,13 @@
       });
 
       var p = {prototype: newPrototype};
-      if (object.extends)
-        p.extends = object.extends;
+      if (extendsOption)
+        p.extends = extendsOption;
 
       function CustomElementConstructor(node) {
         if (!node) {
-          if (object.extends) {
-            return document.createElement(object.extends, tagName);
+          if (extendsOption) {
+            return document.createElement(extendsOption, tagName);
           } else {
             return document.createElement(tagName);
           }
