@@ -357,7 +357,7 @@ htmlSuite('Document', function() {
     };
 
     var A = document.registerElement('x-a-span',
-      {prototype: aPrototype, extends: 'span'});
+        {prototype: aPrototype, extends: 'span'});
 
     var a1 = document.createElement('span', 'x-a-span');
     assert.equal('span', a1.localName);
@@ -552,6 +552,28 @@ htmlSuite('Document', function() {
     // re-wrap after registration to update wrapper
     ShadowDOMPolyfill.rewrap(ShadowDOMPolyfill.unwrap(div.firstChild));
     assert.isTrue(div.firstChild.isCustom);
+  });
+
+  test('document.registerElement optional option', function() {
+    if (!document.registerElement)
+      return;
+
+    document.registerElement('x-a7');
+    var a = document.createElement('x-a7');
+    assert.equal(Object.getPrototypeOf(Object.getPrototypeOf(a)),
+                 HTMLElement.prototype);
+
+    document.registerElement('x-a8', {});
+    var a2 = document.createElement('x-a8');
+    assert.equal(Object.getPrototypeOf(Object.getPrototypeOf(a2)),
+                 HTMLElement.prototype);
+
+    document.registerElement('x-a-span-2', {extends: 'span'});
+    var a3 = document.createElement('span', 'x-a-span-2');
+    assert.equal(Object.getPrototypeOf(Object.getPrototypeOf(a3)),
+                 HTMLElement.prototype);
+    a3.localName = 'span';
+    assert.equal('<span is="x-a-span-2"></span>', a3.outerHTML);
   });
 
   htmlTest('html/document-write.html');
