@@ -466,7 +466,11 @@
 
   var relatedTargetProto = {
     get relatedTarget() {
-      return relatedTargetTable.get(this) || wrap(unwrap(this).relatedTarget);
+      var relatedTarget = relatedTargetTable.get(this);
+      // relatedTarget can be null.
+      if (relatedTarget !== undefined)
+        return relatedTarget;
+      return wrap(unwrap(this).relatedTarget);
     }
   };
 
