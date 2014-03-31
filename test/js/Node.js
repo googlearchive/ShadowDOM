@@ -16,48 +16,81 @@ suite('Node', function() {
   var DOCUMENT_POSITION_CONTAINED_BY = Node.DOCUMENT_POSITION_CONTAINED_BY;
   var DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = Node.DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC;
 
-  test('compareDocumentPosition', function() {
-    var div = document.createElement('div');
-    div.innerHTML = '<a><b></b><c></c></a>';
-    var a = div.firstChild;
-    var b = a.firstChild;
-    var c = a.lastChild;
+  suite('compareDocumentPosition', function() {
 
-    assert.equal(div.compareDocumentPosition(div), 0);
-    assert.equal(div.compareDocumentPosition(a),
-        DOCUMENT_POSITION_CONTAINED_BY | DOCUMENT_POSITION_FOLLOWING);
-    assert.equal(div.compareDocumentPosition(b),
-        DOCUMENT_POSITION_CONTAINED_BY | DOCUMENT_POSITION_FOLLOWING);
-    assert.equal(div.compareDocumentPosition(c),
-        DOCUMENT_POSITION_CONTAINED_BY | DOCUMENT_POSITION_FOLLOWING);
+    test('between wrappers', function() {
+      var div = document.createElement('div');
+      div.innerHTML = '<a><b></b><c></c></a>';
+      var a = div.firstChild;
+      var b = a.firstChild;
+      var c = a.lastChild;
 
-    assert.equal(a.compareDocumentPosition(div),
-        DOCUMENT_POSITION_CONTAINS | DOCUMENT_POSITION_PRECEDING);
-    assert.equal(a.compareDocumentPosition(a), 0);
-    assert.equal(a.compareDocumentPosition(b),
-        DOCUMENT_POSITION_CONTAINED_BY | DOCUMENT_POSITION_FOLLOWING);
-    assert.equal(a.compareDocumentPosition(c),
-        DOCUMENT_POSITION_CONTAINED_BY | DOCUMENT_POSITION_FOLLOWING);
+      assert.equal(div.compareDocumentPosition(div), 0);
+      assert.equal(div.compareDocumentPosition(a),
+          DOCUMENT_POSITION_CONTAINED_BY | DOCUMENT_POSITION_FOLLOWING);
+      assert.equal(div.compareDocumentPosition(b),
+          DOCUMENT_POSITION_CONTAINED_BY | DOCUMENT_POSITION_FOLLOWING);
+      assert.equal(div.compareDocumentPosition(c),
+          DOCUMENT_POSITION_CONTAINED_BY | DOCUMENT_POSITION_FOLLOWING);
 
-    assert.equal(b.compareDocumentPosition(div),
-        DOCUMENT_POSITION_CONTAINS | DOCUMENT_POSITION_PRECEDING);
-    assert.equal(b.compareDocumentPosition(a),
-        DOCUMENT_POSITION_CONTAINS | DOCUMENT_POSITION_PRECEDING);
-    assert.equal(b.compareDocumentPosition(b), 0);
-    assert.equal(b.compareDocumentPosition(c),
-        DOCUMENT_POSITION_FOLLOWING);
+      assert.equal(a.compareDocumentPosition(div),
+          DOCUMENT_POSITION_CONTAINS | DOCUMENT_POSITION_PRECEDING);
+      assert.equal(a.compareDocumentPosition(a), 0);
+      assert.equal(a.compareDocumentPosition(b),
+          DOCUMENT_POSITION_CONTAINED_BY | DOCUMENT_POSITION_FOLLOWING);
+      assert.equal(a.compareDocumentPosition(c),
+          DOCUMENT_POSITION_CONTAINED_BY | DOCUMENT_POSITION_FOLLOWING);
 
-    assert.equal(c.compareDocumentPosition(div),
-        DOCUMENT_POSITION_CONTAINS | DOCUMENT_POSITION_PRECEDING);
-    assert.equal(c.compareDocumentPosition(a),
-        DOCUMENT_POSITION_CONTAINS | DOCUMENT_POSITION_PRECEDING);
-    assert.equal(c.compareDocumentPosition(b),
-        DOCUMENT_POSITION_PRECEDING);
-    assert.equal(c.compareDocumentPosition(c), 0);
+      assert.equal(b.compareDocumentPosition(div),
+          DOCUMENT_POSITION_CONTAINS | DOCUMENT_POSITION_PRECEDING);
+      assert.equal(b.compareDocumentPosition(a),
+          DOCUMENT_POSITION_CONTAINS | DOCUMENT_POSITION_PRECEDING);
+      assert.equal(b.compareDocumentPosition(b), 0);
+      assert.equal(b.compareDocumentPosition(c),
+          DOCUMENT_POSITION_FOLLOWING);
 
-    // WebKit uses DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC.
-    assert.notEqual(document.compareDocumentPosition(div) &
-        DOCUMENT_POSITION_DISCONNECTED, 0)
+      assert.equal(c.compareDocumentPosition(div),
+          DOCUMENT_POSITION_CONTAINS | DOCUMENT_POSITION_PRECEDING);
+      assert.equal(c.compareDocumentPosition(a),
+          DOCUMENT_POSITION_CONTAINS | DOCUMENT_POSITION_PRECEDING);
+      assert.equal(c.compareDocumentPosition(b),
+          DOCUMENT_POSITION_PRECEDING);
+      assert.equal(c.compareDocumentPosition(c), 0);
+
+      // WebKit uses DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC.
+      assert.notEqual(document.compareDocumentPosition(div) &
+          DOCUMENT_POSITION_DISCONNECTED, 0)
+    });
+
+    var doc = wrap(document);
+    test('with document', function() {
+      assert.equal(doc.compareDocumentPosition(doc), 0);
+      assert.equal(doc.compareDocumentPosition(document), 0);
+      assert.equal(document.compareDocumentPosition(document), 0);
+      assert.equal(document.compareDocumentPosition(doc), 0);
+    });
+    test('with document.body', function() {
+      assert.equal(doc.body.compareDocumentPosition(doc.body), 0);
+      assert.equal(doc.body.compareDocumentPosition(document.body), 0);
+      assert.equal(document.body.compareDocumentPosition(document.body), 0);
+      assert.equal(document.body.compareDocumentPosition(doc.body), 0);
+    });
+    test('with document.head', function() {
+      assert.equal(doc.head.compareDocumentPosition(doc.head), 0);
+      assert.equal(doc.head.compareDocumentPosition(document.head), 0);
+      assert.equal(document.head.compareDocumentPosition(document.head), 0);
+      assert.equal(document.head.compareDocumentPosition(doc.head), 0);
+    });
+    test('with document.documentElement', function() {
+      assert.equal(doc.documentElement.compareDocumentPosition(
+          doc.documentElement), 0);
+      assert.equal(doc.documentElement.compareDocumentPosition(
+          document.documentElement), 0);
+      assert.equal(document.documentElement.compareDocumentPosition(
+          document.documentElement), 0);
+      assert.equal(document.documentElement.compareDocumentPosition(
+          doc.documentElement), 0);
+    });
   });
 
   test('ownerDocument with template and shadow root', function() {

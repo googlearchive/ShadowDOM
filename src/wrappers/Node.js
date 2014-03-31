@@ -20,6 +20,7 @@
   var registerWrapper = scope.registerWrapper;
   var setTreeScope = scope.setTreeScope;
   var unwrap = scope.unwrap;
+  var unwrapIfNeeded = scope.unwrapIfNeeded;
   var wrap = scope.wrap;
   var wrapIfNeeded = scope.wrapIfNeeded;
   var wrappers = scope.wrappers;
@@ -668,7 +669,8 @@
     compareDocumentPosition: function(otherNode) {
       // This only wraps, it therefore only operates on the composed DOM and not
       // the logical DOM.
-      return originalCompareDocumentPosition.call(this.impl, unwrap(otherNode));
+      return originalCompareDocumentPosition.call(this.impl,
+                                                  unwrapIfNeeded(otherNode));
     },
 
     normalize: function() {
