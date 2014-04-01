@@ -165,12 +165,22 @@
     return getTreeScope(a) === getTreeScope(b);
   }
 
+  // pendingError is used to rethrow the first error we got during an event
+  // dispatch. The browser actually reports all errors but to do that we would
+  // need to rethrow the error asynchronously.
+  var pendingError;
+
   function dispatchOriginalEvent(originalEvent) {
     // Make sure this event is only dispatched once.
     if (handledEventsTable.get(originalEvent))
       return;
     handledEventsTable.set(originalEvent, true);
     dispatchEvent(wrap(originalEvent), wrap(originalEvent.target));
+    if (pendingError) {
+      var err = pendingError;
+      pendingError = null;
+      throw err;
+    }
   }
 
   function isLoadLikeEvent(event) {
@@ -324,10 +334,8 @@
           return false;
 
       } catch (ex) {
-        if (window.onerror)
-          window.onerror(ex.message);
-        else
-          console.error(ex, ex.stack);
+        if (!pendingError)
+          pendingError = ex;
       }
     }
 

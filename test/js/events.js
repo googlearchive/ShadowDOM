@@ -1385,4 +1385,30 @@ test('retarget order (multiple shadow roots)', function() {
     assert.isFalse(checkbox.checked);
   });
 
+  test('window.onerror', function() {
+    var old = window.onerror;
+    var f;
+    var msg = 'Intentional error';
+    var errorCount = 0;
+
+    window.onerror = function(msg, source, lineNumber, columnNumber, error) {
+      document.removeEventListener('click', f);
+      window.onerror = old;
+      assert.isTrue(msg.indexOf(msg) >= 0);
+      assert.typeOf(source, 'string');
+      assert.typeOf(lineNumber, 'number');
+      assert.typeOf(columnNumber, 'number');
+      // error is not available in IE11.
+      errorCount++;
+    };
+
+    document.addEventListener('click', f = function(e) {
+      throw new Error(msg);
+    });
+
+    document.body.click();
+
+    assert.equal(errorCount, 1);
+  });
+
 });
