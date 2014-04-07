@@ -16,6 +16,11 @@ window.ShadowDOMPolyfill = {};
   // even when the exception is caught
   var hasEval = !('securityPolicy' in document) ||
       document.securityPolicy.allowsEval;
+
+  if (typeof chrome !== 'undefined' && chrome.app && chrome.app.runtime) {
+    hasEval = false;
+  }
+
   if (hasEval) {
     try {
       var f = new Function('', 'return true;');
