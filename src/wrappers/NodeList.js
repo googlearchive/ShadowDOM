@@ -7,8 +7,10 @@
 
   var wrap = scope.wrap;
 
+  var nonEnumDescriptor = {enumerable: false};
+
   function nonEnum(obj, prop) {
-    Object.defineProperty(obj, prop, {enumerable: false});
+    Object.defineProperty(obj, prop, nonEnumDescriptor);
   }
 
   function NodeList() {
