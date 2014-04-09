@@ -93,6 +93,10 @@ htmlSuite('Document', function() {
     var nsTwo = 'http://two.com';
     var aOne = div.appendChild(document.createElementNS(nsOne, 'a'));
     var aTwo = div.appendChild(document.createElementNS(nsTwo, 'a'));
+    var aNull = div.appendChild(document.createElementNS(null, 'a'));
+    var bOne = div.appendChild(document.createElementNS(nsOne, 'b'));
+    var bTwo = div.appendChild(document.createElementNS(nsTwo, 'b'));
+    var bNull = div.appendChild(document.createElementNS(null, 'b'));
 
     var all = div.getElementsByTagNameNS(nsOne, 'a');
     assert.equal(all.length, 1);
@@ -102,10 +106,36 @@ htmlSuite('Document', function() {
     assert.equal(all.length, 1);
     assert.equal(all[0], aTwo);
 
+    var all = div.getElementsByTagNameNS(null, 'a');
+    assert.equal(all.length, 1);
+    assert.equal(all[0], aNull);
+
+    var all = div.getElementsByTagNameNS('', 'a');
+    assert.equal(all.length, 1);
+    assert.equal(all[0], aNull);
+
     var all = div.getElementsByTagNameNS('*', 'a');
-    assert.equal(all.length, 2);
+    assert.equal(all.length, 3);
     assert.equal(all[0], aOne);
     assert.equal(all[1], aTwo);
+    assert.equal(all[2], aNull);
+
+    var all = div.getElementsByTagNameNS(nsOne, '*');
+    assert.equal(all.length, 2);
+    assert.equal(all[0], aOne);
+    assert.equal(all[1], bOne);
+
+    var all = div.getElementsByTagNameNS('*', '*');
+    assert.equal(all.length, 6);
+    assert.equal(all[0], aOne);
+    assert.equal(all[1], aTwo);
+    assert.equal(all[2], aNull);
+    assert.equal(all[3], bOne);
+    assert.equal(all[4], bTwo);
+    assert.equal(all[5], bNull);
+
+    var all = div.getElementsByTagNameNS('*', 'A');
+    assert.equal(all.length, 0);
   });
 
   test('querySelectorAll', function() {

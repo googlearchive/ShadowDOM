@@ -84,6 +84,49 @@ suite('Element', function() {
     assert.equal(as[1], a4);
   });
 
+  test('getElementsByTagName with colon', function() {
+    var div = document.createElement('div');
+    div.innerHTML = '<a:b:c>0</a:b:c><a:b:c>1</a:b:c>';
+    var a0 = div.firstChild;
+    var a1 = div.lastChild;
+
+    var as = div.getElementsByTagName('a:b:c');
+    assert.equal(as.length, 2);
+    assert.equal(as[0], a0);
+    assert.equal(as.item(0), a0);
+    assert.equal(as[1], a1);
+    assert.equal(as.item(1), a1);
+  });
+
+  test('getElementsByTagName with namespace', function() {
+    var div = document.createElement('div');
+    div.innerHTML = '<a>0</a><a>1</a>';
+    var a0 = div.firstChild;
+    var a1 = div.lastChild;
+    var a2 = document.createElementNS('NS', 'a');
+    var a3 = document.createElementNS('NS', 'A');
+    div.appendChild(a2);
+    div.appendChild(a3);
+
+    var as = div.getElementsByTagName('a');
+    assert.equal(as.length, 3);
+    assert.equal(as[0], a0);
+    assert.equal(as.item(0), a0);
+    assert.equal(as[1], a1);
+    assert.equal(as.item(1), a1);
+    assert.equal(as[2], a2);
+    assert.equal(as.item(2), a2);
+
+    var as = div.getElementsByTagName('A');
+    assert.equal(as.length, 3);
+    assert.equal(as[0], a0);
+    assert.equal(as.item(0), a0);
+    assert.equal(as[1], a1);
+    assert.equal(as.item(1), a1);
+    assert.equal(as[2], a3);
+    assert.equal(as.item(2), a3);
+  });
+
   test('getElementsByClassName', function() {
     var div = document.createElement('div');
     div.innerHTML = '<span class=a>0</span><span class=a>1</span>';

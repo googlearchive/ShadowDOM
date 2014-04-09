@@ -5,6 +5,7 @@
 (function(scope) {
   'use strict';
 
+  var HTMLCollection = scope.wrappers.HTMLCollection;
   var NodeList = scope.wrappers.NodeList;
 
   function findOne(node, selector) {
@@ -20,15 +21,43 @@
     return null;
   }
 
-  function findAll(node, selector, results) {
+  function matchesSelector(el, selector) {
+    return el.matches(selector);
+  }
+
+  var XHTML_NS = 'http://www.w3.org/1999/xhtml';
+
+  function matchesTagName(el, localName, localNameLowerCase) {
+    var ln = el.localName;
+    return ln === localName ||
+        ln === localNameLowerCase && el.namespaceURI === XHTML_NS;
+  }
+
+  function matchesEveryThing() {
+    return true;
+  }
+
+  function matchesLocalName(el, localName) {
+    return el.localName === localName;
+  }
+
+  function matchesNameSpace(el, ns) {
+    return el.namespaceURI === ns;
+  }
+
+  function matchesLocalNameNS(el, ns, localName) {
+    return el.namespaceURI === ns && el.localName === localName;
+  }
+
+  function findElements(node, result, p, arg0, arg1) {
     var el = node.firstElementChild;
     while (el) {
-      if (el.matches(selector))
-        results[results.length++] = el;
-      findAll(el, selector, results);
+      if (p(el, arg0, arg1))
+        result[result.length++] = el;
+      findElements(el, result, p, arg0, arg1);
       el = el.nextElementSibling;
     }
-    return results;
+    return result;
   }
 
   // find and findAll will only match Simple Selectors,
@@ -40,32 +69,42 @@
       return findOne(this, selector);
     },
     querySelectorAll: function(selector) {
-      return findAll(this, selector, new NodeList())
+      return findElements(this, new NodeList(), matchesSelector, selector);
     }
   };
 
   var GetElementsByInterface = {
-    getElementsByTagName: function(tagName) {
-      // TODO(arv): Check tagName?
-      return this.querySelectorAll(tagName);
+    getElementsByTagName: function(localName) {
+      var result = new HTMLCollection();
+      if (localName === '*')
+        return findElements(this, result, matchesEveryThing);
+
+      return findElements(this, result,
+          matchesTagName,
+          localName,
+          localName.toLowerCase());
     },
+
     getElementsByClassName: function(className) {
       // TODO(arv): Check className?
       return this.querySelectorAll('.' + className);
     },
-    getElementsByTagNameNS: function(ns, tagName) {
-      if (ns === '*')
-        return this.getElementsByTagName(tagName);
 
-      // TODO(arv): Check tagName?
-      var result = new NodeList;
-      var els = this.getElementsByTagName(tagName);
-      for (var i = 0, j = 0; i < els.length; i++) {
-        if (els[i].namespaceURI === ns)
-          result[j++] = els[i];
+    getElementsByTagNameNS: function(ns, localName) {
+      var result = new HTMLCollection();
+
+      if (ns === '') {
+        ns = null;
+      } else if (ns === '*') {
+        if (localName === '*')
+          return findElements(this, result, matchesEveryThing);
+        return findElements(this, result, matchesLocalName, localName);
       }
-      result.length = j;
-      return result;
+
+      if (localName === '*')
+        return findElements(this, result, matchesNameSpace, ns);
+
+      return findElements(this, result, matchesLocalNameNS, ns, localName);
     }
   };
 
