@@ -5,6 +5,8 @@
 (function(scope) {
   'use strict';
 
+  var NodeList = scope.wrappers.NodeList;
+
   function findOne(node, selector) {
     var m, el = node.firstElementChild;
     while (el) {
