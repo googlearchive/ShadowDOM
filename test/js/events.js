@@ -1391,19 +1391,26 @@ test('retarget order (multiple shadow roots)', function() {
     var msg = 'Intentional error';
     var errorCount = 0;
 
-    window.onerror = function(msg, source, lineNumber, columnNumber, error) {
+    window.onerror = function(msg, source, lineNumber, columnNumber, err) {
       document.removeEventListener('click', f);
       window.onerror = old;
       assert.isTrue(msg.indexOf(msg) >= 0);
       assert.typeOf(source, 'string');
       assert.typeOf(lineNumber, 'number');
-      assert.typeOf(columnNumber, 'number');
-      // error is not available in IE11.
+      // Firefox 28 does not pass the columnNumber, error
+      // Safari 6 does not pass the columnNumber, error
+      // IE11 does not pass the error
+      if (arguments.length >= 4)
+        assert.typeOf(columnNumber, 'number');
+      if (arguments.length >= 5)
+        assert.equal(err, error);
+
       errorCount++;
     };
 
+    var error = new Error(msg);
     document.addEventListener('click', f = function(e) {
-      throw new Error(msg);
+      throw error;
     });
 
     document.body.click();
