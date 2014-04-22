@@ -122,4 +122,41 @@ suite('Element', function() {
     var sr = div.webkitCreateShadowRoot();
     assert.instanceOf(sr, ShadowRoot);
   });
+
+  test('getDestinationInsertionPoints', function() {
+    var div = document.createElement('div');
+    div.innerHTML = '<a></a><b></b>';
+    var a = div.firstChild;
+    var b = div.lastChild;
+    var sr = div.createShadowRoot();
+    sr.innerHTML = '<content id=a></content>';
+    var content = sr.firstChild;
+
+    assertArrayEqual([content], a.getDestinationInsertionPoints());
+    assertArrayEqual([content], b.getDestinationInsertionPoints());
+
+    var sr2 = div.createShadowRoot();
+    sr2.innerHTML = '<content id=b select=b></content>';
+    var contentB = sr2.firstChild;
+
+    assertArrayEqual([content], a.getDestinationInsertionPoints());
+    assertArrayEqual([contentB], b.getDestinationInsertionPoints());
+  });
+
+  test('getDestinationInsertionPoints redistribution', function() {
+    var div = document.createElement('div');
+    div.innerHTML = '<a></a><b></b>';
+    var a = div.firstChild;
+    var b = div.lastChild;
+    var sr = div.createShadowRoot();
+    sr.innerHTML = '<c><content id=a></content></c>';
+    var c = sr.firstChild;
+    var content = c.firstChild;
+    var sr2 = c.createShadowRoot();
+    sr2.innerHTML = '<content id=b select=b></content>';
+    var contentB = sr2.firstChild;
+
+    assertArrayEqual([content], a.getDestinationInsertionPoints());
+    assertArrayEqual([content, contentB], b.getDestinationInsertionPoints());
+  });
 });

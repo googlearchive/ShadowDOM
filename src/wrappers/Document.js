@@ -264,6 +264,10 @@
           new DOMImplementation(unwrap(this).implementation);
       implementationTable.set(this, implementation);
       return implementation;
+    },
+
+    get defaultView() {
+      return wrap(unwrap(this).defaultView);
     }
   });
 

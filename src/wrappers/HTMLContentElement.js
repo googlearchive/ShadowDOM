@@ -30,8 +30,6 @@
     }
 
     // getDistributedNodes is added in ShadowRenderer
-
-    // TODO: attribute boolean resetStyleInheritance;
   });
 
   if (OriginalHTMLContentElement)

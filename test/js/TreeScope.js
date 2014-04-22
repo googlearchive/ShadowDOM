@@ -71,7 +71,7 @@ suite('TreeScope', function() {
     assert.equal(ts1.parent, null);
     assert.equal(ts2.parent, ts1);
     assert.equal(ts3.parent, ts2);
-    assert.equal(ts4.parent, ts1);
+    assert.equal(ts4.parent, ts2);
 
     var div2 = document.createElement('div');
     div2.appendChild(a);
