@@ -523,7 +523,8 @@
   }
 
   function resetDestinationInsertionPoints(node) {
-    destinationInsertionPointsTable.delete(node);
+    // IE11 crashes when delete is used.
+    destinationInsertionPointsTable.set(node, undefined);
   }
 
   // AllowedSelectors :
