@@ -30,7 +30,7 @@ suite('HTMLShadowElement', function() {
 
     assert.isTrue(shadow2 instanceof HTMLShadowElement);
 
-    assert.equal(unwrap(host).innerHTML, 'dabcf');
+    assert.equal(unwrap(host).innerHTML, 'da<a>a</a><b>b</b>cf');
   });
 
   test('adding a new shadow element to a shadow tree', function() {
@@ -59,7 +59,7 @@ suite('HTMLShadowElement', function() {
     assert.equal(unwrap(host).innerHTML, '<b></b>');
   });
 
-  test('Mutating shadow fallback', function() {
+  test('Mutating shadow fallback (fallback support has been removed)', function() {
     var host = document.createElement('div');
     host.innerHTML = '<a></a>';
     var a = host.firstChild;
@@ -69,22 +69,23 @@ suite('HTMLShadowElement', function() {
     var shadow = sr.firstChild;
 
     host.offsetHeight;
-    assert.equal(unwrap(host).innerHTML, '');
+    assert.equal(unwrap(host).innerHTML, '<a></a>');
 
     shadow.textContent = 'fallback';
     host.offsetHeight;
-    assert.equal(unwrap(host).innerHTML, 'fallback');
+    assert.equal(unwrap(host).innerHTML, '<a></a>');
 
     var b = shadow.appendChild(document.createElement('b'));
     host.offsetHeight;
-    assert.equal(unwrap(host).innerHTML, 'fallback<b></b>');
+    assert.equal(unwrap(host).innerHTML, '<a></a>');
 
     shadow.removeChild(b);
     host.offsetHeight;
-    assert.equal(unwrap(host).innerHTML, 'fallback');
+    assert.equal(unwrap(host).innerHTML, '<a></a>');
   });
 
-  test('Mutating shadow fallback 2', function() {
+  test('Mutating shadow fallback 2 (fallback support has been removed)',
+      function() {
     var host = document.createElement('div');
     host.innerHTML = '<a></a>';
     var a = host.firstChild;
@@ -95,18 +96,18 @@ suite('HTMLShadowElement', function() {
     var shadow = b.firstChild;
 
     host.offsetHeight;
-    assert.equal(unwrap(host).innerHTML, '<b></b>');
+    assert.equal(unwrap(host).innerHTML, '<b><a></a></b>');
 
     shadow.textContent = 'fallback';
     host.offsetHeight;
-    assert.equal(unwrap(host).innerHTML, '<b>fallback</b>');
+    assert.equal(unwrap(host).innerHTML, '<b><a></a></b>');
 
     var c = shadow.appendChild(document.createElement('c'));
     host.offsetHeight;
-    assert.equal(unwrap(host).innerHTML, '<b>fallback<c></c></b>');
+    assert.equal(unwrap(host).innerHTML, '<b><a></a></b>');
 
     shadow.removeChild(c);
     host.offsetHeight;
-    assert.equal(unwrap(host).innerHTML, '<b>fallback</b>');
+    assert.equal(unwrap(host).innerHTML, '<b><a></a></b>');
   });
 });

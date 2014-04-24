@@ -6,7 +6,6 @@
 
 htmlSuite('Events', function() {
 
-  var adjustRelatedTarget = ShadowDOMPolyfill.adjustRelatedTarget;
   var unwrap = ShadowDOMPolyfill.unwrap;
   var wrap = ShadowDOMPolyfill.wrap;
 
@@ -399,27 +398,6 @@ htmlSuite('Events', function() {
 
     b.click();
     assert.equal(calls, 0);
-  });
-
-  test('adjustRelatedTarget', function() {
-    var div = document.createElement('div');
-    div.innerHTML = '<a></a><b><c></c><d></d></b>';
-    var a = div.firstChild;
-    var b = div.lastChild;
-    var c = b.firstChild;
-    var d = b.lastChild;
-
-    assert.equal(adjustRelatedTarget(c, d), d);
-
-    var sr = b.createShadowRoot();
-    sr.innerHTML = '<e></e><content></content><f></f>';
-    var e = sr.firstChild;
-    var content = e.nextSibling;
-    var f = sr.lastChild;
-
-    assert.equal(adjustRelatedTarget(a, e), b);
-    assert.equal(adjustRelatedTarget(e, f), f);
-    assert.equal(adjustRelatedTarget(b, f), b);
   });
 
   test('mouseover retarget to host', function() {
@@ -862,14 +840,14 @@ test('retarget order (multiple shadow roots)', function() {
     var event = new MouseEvent('mouseover', {relatedTarget: c, bubbles: true});
     b.dispatchEvent(event);
     var expected = [
-      'sr3, shadow2, c, CAPTURING_PHASE',
+      'sr3, b, c, CAPTURING_PHASE',
+      'shadow2, b, c, CAPTURING_PHASE',
       'sr2, b, c, CAPTURING_PHASE',
       'b, b, c, AT_TARGET',
       'b, b, c, AT_TARGET',
       'sr2, b, c, BUBBLING_PHASE',
-      'shadow2, shadow2, c, AT_TARGET',
-      'shadow2, shadow2, c, AT_TARGET',
-      'sr3, shadow2, c, BUBBLING_PHASE',
+      'shadow2, b, c, BUBBLING_PHASE',
+      'sr3, b, c, BUBBLING_PHASE',
       'div, div, c, AT_TARGET',
       'div, div, c, AT_TARGET',
     ];
@@ -881,8 +859,8 @@ test('retarget order (multiple shadow roots)', function() {
     c.dispatchEvent(event);
     var expected = [
       'div, c, div, CAPTURING_PHASE',
-      'sr3, c, shadow2, CAPTURING_PHASE',
-      'shadow2, c, shadow2, CAPTURING_PHASE',
+      'sr3, c, b, CAPTURING_PHASE',
+      'shadow2, c, b, CAPTURING_PHASE',
       'sr2, c, b, CAPTURING_PHASE',
       'b, c, b, CAPTURING_PHASE',
       'shadow, c, b, CAPTURING_PHASE',
@@ -897,8 +875,8 @@ test('retarget order (multiple shadow roots)', function() {
       'shadow, c, b, BUBBLING_PHASE',
       'b, c, b, BUBBLING_PHASE',
       'sr2, c, b, BUBBLING_PHASE',
-      'shadow2, c, shadow2, BUBBLING_PHASE',
-      'sr3, c, shadow2, BUBBLING_PHASE',
+      'shadow2, c, b, BUBBLING_PHASE',
+      'sr3, c, b, BUBBLING_PHASE',
       'div, c, div, BUBBLING_PHASE',
     ];
     assertArrayEqual(expected, log);
@@ -912,10 +890,14 @@ test('retarget order (multiple shadow roots)', function() {
     var event = new MouseEvent('mouseover', {relatedTarget: a, bubbles: true});
     b.dispatchEvent(event);
     var expected = [
-      'sr2, b, shadow, CAPTURING_PHASE',
-      'b, b, shadow, AT_TARGET',
-      'b, b, shadow, AT_TARGET',
-      'sr2, b, shadow, BUBBLING_PHASE',
+      'sr3, b, a, CAPTURING_PHASE',
+      'shadow2, b, a, CAPTURING_PHASE',
+      'sr2, b, a, CAPTURING_PHASE',
+      'b, b, a, AT_TARGET',
+      'b, b, a, AT_TARGET',
+      'sr2, b, a, BUBBLING_PHASE',
+      'shadow2, b, a, BUBBLING_PHASE',
+      'sr3, b, a, BUBBLING_PHASE',
     ];
     assertArrayEqual(expected, log);
 
@@ -924,16 +906,20 @@ test('retarget order (multiple shadow roots)', function() {
     var event = new MouseEvent('mouseover', {relatedTarget: b, bubbles: true});
     a.dispatchEvent(event);
     var expected = [
-      'sr2, shadow, b, CAPTURING_PHASE',
-      'b, shadow, b, CAPTURING_PHASE',
+      'sr3, a, b, CAPTURING_PHASE',
+      'shadow2, a, b, CAPTURING_PHASE',
+      'sr2, a, b, CAPTURING_PHASE',
+      'b, a, b, CAPTURING_PHASE',
+      'shadow, a, b, CAPTURING_PHASE',
       'sr, a, div, CAPTURING_PHASE',
       'a, a, div, AT_TARGET',
       'a, a, div, AT_TARGET',
       'sr, a, div, BUBBLING_PHASE',
-      'shadow, shadow, b, AT_TARGET',
-      'shadow, shadow, b, AT_TARGET',
-      'b, shadow, b, BUBBLING_PHASE',
-      'sr2, shadow, b, BUBBLING_PHASE',
+      'shadow, a, b, BUBBLING_PHASE',
+      'b, a, b, BUBBLING_PHASE',
+      'sr2, a, b, BUBBLING_PHASE',
+      'shadow2, a, b, BUBBLING_PHASE',
+      'sr3, a, b, BUBBLING_PHASE',
     ];
     assertArrayEqual(expected, log);
   });

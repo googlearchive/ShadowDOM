@@ -11,10 +11,21 @@
    * A tree scope represents the root of a tree. All nodes in a tree point to
    * the same TreeScope object. The tree scope of a node get set the first time
    * it is accessed or when a node is added or remove to a tree.
+   *
+   * The root is a Node that has no parent.
+   *
+   * The parent is another TreeScope. For ShadowRoots, it is the TreeScope of
+   * the host of the ShadowRoot.
+   *
+   * @param {!Node} root
+   * @param {TreeScope} parent
    * @constructor
    */
   function TreeScope(root, parent) {
+    /** @type {!Node} */
     this.root = root;
+
+    /** @type {TreeScope} */
     this.parent = parent;
   }
 
@@ -48,6 +59,10 @@
   }
 
   function getTreeScope(node) {
+    if (node instanceof scope.wrappers.Window) {
+      debugger;
+    }
+
     if (node.treeScope_)
       return node.treeScope_;
     var parent = node.parentNode;

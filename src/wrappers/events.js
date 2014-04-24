@@ -30,140 +30,192 @@
     return node instanceof wrappers.ShadowRoot;
   }
 
-  function isInsertionPoint(node) {
-    var localName = node.localName;
-    return localName === 'content' || localName === 'shadow';
+  function rootOfNode(node) {
+    return getTreeScope(node).root;
   }
 
-  function isShadowHost(node) {
-    return !!node.shadowRoot;
-  }
-
-  function getEventParent(node) {
-    var dv;
-    return node.parentNode || (dv = node.defaultView) && wrap(dv) || null;
-  }
-
-  // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#dfn-adjusted-parent
-  function calculateParents(node, context, ancestors) {
-    if (ancestors.length)
-      return ancestors.shift();
-
-    // 1.
-    if (isShadowRoot(node))
-      return getInsertionParent(node) || node.host;
-
-    // 2.
-    var eventParents = scope.eventParentsTable.get(node);
-    if (eventParents) {
-      // Copy over the remaining event parents for next iteration.
-      for (var i = 1; i < eventParents.length; i++) {
-        ancestors[i - 1] = eventParents[i];
-      }
-      return eventParents[0];
-    }
-
-    // 3.
-    if (context && isInsertionPoint(node)) {
-      var parentNode = node.parentNode;
-      if (parentNode && isShadowHost(parentNode)) {
-        var trees = scope.getShadowTrees(parentNode);
-        var p = getInsertionParent(context);
-        for (var i = 0; i < trees.length; i++) {
-          if (trees[i].contains(p))
-            return p;
-        }
-      }
-    }
-
-    return getEventParent(node);
-  }
-
-  // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#event-retargeting
-  function retarget(node) {
-    var stack = [];  // 1.
-    var ancestor = node;  // 2.
-    var targets = [];
-    var ancestors = [];
-    while (ancestor) {  // 3.
-      var context = null;  // 3.2.
-      // TODO(arv): Change order of these. If the stack is empty we always end
-      // up pushing ancestor, no matter what.
-      if (isInsertionPoint(ancestor)) {  // 3.1.
-        context = topMostNotInsertionPoint(stack);  // 3.1.1.
-        var top = stack[stack.length - 1] || ancestor;  // 3.1.2.
-        stack.push(top);
-      } else if (!stack.length) {
-        stack.push(ancestor);  // 3.3.
-      }
-      var target = stack[stack.length - 1];  // 3.4.
-      targets.push({target: target, currentTarget: ancestor});  // 3.5.
-      if (isShadowRoot(ancestor))  // 3.6.
-        stack.pop();  // 3.6.1.
-
-      ancestor = calculateParents(ancestor, context, ancestors);  // 3.7.
-    }
-    return targets;
-  }
-
-  function topMostNotInsertionPoint(stack) {
-    for (var i = stack.length - 1; i >= 0; i--) {
-      if (!isInsertionPoint(stack[i]))
-        return stack[i];
-    }
-    return null;
-  }
-
-  // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#dfn-adjusted-related-target
-  function adjustRelatedTarget(target, related) {
-    var ancestors = [];
-    while (target) {  // 3.
-      var stack = [];  // 3.1.
-      var ancestor = related;  // 3.2.
-      var last = undefined;  // 3.3. Needs to be reset every iteration.
-      while (ancestor) {
-        var context = null;
-        if (!stack.length) {
-          stack.push(ancestor);
-        } else {
-          if (isInsertionPoint(ancestor)) {  // 3.4.3.
-            context = topMostNotInsertionPoint(stack);
-            // isDistributed is more general than checking whether last is
-            // assigned into ancestor.
-            if (isDistributed(last)) {  // 3.4.3.2.
-              var head = stack[stack.length - 1];
-              stack.push(head);
-            }
+  // http://w3c.github.io/webcomponents/spec/shadow/#event-paths
+  function getEventPath(node, event) {
+    var path = [];
+    var current = node;
+    path.push(current);
+    while (current) {
+      // 4.1.
+      var destinationInsertionPoints = getDestinationInsertionPoints(current);
+      if (destinationInsertionPoints && destinationInsertionPoints.length > 0) {
+        // 4.1.1
+        for (var i = 0; i < destinationInsertionPoints.length; i++) {
+          var insertionPoint = destinationInsertionPoints[i];
+          // 4.1.1.1
+          if (isShadowInsertionPoint(insertionPoint)) {
+            var shadowRoot = rootOfNode(insertionPoint);
+            // 4.1.1.1.2
+            var olderShadowRoot = shadowRoot.olderShadowRoot;
+            if (olderShadowRoot)
+              path.push(olderShadowRoot);
           }
+
+          // 4.1.1.2
+          path.push(insertionPoint);
         }
 
-        if (inSameTree(ancestor, target))  // 3.4.4.
-          return stack[stack.length - 1];
+        // 4.1.2
+        current = destinationInsertionPoints[
+            destinationInsertionPoints.length - 1];
 
-        if (isShadowRoot(ancestor))  // 3.4.5.
-          stack.pop();
+      // 4.2
+      } else {
+        if (isShadowRoot(current)) {
+          if (inSameTree(node, current) && eventMustBeStopped(event)) {
+            // Stop this algorithm
+            break;
+          }
+          current = current.host;
+          path.push(current);
 
-        last = ancestor;  // 3.4.6.
-        ancestor = calculateParents(ancestor, context, ancestors);  // 3.4.7.
+        // 4.2.2
+        } else {
+          current = current.parentNode;
+          if (current)
+            path.push(current);
+        }
       }
-      if (isShadowRoot(target))  // 3.5.
-        target = target.host;
-      else
-        target = target.parentNode;  // 3.6.
     }
+
+    return path;
   }
 
-  function getInsertionParent(node) {
-    return scope.insertionParentTable.get(node);
+  // http://w3c.github.io/webcomponents/spec/shadow/#dfn-events-always-stopped
+  function eventMustBeStopped(event) {
+    if (!event)
+      return false;
+
+    switch (event.type) {
+      case 'abort':
+      case 'error':
+      case 'select':
+      case 'change':
+      case 'load':
+      case 'reset':
+      case 'resize':
+      case 'scroll':
+      case 'selectstart':
+        return true;
+    }
+    return false;
   }
 
-  function isDistributed(node) {
-    return getInsertionParent(node);
+  // http://w3c.github.io/webcomponents/spec/shadow/#dfn-shadow-insertion-point
+  function isShadowInsertionPoint(node) {
+    return node instanceof HTMLShadowElement;
+    // and make sure that there are no shadow precing this?
+    // and that there is no content ancestor?
+  }
+
+  function getDestinationInsertionPoints(node) {
+    return scope.getDestinationInsertionPoints(node);
+  }
+
+  // http://w3c.github.io/webcomponents/spec/shadow/#event-retargeting
+  function eventRetargetting(path, currentTarget) {
+    if (path.length === 0)
+      return currentTarget;
+
+    // The currentTarget might be the window object. Use its document for the
+    // purpose of finding the retargetted node.
+    if (currentTarget instanceof wrappers.Window)
+      currentTarget = currentTarget.document;
+
+    var currentTargetTree = getTreeScope(currentTarget);
+    var originalTarget = path[0];
+    var originalTargetTree = getTreeScope(originalTarget);
+    var relativeTargetTree =
+        lowestCommonInclusiveAncestor(currentTargetTree, originalTargetTree);
+
+    for (var i = 0; i < path.length; i++) {
+      var node = path[i];
+      if (getTreeScope(node) === relativeTargetTree)
+        return node;
+    }
+
+    return path[path.length - 1];
+  }
+
+  function getTreeScopeAncestors(treeScope) {
+    var ancestors = [];
+    for (;treeScope; treeScope = treeScope.parent) {
+      ancestors.push(treeScope);
+    }
+    return ancestors;
+  }
+
+  function lowestCommonInclusiveAncestor(tsA, tsB) {
+    var ancestorsA = getTreeScopeAncestors(tsA);
+    var ancestorsB = getTreeScopeAncestors(tsB);
+
+    var result = null;
+    while (ancestorsA.length > 0 && ancestorsB.length > 0) {
+      var a = ancestorsA.pop();
+      var b = ancestorsB.pop();
+      if (a === b)
+        result = a;
+      else
+        break;
+    }
+    return result;
+  }
+
+  function getTreeScopeRoot(ts) {
+    if (!ts.parent)
+      return ts;
+    return getTreeScopeRoot(ts.parent);
+  }
+
+  function relatedTargetResolution(event, currentTarget, relatedTarget) {
+    // In case the current target is a window use its document for the purpose
+    // of retargetting the related target.
+    if (currentTarget instanceof wrappers.Window)
+      currentTarget = currentTarget.document;
+
+    var currentTargetTree = getTreeScope(currentTarget);
+    var relatedTargetTree = getTreeScope(relatedTarget);
+
+    var relatedTargetEventPath = getEventPath(relatedTarget, event);
+
+    var lowestCommonAncestorTree;
+
+    // 4
+    var lowestCommonAncestorTree =
+        lowestCommonInclusiveAncestor(currentTargetTree, relatedTargetTree);
+
+    // 5
+    if (!lowestCommonAncestorTree)
+      lowestCommonAncestorTree = relatedTargetTree.root;
+
+    // 6
+    for (var commonAncestorTree = lowestCommonAncestorTree;
+         commonAncestorTree;
+         commonAncestorTree = commonAncestorTree.parent) {
+      // 6.1
+      var adjustedRelatedTarget;
+      for (var i = 0; i < relatedTargetEventPath.length; i++) {
+        var node = relatedTargetEventPath[i];
+        if (getTreeScope(node) === commonAncestorTree)
+          return node;
+      }
+    }
+
+    return null;
   }
 
   function inSameTree(a, b) {
     return getTreeScope(a) === getTreeScope(b);
   }
+
+  var NONE = 0;
+  var CAPTURING_PHASE = 1;
+  var AT_TARGET = 2;
+  var BUBBLING_PHASE = 3;
 
   // pendingError is used to rethrow the first error we got during an event
   // dispatch. The browser actually reports all errors but to do that we would
@@ -183,100 +235,117 @@
     }
   }
 
-  function isLoadLikeEvent(event) {
-    switch (event.type) {
-      case 'beforeunload':
-      case 'load':
-      case 'unload':
-        return true;
-    }
-    return false;
-  }
-
   function dispatchEvent(event, originalWrapperTarget) {
     if (currentlyDispatchingEvents.get(event))
-      throw new Error('InvalidStateError')
+      throw new Error('InvalidStateError');
+
     currentlyDispatchingEvents.set(event, true);
 
     // Render to ensure that the event path is correct.
     scope.renderAllPending();
-    var eventPath = retarget(originalWrapperTarget);
+    var eventPath;
 
-    // For window "load" events the "load" event is dispatched at the window but
-    // the target is set to the document.
-    //
+    // http://www.whatwg.org/specs/web-apps/current-work/multipage/webappapis.html#events-and-the-window-object
+    // All events dispatched on Nodes with a default view, except load events,
+    // should propagate to the Window.
+
     // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-end.html#the-end
-    //
-    // TODO(arv): Find a less hacky way to do this.
-    if (eventPath.length === 2 &&
-        eventPath[0].target instanceof wrappers.Document &&
-        isLoadLikeEvent(event)) {
-      eventPath.shift();
+    var overrideTarget;
+    var win;
+    var type = event.type;
+
+    // Should really be not cancelable too but since Firefox has a bug there
+    // we skip that check.
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=999456
+    if (type === 'load' && !event.bubbles) {
+      var doc = originalWrapperTarget;
+      if (doc instanceof wrappers.Document && (win = doc.defaultView)) {
+        overrideTarget = doc;
+        eventPath = [];
+      }
+    }
+
+    if (!eventPath) {
+      if (originalWrapperTarget instanceof wrappers.Window) {
+        win = originalWrapperTarget;
+        eventPath = [];
+      } else {
+        eventPath = getEventPath(originalWrapperTarget, event);
+
+        if (event.type !== 'load') {
+          var doc = eventPath[eventPath.length - 1];
+          if (doc instanceof wrappers.Document)
+            win = doc.defaultView;
+        }
+      }
     }
 
     eventPathTable.set(event, eventPath);
 
-    if (dispatchCapturing(event, eventPath)) {
-      if (dispatchAtTarget(event, eventPath)) {
-        dispatchBubbling(event, eventPath);
+    if (dispatchCapturing(event, eventPath, win, overrideTarget)) {
+      if (dispatchAtTarget(event, eventPath, win, overrideTarget)) {
+        dispatchBubbling(event, eventPath, win, overrideTarget);
       }
     }
 
-    eventPhaseTable.set(event, Event.NONE);
+    eventPhaseTable.set(event, NONE);
     currentTargetTable.delete(event, null);
     currentlyDispatchingEvents.delete(event);
 
     return event.defaultPrevented;
   }
 
-  function dispatchCapturing(event, eventPath) {
-    var phase;
+  function dispatchCapturing(event, eventPath, win, overrideTarget) {
+    var phase = CAPTURING_PHASE;
+
+    if (win) {
+      if (!invoke(win, event, phase, eventPath, overrideTarget))
+        return false;
+    }
 
     for (var i = eventPath.length - 1; i > 0; i--) {
-      var target = eventPath[i].target;
-      var currentTarget = eventPath[i].currentTarget;
-      if (target === currentTarget)
-        continue;
-
-      phase = Event.CAPTURING_PHASE;
-      if (!invoke(eventPath[i], event, phase))
+      if (!invoke(eventPath[i], event, phase, eventPath, overrideTarget))
         return false;
     }
 
     return true;
   }
 
-  function dispatchAtTarget(event, eventPath) {
-    var phase = Event.AT_TARGET;
-    return invoke(eventPath[0], event, phase);
+  function dispatchAtTarget(event, eventPath, win, overrideTarget) {
+    var phase = AT_TARGET;
+    var currentTarget = eventPath[0] || win;
+    return invoke(currentTarget, event, phase, eventPath, overrideTarget);
   }
 
-  function dispatchBubbling(event, eventPath) {
-    var bubbles = event.bubbles;
-    var phase;
-
+  function dispatchBubbling(event, eventPath, win, overrideTarget) {
+    var phase = BUBBLING_PHASE;
     for (var i = 1; i < eventPath.length; i++) {
-      var target = eventPath[i].target;
-      var currentTarget = eventPath[i].currentTarget;
-      if (target === currentTarget)
-        phase = Event.AT_TARGET;
-      else if (bubbles && !stopImmediatePropagationTable.get(event))
-        phase = Event.BUBBLING_PHASE;
-      else
-        continue;
-
-      if (!invoke(eventPath[i], event, phase))
+      if (!invoke(eventPath[i], event, phase, eventPath, overrideTarget))
         return;
+    }
+
+    if (win && eventPath.length > 0) {
+      invoke(win, event, phase, eventPath, overrideTarget);
     }
   }
 
-  function invoke(tuple, event, phase) {
-    var target = tuple.target;
-    var currentTarget = tuple.currentTarget;
-
+  function invoke(currentTarget, event, phase, eventPath, overrideTarget) {
     var listeners = listenersTable.get(currentTarget);
     if (!listeners)
       return true;
+
+    var target = overrideTarget || eventRetargetting(eventPath, currentTarget);
+
+    if (target === currentTarget) {
+      if (phase === CAPTURING_PHASE)
+        return true;
+
+      if (phase === BUBBLING_PHASE)
+         phase = AT_TARGET;
+
+    } else if (phase === BUBBLING_PHASE && !event.bubbles) {
+      return true;
+    }
 
     if ('relatedTarget' in event) {
       var originalEvent = unwrap(event);
@@ -294,7 +363,8 @@
             unwrappedRelatedTarget.addEventListener) {
           var relatedTarget = wrap(unwrappedRelatedTarget);
 
-          var adjusted = adjustRelatedTarget(currentTarget, relatedTarget);
+          var adjusted =
+              relatedTargetResolution(event, currentTarget, relatedTarget);
           if (adjusted === target)
             return true;
         } else {
@@ -308,6 +378,7 @@
     var type = event.type;
 
     var anyRemoved = false;
+    // targetTable.set(event, target);
     targetTable.set(event, target);
     currentTargetTable.set(event, currentTarget);
 
@@ -319,8 +390,8 @@
       }
 
       if (listener.type !== type ||
-          !listener.capture && phase === Event.CAPTURING_PHASE ||
-          listener.capture && phase === Event.BUBBLING_PHASE) {
+          !listener.capture && phase === CAPTURING_PHASE ||
+          listener.capture && phase === BUBBLING_PHASE) {
         continue;
       }
 
@@ -412,7 +483,7 @@
         var baseRoot = getTreeScope(currentTargetTable.get(this));
 
         for (var i = 0; i <= lastIndex; i++) {
-          var currentTarget = eventPath[i].currentTarget;
+          var currentTarget = eventPath[i];
           var currentRoot = getTreeScope(currentTarget);
           if (currentRoot.contains(baseRoot) &&
               // Make sure we do not add Window to the path.
@@ -755,13 +826,8 @@
     scope.renderAllPending();
 
     var element = wrap(originalElementFromPoint.call(document.impl, x, y));
-    var targets = retarget(element, this)
-    for (var i = 0; i < targets.length; i++) {
-      var target = targets[i];
-      if (target.currentTarget === self)
-        return target.target;
-    }
-    return null;
+    var path = getEventPath(element, null);
+    return eventRetargetting(path, self);
   }
 
   /**
@@ -815,7 +881,6 @@
     };
   }
 
-  scope.adjustRelatedTarget = adjustRelatedTarget;
   scope.elementFromPoint = elementFromPoint;
   scope.getEventHandlerGetter = getEventHandlerGetter;
   scope.getEventHandlerSetter = getEventHandlerSetter;

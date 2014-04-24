@@ -7,6 +7,7 @@
 
   var HTMLElement = scope.wrappers.HTMLElement;
   var mixin = scope.mixin;
+  var NodeList = scope.wrappers.NodeList;
   var registerWrapper = scope.registerWrapper;
 
   var OriginalHTMLShadowElement = window.HTMLShadowElement;
@@ -15,9 +16,8 @@
     HTMLElement.call(this, node);
   }
   HTMLShadowElement.prototype = Object.create(HTMLElement.prototype);
-  mixin(HTMLShadowElement.prototype, {
-    // TODO: attribute boolean resetStyleInheritance;
-  });
+
+  // getDistributedNodes is added in ShadowRenderer
 
   if (OriginalHTMLShadowElement)
     registerWrapper(OriginalHTMLShadowElement, HTMLShadowElement);

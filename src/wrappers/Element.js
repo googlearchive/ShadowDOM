@@ -73,6 +73,8 @@
       return this.impl.polymerShadowRoot_ || null;
     },
 
+    // getDestinationInsertionPoints added in ShadowRenderer.js
+
     setAttribute: function(name, value) {
       var oldValue = this.impl.getAttribute(name);
       this.impl.setAttribute(name, value);

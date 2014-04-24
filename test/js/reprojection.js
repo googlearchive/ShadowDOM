@@ -102,7 +102,7 @@ suite('Shadow DOM reprojection', function() {
     testRender();
 
   });
-  
+
   test('getDistributedNodes can be called before shadowRoot composition', function() {
     var host = document.createElement('div');
     host.innerHTML = '<a></a>';

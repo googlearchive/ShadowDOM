@@ -97,29 +97,18 @@
     parentNode.removeChild(node);
   }
 
-  var distributedChildNodesTable = new WeakMap();
-  var eventParentsTable = new WeakMap();
-  var insertionParentTable = new WeakMap();
+  var distributedNodesTable = new WeakMap();
+  var destinationInsertionPointsTable = new WeakMap();
   var rendererForHostTable = new WeakMap();
 
-  function distributeChildToInsertionPoint(child, insertionPoint) {
-    getDistributedChildNodes(insertionPoint).push(child);
-    assignToInsertionPoint(child, insertionPoint);
-
-    var eventParents = eventParentsTable.get(child);
-    if (!eventParents)
-      eventParentsTable.set(child, eventParents = []);
-    eventParents.push(insertionPoint);
+  function resetDistributedNodes(insertionPoint) {
+    distributedNodesTable.set(insertionPoint, []);
   }
 
-  function resetDistributedChildNodes(insertionPoint) {
-    distributedChildNodesTable.set(insertionPoint, []);
-  }
-
-  function getDistributedChildNodes(insertionPoint) {
-    var rv = distributedChildNodesTable.get(insertionPoint);
+  function getDistributedNodes(insertionPoint) {
+    var rv = distributedNodesTable.get(insertionPoint);
     if (!rv)
-      distributedChildNodesTable.set(insertionPoint, rv = []);
+      distributedNodesTable.set(insertionPoint, rv = []);
     return rv;
   }
 
@@ -129,92 +118,6 @@
       result[i++] = child;
     }
     return result;
-  }
-
-  /**
-   * Visits all nodes in the tree that fulfils the |predicate|. If the |visitor|
-   * function returns |false| the traversal is aborted.
-   * @param {!Node} tree
-   * @param {function(!Node) : boolean} predicate
-   * @param {function(!Node) : *} visitor
-   */
-  function visit(tree, predicate, visitor) {
-    // This operates on logical DOM.
-    for (var node = tree.firstChild; node; node = node.nextSibling) {
-      if (predicate(node)) {
-        if (visitor(node) === false)
-          return;
-      } else {
-        visit(node, predicate, visitor);
-      }
-    }
-  }
-
-  // Matching Insertion Points
-  // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#matching-insertion-points
-
-  // TODO(arv): Verify this... I don't remember why I picked this regexp.
-  var selectorMatchRegExp = /^[*.:#[a-zA-Z_|]/;
-
-  var allowedPseudoRegExp = new RegExp('^:(' + [
-    'link',
-    'visited',
-    'target',
-    'enabled',
-    'disabled',
-    'checked',
-    'indeterminate',
-    'nth-child',
-    'nth-last-child',
-    'nth-of-type',
-    'nth-last-of-type',
-    'first-child',
-    'last-child',
-    'first-of-type',
-    'last-of-type',
-    'only-of-type',
-  ].join('|') + ')');
-
-
-  /**
-   * @param {Element} node
-   * @oaram {Element} point The insertion point element.
-   * @return {boolean} Whether the node matches the insertion point.
-   */
-  function matchesCriteria(node, point) {
-    var select = point.getAttribute('select');
-    if (!select)
-      return true;
-
-    // Here we know the select attribute is a non empty string.
-    select = select.trim();
-    if (!select)
-      return true;
-
-    if (!(node instanceof Element))
-      return false;
-
-    // The native matches function in IE9 does not correctly work with elements
-    // that are not in the document.
-    // TODO(arv): Implement matching in JS.
-    // https://github.com/Polymer/ShadowDOM/issues/361
-    if (select === '*' || select === node.localName)
-      return true;
-
-    // TODO(arv): This does not seem right. Need to check for a simple selector.
-    if (!selectorMatchRegExp.test(select))
-      return false;
-
-    // TODO(arv): This no longer matches the spec.
-    if (select[0] === ':' && !allowedPseudoRegExp.test(select))
-      return false;
-
-    try {
-      return node.matches(select);
-    } catch (ex) {
-      // Invalid selector.
-      return false;
-    }
   }
 
   var request = oneOf(window, [
@@ -361,19 +264,14 @@
         return;
 
       this.invalidateAttributes();
-      this.treeComposition();
 
       var host = this.host;
-      var shadowRoot = host.shadowRoot;
 
-      this.associateNode(host);
-      var topMostRenderer = !renderNode;
+      this.distribution(host);
       var renderNode = opt_renderNode || new RenderNode(host);
+      this.buildRenderTree(renderNode, host);
 
-      for (var node = shadowRoot.firstChild; node; node = node.nextSibling) {
-        this.renderNode(shadowRoot, renderNode, node, false);
-      }
-
+      var topMostRenderer = !opt_renderNode;
       if (topMostRenderer)
         renderNode.sync();
 
@@ -394,77 +292,152 @@
       }
     },
 
-    renderNode: function(shadowRoot, renderNode, node, isNested) {
+    // http://w3c.github.io/webcomponents/spec/shadow/#distribution-algorithms
+    distribution: function(root) {
+      this.resetAll(root);
+      this.distributionResolution(root);
+    },
+
+    resetAll: function(node) {
+      if (isInsertionPoint(node))
+        resetDistributedNodes(node);
+      else
+        resetDestinationInsertionPoints(node);
+
+      for (var child = node.firstChild; child; child = child.nextSibling) {
+        this.resetAll(child);
+      }
+
+      if (node.shadowRoot)
+        this.resetAll(node.shadowRoot);
+
+      if (node.olderShadowRoot)
+        this.resetAll(node.olderShadowRoot);
+    },
+
+    // http://w3c.github.io/webcomponents/spec/shadow/#distribution-results
+    distributionResolution: function(node) {
       if (isShadowHost(node)) {
-        renderNode = renderNode.append(node);
-        var renderer = getRendererForHost(node);
-        renderer.dirty = true;  // Need to rerender due to reprojection.
-        renderer.render(renderNode);
-      } else if (isInsertionPoint(node)) {
-        this.renderInsertionPoint(shadowRoot, renderNode, node, isNested);
-      } else if (isShadowInsertionPoint(node)) {
-        this.renderShadowInsertionPoint(shadowRoot, renderNode, node);
-      } else {
-        this.renderAsAnyDomTree(shadowRoot, renderNode, node, isNested);
+        var shadowHost = node;
+        // 1.1
+        var pool = poolPopulation(shadowHost);
+
+        var shadowTrees = getShadowTrees(shadowHost);
+
+        // 1.2
+        for (var i = 0; i < shadowTrees.length; i++) {
+          // 1.2.1
+          this.poolDistribution(shadowTrees[i], pool);
+        }
+
+        // 1.3
+        for (var i = shadowTrees.length - 1; i >= 0; i--) {
+          var shadowTree = shadowTrees[i];
+
+          // 1.3.1
+          // TODO(arv): We should keep the shadow insertion points on the
+          // shadow root (or renderer) so we don't have to search the tree
+          // every time.
+          var shadow = getShadowInsertionPoint(shadowTree);
+
+          // 1.3.2
+          if (shadow) {
+
+            // 1.3.2.1
+            var olderShadowRoot = shadowTree.olderShadowRoot;
+            if (olderShadowRoot) {
+              // 1.3.2.1.1
+              pool = poolPopulation(olderShadowRoot);
+            }
+
+            // 1.3.2.2
+            for (var j = 0; j < pool.length; j++) {
+              // 1.3.2.2.1
+              destributeNodeInto(pool[j], shadow);
+            }
+
+          } else {
+            // 1.3.3
+            this.distributionResolution(shadowTree);
+          }
+        }
+      }
+      for (var child = node.firstChild; child; child = child.nextSibling) {
+        this.distributionResolution(child);
       }
     },
 
-    renderAsAnyDomTree: function(shadowRoot, renderNode, node, isNested) {
-      renderNode = renderNode.append(node);
+    // http://w3c.github.io/webcomponents/spec/shadow/#dfn-pool-distribution-algorithm
+    poolDistribution: function (node, pool) {
+      if (node instanceof HTMLShadowElement)
+        return;
+
+      if (node instanceof HTMLContentElement) {
+        var content = node;
+        this.updateDependentAttributes(content.getAttribute('select'));
+
+        // 1.1
+        for (var i = 0; i < pool.length; i++) {
+          var node = pool[i];
+          if (!node)
+            continue;
+          if (matches(node, content)) {
+            destributeNodeInto(node, content);
+            pool[i] = undefined;
+          }
+        }
+
+        // 1.2
+        // Fallback content
+        var distributedNodes = getDistributedNodes(content);
+        if (distributedNodes && distributedNodes.length === 0) {
+          for (var child = content.firstChild;
+               child;
+               child = child.nextSibling) {
+            destributeNodeInto(child, content);
+          }
+        }
+
+        return;
+      }
+
+      for (var child = node.firstChild; child; child = child.nextSibling) {
+        this.poolDistribution(child, pool);
+      }
+    },
+
+    buildRenderTree: function(renderNode, node) {
+      var children = this.compose(node);
+      for (var i = 0; i < children.length; i++) {
+        var child = children[i];
+        var childRenderNode = renderNode.append(child);
+        this.buildRenderTree(childRenderNode, child);
+      }
 
       if (isShadowHost(node)) {
         var renderer = getRendererForHost(node);
-        renderNode.skip = !renderer.dirty;
-        renderer.render(renderNode);
-      } else {
-        for (var child = node.firstChild; child; child = child.nextSibling) {
-          this.renderNode(shadowRoot, renderNode, child, isNested);
-        }
+        renderer.dirty = false;
       }
+
     },
 
-    renderInsertionPoint: function(shadowRoot, renderNode, insertionPoint,
-                                   isNested) {
-      var distributedChildNodes = getDistributedChildNodes(insertionPoint);
-      if (distributedChildNodes.length) {
-        this.associateNode(insertionPoint);
-
-        for (var i = 0; i < distributedChildNodes.length; i++) {
-          var child = distributedChildNodes[i];
-          if (isInsertionPoint(child) && isNested)
-            this.renderInsertionPoint(shadowRoot, renderNode, child, isNested);
-          else
-            this.renderAsAnyDomTree(shadowRoot, renderNode, child, isNested);
+    compose: function(node) {
+      var children = [];
+      var p = node.shadowRoot || node;
+      for (var child = p.firstChild; child; child = child.nextSibling) {
+        if (isInsertionPoint(child)) {
+          this.associateNode(p);
+          var distributedNodes = getDistributedNodes(child);
+          for (var j = 0; j < distributedNodes.length; j++) {
+            var distributedNode = distributedNodes[j];
+            if (isFinalDestination(child, distributedNode))
+              children.push(distributedNode);
+          }
+        } else {
+          children.push(child);
         }
-      } else {
-        this.renderFallbackContent(shadowRoot, renderNode, insertionPoint);
       }
-      this.associateNode(insertionPoint.parentNode);
-    },
-
-    renderShadowInsertionPoint: function(shadowRoot, renderNode,
-                                         shadowInsertionPoint) {
-      var nextOlderTree = shadowRoot.olderShadowRoot;
-      if (nextOlderTree) {
-        assignToInsertionPoint(nextOlderTree, shadowInsertionPoint);
-        this.associateNode(shadowInsertionPoint.parentNode);
-        for (var node = nextOlderTree.firstChild;
-             node;
-             node = node.nextSibling) {
-          this.renderNode(nextOlderTree, renderNode, node, true);
-        }
-      } else {
-        this.renderFallbackContent(shadowRoot, renderNode,
-                                   shadowInsertionPoint);
-      }
-    },
-
-    renderFallbackContent: function(shadowRoot, renderNode, fallbackHost) {
-      this.associateNode(fallbackHost);
-      this.associateNode(fallbackHost.parentNode);
-      for (var node = fallbackHost.firstChild; node; node = node.nextSibling) {
-        this.renderAsAnyDomTree(shadowRoot, renderNode, node, false);
-      }
+      return children;
     },
 
     /**
@@ -505,102 +478,103 @@
       return this.attributes[name];
     },
 
-    // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#dfn-distribution-algorithm
-    distribute: function(tree, pool) {
-      var self = this;
-
-      visit(tree, isActiveInsertionPoint,
-          function(insertionPoint) {
-            resetDistributedChildNodes(insertionPoint);
-            self.updateDependentAttributes(
-                insertionPoint.getAttribute('select'));
-
-            for (var i = 0; i < pool.length; i++) {  // 1.2
-              var node = pool[i];  // 1.2.1
-              if (node === undefined)  // removed
-                continue;
-              if (matchesCriteria(node, insertionPoint)) {  // 1.2.2
-                distributeChildToInsertionPoint(node, insertionPoint);  // 1.2.2.1
-                pool[i] = undefined;  // 1.2.2.2
-              }
-            }
-          });
-    },
-
-    // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#dfn-tree-composition
-    treeComposition: function () {
-      var shadowHost = this.host;
-      var tree = shadowHost.shadowRoot;  // 1.
-      var pool = [];  // 2.
-
-      for (var child = shadowHost.firstChild;
-           child;
-           child = child.nextSibling) {  // 3.
-        if (isInsertionPoint(child)) {  // 3.2.
-          var reprojected = getDistributedChildNodes(child);  // 3.2.1.
-          // if reprojected is undef... reset it?
-          if (!reprojected || !reprojected.length)  // 3.2.2.
-            reprojected = getChildNodesSnapshot(child);
-          pool.push.apply(pool, reprojected);  // 3.2.3.
-        } else {
-          pool.push(child); // 3.3.
-        }
-      }
-
-      var shadowInsertionPoint, point;
-      while (tree) {  // 4.
-        // 4.1.
-        shadowInsertionPoint = undefined;  // Reset every iteration.
-        visit(tree, isActiveShadowInsertionPoint, function(point) {
-          shadowInsertionPoint = point;
-          return false;
-        });
-        point = shadowInsertionPoint;
-
-        this.distribute(tree, pool);  // 4.2.
-        if (point) {  // 4.3.
-          var nextOlderTree = tree.olderShadowRoot;  // 4.3.1.
-          if (!nextOlderTree) {
-            break;  // 4.3.1.1.
-          } else {
-            tree = nextOlderTree;  // 4.3.2.2.
-            assignToInsertionPoint(tree, point);  // 4.3.2.2.
-            continue;  // 4.3.2.3.
-          }
-        } else {
-          break;  // 4.4.
-        }
-      }
-    },
-
     associateNode: function(node) {
       node.impl.polymerShadowRenderer_ = this;
     }
   };
 
+  // http://w3c.github.io/webcomponents/spec/shadow/#dfn-pool-population-algorithm
+  function poolPopulation(node) {
+    var pool = [];
+    for (var child = node.firstChild; child; child = child.nextSibling) {
+      if (isInsertionPoint(child)) {
+        pool.push.apply(pool, getDistributedNodes(child));
+      } else {
+        pool.push(child);
+      }
+    }
+    return pool;
+  }
+
+  function getShadowInsertionPoint(node) {
+    if (node instanceof HTMLShadowElement)
+      return node;
+    if (node instanceof HTMLContentElement)
+      return null;
+    for (var child = node.firstChild; child; child = child.nextSibling) {
+      var res = getShadowInsertionPoint(child);
+      if (res)
+        return res;
+    }
+    return null;
+  }
+
+  function destributeNodeInto(child, insertionPoint) {
+    getDistributedNodes(insertionPoint).push(child);
+    var points = destinationInsertionPointsTable.get(child);
+    if (!points)
+      destinationInsertionPointsTable.set(child, [insertionPoint]);
+    else
+      points.push(insertionPoint);
+  }
+
+  function getDestinationInsertionPoints(node) {
+    return destinationInsertionPointsTable.get(node);
+  }
+
+  function resetDestinationInsertionPoints(node) {
+    // IE11 crashes when delete is used.
+    destinationInsertionPointsTable.set(node, undefined);
+  }
+
+  // AllowedSelectors :
+  //   TypeSelector
+  //   *
+  //   ClassSelector
+  //   IDSelector
+  //   AttributeSelector
+  var selectorStartCharRe = /^[*.#[a-zA-Z_|]/;
+
+  function matches(node, contentElement) {
+    var select = contentElement.getAttribute('select');
+    if (!select)
+      return true;
+
+    // Here we know the select attribute is a non empty string.
+    select = select.trim();
+    if (!select)
+      return true;
+
+    if (!(node instanceof Element))
+      return false;
+
+    if (!selectorStartCharRe.test(select))
+      return false;
+
+    try {
+      return node.matches(select);
+    } catch (ex) {
+      // Invalid selector.
+      return false;
+    }
+  }
+
+  function isFinalDestination(insertionPoint, node) {
+    var points = getDestinationInsertionPoints(node);
+    return points && points[points.length - 1] === insertionPoint;
+  }
+
   function isInsertionPoint(node) {
-    // Should this include <shadow>?
-    return node instanceof HTMLContentElement;
-  }
-
-  function isActiveInsertionPoint(node) {
-    // <content> inside another <content> or <shadow> is considered inactive.
-    return node instanceof HTMLContentElement;
-  }
-
-  function isShadowInsertionPoint(node) {
-    return node instanceof HTMLShadowElement;
-  }
-
-  function isActiveShadowInsertionPoint(node) {
-    // <shadow> inside another <content> or <shadow> is considered inactive.
-    return node instanceof HTMLShadowElement;
+    return node instanceof HTMLContentElement ||
+           node instanceof HTMLShadowElement;
   }
 
   function isShadowHost(shadowHost) {
     return shadowHost.shadowRoot;
   }
 
+  // Returns the shadow trees as an array, with the youngest tree at the
+  // beginning of the array.
   function getShadowTrees(host) {
     var trees = [];
 
@@ -610,11 +584,6 @@
     return trees;
   }
 
-  function assignToInsertionPoint(tree, point) {
-    insertionParentTable.set(tree, point);
-  }
-
-  // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#rendering-shadow-trees
   function render(host) {
     new ShadowRenderer(host).render();
   };
@@ -642,15 +611,21 @@
     return false;
   };
 
-  HTMLContentElement.prototype.getDistributedNodes = function() {
+  HTMLContentElement.prototype.getDistributedNodes =
+  HTMLShadowElement.prototype.getDistributedNodes = function() {
     // TODO(arv): We should only rerender the dirty ancestor renderers (from
     // the root and down).
     renderAllPending();
-    return getDistributedChildNodes(this);
+    return getDistributedNodes(this);
   };
 
-  HTMLShadowElement.prototype.nodeIsInserted_ =
-  HTMLContentElement.prototype.nodeIsInserted_ = function() {
+  Element.prototype.getDestinationInsertionPoints = function() {
+    renderAllPending();
+    return getDestinationInsertionPoints(this) || [];
+  };
+
+  HTMLContentElement.prototype.nodeIsInserted_ =
+  HTMLShadowElement.prototype.nodeIsInserted_ = function() {
     // Invalidate old renderer if any.
     this.invalidateShadowRenderer();
 
@@ -663,11 +638,11 @@
       renderer.invalidate();
   };
 
-  scope.eventParentsTable = eventParentsTable;
   scope.getRendererForHost = getRendererForHost;
   scope.getShadowTrees = getShadowTrees;
-  scope.insertionParentTable = insertionParentTable;
   scope.renderAllPending = renderAllPending;
+
+  scope.getDestinationInsertionPoints = getDestinationInsertionPoints;
 
   // Exposed for testing
   scope.visual = {

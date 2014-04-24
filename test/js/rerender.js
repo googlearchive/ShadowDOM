@@ -136,7 +136,7 @@ suite('Shadow DOM rerender', function() {
     var shadow = shadowRoot.firstChild;
 
     function testRender() {
-      assert.strictEqual(getVisualInnerHtml(host), '');
+      assert.strictEqual(getVisualInnerHtml(host), '<a></a>');
 
       expectStructure(host, {
         firstChild: a,
@@ -161,7 +161,7 @@ suite('Shadow DOM rerender', function() {
     testRender();
   });
 
-  test('<shadow> with fallback', function() {
+  test('<shadow> fallback support has been removed', function() {
     var host = document.createElement('div');
     host.innerHTML = '<a></a>';
     var a = host.firstChild;
@@ -172,7 +172,7 @@ suite('Shadow DOM rerender', function() {
     var fallback = shadow.firstChild;
 
     function testRender() {
-      assert.strictEqual(getVisualInnerHtml(host), 'fallback');
+      assert.strictEqual(getVisualInnerHtml(host), '<a></a>');
 
       expectStructure(host, {
         firstChild: a,

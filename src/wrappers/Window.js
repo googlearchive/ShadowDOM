@@ -56,9 +56,13 @@
       renderAllPending();
       return new Selection(originalGetSelection.call(unwrap(this)));
     },
+
+    get document() {
+      return wrap(unwrap(this).document);
+    }
   });
 
-  registerWrapper(OriginalWindow, Window);
+  registerWrapper(OriginalWindow, Window, window);
 
   scope.wrappers.Window = Window;
 

@@ -77,6 +77,7 @@ suite('Shadow DOM', function() {
   suite('Nested shadow roots', function() {
     testRender('2 levels deep', 'host', ['oldest shadow', '<shadow></shadow>'],
                'oldest shadow');
+
     testRender('4 levels deep', 'host',
                ['oldest shadow', '<shadow></shadow>', '<shadow></shadow>',
                 '<shadow></shadow>'],
@@ -94,6 +95,20 @@ suite('Shadow DOM', function() {
                  '<content select="c"></content><shadow></shadow>'
                ],
                '<c></c><a></a><b></b>');
+
+    testRender('content in shadow',
+               '<a></a><b></b><c></c>',
+               [
+                 '<d></d>',
+                 '<content select="b"></content>' +
+                     '<shadow><content select="d"></content></shadow>',
+                 '<content select="a"></content>' +
+                 '<shadow>' +
+                     '<content select="d"></content>' +
+                     '<content select="b"></content>' +
+                  '</shadow>',
+               ],
+               '<a></a><b></b><d></d>');
   });
 
   suite('matches criteria', function() {
@@ -176,51 +191,6 @@ suite('Shadow DOM', function() {
                  '<a data-test="a b c"></a><a data-test="abc"></a>',
                  '<content select="[data-test~=b]"></content>',
                  '<a data-test="a b c"></a>');
-    });
-
-    suite('pseudo-class selector(s)', function() {
-      testRender(':link',
-                 '<a></a><a href="#"></a>',
-                 '<content select=":link"></content>',
-                 '<a href="#"></a>');
-
-      // :visited cannot be queried in JS.
-
-      // :target is not supported. matches(':target') does not seem to
-      // work in WebKit nor Firefox.
-
-      testRender(':enabled',
-                 '<button disabled></button><button></button>',
-                 '<content select=":enabled"></content>',
-                 '<button></button>');
-      testRender(':disabled',
-                 '<button disabled></button><button></button>',
-                 '<content select=":disabled"></content>',
-                 '<button disabled=""></button>');
-
-      testRender(':checked',
-                 '<input type=checkbox><input type=checkbox checked>',
-                 '<content select=":checked"></content>',
-                 /Firefox|MSIE 9/.test(navigator.userAgent) ?
-                     '<input checked="" type="checkbox">' :
-                     '<input type="checkbox" checked="">');
-      testRender(':indeterminate',
-                 '<input type=checkbox><input type=checkbox>',
-                 '<content select=":indeterminate"></content>',
-                 '<input type="checkbox">',
-                 function(host) {
-                   host.firstChild.indeterminate = true;
-                 });
-
-      // The following are not supported. They depend on ordering.
-      // :nth-child()
-      // :nth-last-child()
-      // :nth-of-type()
-      // :nth-last-of-type()
-      // :first-child
-      // :last-child
-      // :first-of-type
-      // :last-of-type
     });
 
   });
