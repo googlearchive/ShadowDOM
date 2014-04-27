@@ -38,7 +38,6 @@ Shadow DOM is internal to the element and hidden from the end-user.
 Its nodes are not children of `<my-custom-element>`.
 
 **Note:** Shadow roots are represented as a `#document-fragment` in the DevTools.
-{: .alert .alert-info }
 
 **Composed (rendered) DOM**
 
