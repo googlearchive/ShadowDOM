@@ -11,24 +11,22 @@ window.ShadowDOMPolyfill = {};
   var nativePrototypeTable = new WeakMap();
   var wrappers = Object.create(null);
 
-  // Don't test for eval if document has CSP securityPolicy object and we can
-  // see that eval is not supported. This avoids an error message in console
-  // even when the exception is caught
-  var hasEval = !('securityPolicy' in document) ||
-      document.securityPolicy.allowsEval;
+  function detectEval() {
+    // Don't test for eval if we're running in a Chrome App environment.
+    // We check for APIs set that only exist in a Chrome App context.
+    if (typeof chrome !== 'undefined' && chrome.app && chrome.app.runtime) {
+      return false;
+    }
 
-  if (typeof chrome !== 'undefined' && chrome.app && chrome.app.runtime) {
-    hasEval = false;
-  }
-
-  if (hasEval) {
     try {
-      var f = new Function('', 'return true;');
-      hasEval = f();
+      var f = new Function('return true;');
+      return f();
     } catch (ex) {
-      hasEval = false;
+      return false;
     }
   }
+
+  var hasEval = detectEval();
 
   function assert(b) {
     if (!b)
