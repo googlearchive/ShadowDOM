@@ -118,6 +118,7 @@ var modules = [
   'Selection.js',
   'ShadowRoot.js',
   'Text.js',
+  'TouchEvent.js',
   'TreeScope.js',
   'Window.js',
   'createTable.js',
