@@ -16,18 +16,8 @@ htmlSuite('Events', function() {
     return;
   }
 
-  test('TouchEvent', function() {
-    var e = document.createEvent('TouchEvent');
-    assert.instanceOf(e, TouchEvent);
-    assert.instanceOf(e, UIEvent);
-    assert.instanceOf(e, Event);
-  });
-
-  test('Touch', function() {
-    // There is no way to create a native Touch object so we use a mock impl.
-
-    var target = document.createElement('div');
-    var impl = {
+  function createMockTouch(nativeTarget) {
+    return {
       clientX: 1,
       clientY: 2,
       screenX: 3,
@@ -39,8 +29,22 @@ htmlSuite('Events', function() {
       webkitRadiusY: 9,
       webkitRotationAngle: 10,
       webkitForce: 11,
-      target: unwrap(target)
+      target: nativeTarget
     };
+  }
+
+  test('TouchEvent', function() {
+    var e = document.createEvent('TouchEvent');
+    assert.instanceOf(e, TouchEvent);
+    assert.instanceOf(e, UIEvent);
+    assert.instanceOf(e, Event);
+  });
+
+  test('Touch', function() {
+    // There is no way to create a native Touch object so we use a mock impl.
+
+    var target = document.createElement('div');
+    var impl = createMockTouch(unwrap(target));
     var touch = new Touch(impl);
 
     assert.equal(touch.clientX, 1);
@@ -55,6 +59,55 @@ htmlSuite('Events', function() {
     assert.equal(touch.webkitRotationAngle, 10);
     assert.equal(touch.webkitForce, 11);
     assert.equal(touch.target, target);
+  });
+
+  test('TouchList', function() {
+
+    function createMockTouchList(elements) {
+      var arr = [];
+      for (var i = 0; i < elements.length; i++) {
+        arr[i] = createMockTouch(unwrap(elements[i]));
+      }
+      return arr;
+    }
+
+    var a = document.createElement('a');
+    var b = document.createElement('b');
+    var c = document.createElement('c');
+    var d = document.createElement('d');
+    var e = document.createElement('e');
+    var f = document.createElement('f');
+
+    var mockEvent = {
+      __proto__: unwrap(document.createEvent('TouchEvent')).__proto__,
+      touches: createMockTouchList([a]),
+      targetTouches: createMockTouchList([b, c]),
+      changedTouches: createMockTouchList([d, e, f])
+    };
+
+    var event = wrap(mockEvent);
+
+    assert.instanceOf(event.touches, TouchList);
+    assert.instanceOf(event.targetTouches, TouchList);
+    assert.instanceOf(event.changedTouches, TouchList);
+
+    assert.equal(event.touches.length, 1);
+    assert.equal(event.targetTouches.length, 2);
+    assert.equal(event.changedTouches.length, 3);
+
+    assert.instanceOf(event.touches[0], Touch);
+    assert.instanceOf(event.targetTouches[0], Touch);
+    assert.instanceOf(event.targetTouches[1], Touch);
+    assert.instanceOf(event.changedTouches[0], Touch);
+    assert.instanceOf(event.changedTouches[1], Touch);
+    assert.instanceOf(event.changedTouches[2], Touch);
+
+    assert.equal(event.touches[0].target, a);
+    assert.equal(event.targetTouches[0].target, b);
+    assert.equal(event.targetTouches[1].target, c);
+    assert.equal(event.changedTouches[0].target, d);
+    assert.equal(event.changedTouches[1].target, e);
+    assert.equal(event.changedTouches[2].target, f);
   });
 
 });
