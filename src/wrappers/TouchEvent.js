@@ -10,6 +10,7 @@
   var UIEvent = scope.wrappers.UIEvent;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
+  var unwrap = scope.unwrap;
   var wrap = scope.wrap;
 
   // TouchEvent is WebKit/Blink only.
@@ -25,6 +26,8 @@
     // which it isn't on desktop Chrome.
     return;
   }
+
+  var nonEnumDescriptor = {enumerable: false};
 
   function nonEnum(obj, prop) {
     Object.defineProperty(obj, prop, nonEnumDescriptor);
