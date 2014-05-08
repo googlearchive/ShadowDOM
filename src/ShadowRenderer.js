@@ -355,13 +355,13 @@
               // 1.3.2.2.1
               destributeNodeInto(pool[j], shadow);
             }
-
-          } else {
-            // 1.3.3
-            this.distributionResolution(shadowTree);
           }
+
+          // 1.3.3
+          this.distributionResolution(shadowTree);
         }
       }
+
       for (var child = node.firstChild; child; child = child.nextSibling) {
         this.distributionResolution(child);
       }
@@ -376,6 +376,8 @@
         var content = node;
         this.updateDependentAttributes(content.getAttribute('select'));
 
+        var anyDistributed = false;
+
         // 1.1
         for (var i = 0; i < pool.length; i++) {
           var node = pool[i];
@@ -384,13 +386,13 @@
           if (matches(node, content)) {
             destributeNodeInto(node, content);
             pool[i] = undefined;
+            anyDistributed = true;
           }
         }
 
         // 1.2
         // Fallback content
-        var distributedNodes = getDistributedNodes(content);
-        if (distributedNodes && distributedNodes.length === 0) {
+        if (!anyDistributed) {
           for (var child = content.firstChild;
                child;
                child = child.nextSibling) {
