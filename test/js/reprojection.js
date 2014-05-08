@@ -192,7 +192,35 @@ suite('Shadow DOM reprojection', function() {
 
     testRender();
     testRender();
+  });
 
-   
+  test('Regression 432', function() {
+    // https://github.com/Polymer/ShadowDOM/issues/432
+
+    var xFoo = document.createElement('x-foo');
+    xFoo.innerHTML = '<div>Hello</div>';
+    var div = xFoo.firstChild;
+
+    var xBarSr = xFoo.createShadowRoot();
+
+    var xFooSr = xFoo.createShadowRoot();
+    xFooSr.innerHTML = '<x-zot><content></content></x-zot><shadow></shadow>';
+    var xZot = xFooSr.firstChild;
+    var content = xZot.firstChild;
+    var shadow = xZot.lastChild;
+
+    xZotSr = xZot.createShadowRoot();
+    xZotSr.innerHTML = '<content></content>';
+    var content2 = xZotSr.firstChild;
+
+    xFoo.offsetWidth;
+
+    assertArrayEqual(content.getDistributedNodes(), [div]);
+    assertArrayEqual(shadow.getDistributedNodes(), [div]);
+    assertArrayEqual(content2.getDistributedNodes(), [div]);
+
+    assertArrayEqual(div.getDestinationInsertionPoints(), [content, content2]);
+
+    assert.equal(getVisualInnerHtml(xFoo), '<x-zot><div>Hello</div></x-zot>');
   });
 });

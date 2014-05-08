@@ -49,7 +49,7 @@ htmlSuite('Document', function() {
 
   test('getElementsByTagName', function() {
     var elements = document.getElementsByTagName('body');
-    assert.isTrue(elements instanceof NodeList);
+    assert.isTrue(elements instanceof HTMLCollection);
     assert.equal(elements.length, 1);
     assert.isTrue(elements[0] instanceof HTMLElement);
 
@@ -58,7 +58,7 @@ htmlSuite('Document', function() {
     assert.equal(doc.body, elements.item(0));
 
     var elements2 = doc.getElementsByTagName('body');
-    assert.isTrue(elements2 instanceof NodeList);
+    assert.isTrue(elements2 instanceof HTMLCollection);
     assert.equal(elements2.length, 1);
     assert.isTrue(elements2[0] instanceof HTMLElement);
     assert.equal(doc.body, elements2[0]);
