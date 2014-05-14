@@ -315,6 +315,13 @@ htmlSuite('Document', function() {
     assert.equal(doc.elementFromPoint(5, 5), div);
   });
 
+  test('elementFromPoint null', function() {
+    assert.isNull(document.elementFromPoint(-9999, -9999));
+
+    var doc = wrap(document);
+    assert.isNull(doc.elementFromPoint(-9999, -9999));
+  });
+
   test('document.contains', function() {
     assert.isTrue(document.contains(document.body));
     assert.isTrue(document.contains(document.querySelector('body')));

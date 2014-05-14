@@ -826,6 +826,8 @@
     scope.renderAllPending();
 
     var element = wrap(originalElementFromPoint.call(document.impl, x, y));
+    if (!element)
+      return null;
     var path = getEventPath(element, null);
     return eventRetargetting(path, self);
   }
