@@ -392,4 +392,25 @@ suite('Node', function() {
     assert.equal(sr.firstChild.nextSibling.textContent, 'quux');
   });
 
+  test('appendChild last and first', function() {
+    var a = document.createElement('a');
+    a.innerHTML = '<b></b>';
+    var b = a.firstChild;
+    var sr = a.createShadowRoot();
+
+    var c = document.createElement('c');
+    c.innerHTML = '<d></d>';
+    var d = c.firstChild;
+    c.appendChild(b);
+
+    var cs = c.childNodes;
+    assert.equal(cs.length, 2);
+    assert.equal(cs[0], d);
+    assert.equal(cs[1], b);
+
+    c.removeChild(b);
+    cs = c.childNodes;
+    assert.equal(cs.length, 1);
+    assert.equal(cs[0], d);
+  });
 });

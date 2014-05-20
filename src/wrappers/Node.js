@@ -401,8 +401,11 @@
       } else {
         if (!previousNode)
           this.firstChild_ = nodes[0];
-        if (!refWrapper)
+        if (!refWrapper) {
           this.lastChild_ = nodes[nodes.length - 1];
+          if (this.firstChild_ === undefined)
+            this.firstChild_ = this.firstChild;
+        }
 
         var parentNode = refNode ? refNode.parentNode : this.impl;
 
