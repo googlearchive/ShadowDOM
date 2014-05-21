@@ -1404,4 +1404,38 @@ test('retarget order (multiple shadow roots)', function() {
     assert.equal(errorCount, 1);
   });
 
+  test('add during dispatch', function() {
+    var div = document.createElement('div');
+    var fCount = 0;
+    var gCount = 0;
+    var hCount = 0;
+
+    function f() {
+      fCount++;
+      div.addEventListener('click', g);
+    }
+
+    function g() {
+      gCount++;
+      div.addEventListener('click', h);
+    }
+
+    function h() {
+      hCount++;
+    }
+
+    div.addEventListener('click', f);
+
+    div.click();
+    assert.equal(fCount, 1);
+
+    div.click();
+    assert.equal(fCount, 2);
+    assert.equal(gCount, 1);
+
+    div.click();
+    assert.equal(fCount, 3);
+    assert.equal(gCount, 2);
+    assert.equal(hCount, 1);
+  });
 });
