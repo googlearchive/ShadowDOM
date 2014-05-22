@@ -368,7 +368,6 @@ suite('Node', function() {
     assert.equal(span.firstChild.textContent, 'buzzquux');
     assert.equal(span.nextSibling, div.lastChild);
     assert.equal(div.lastChild.textContent, 'bar\n');
-
   });
 
   test('normalize with shadowroot', function() {
@@ -390,6 +389,20 @@ suite('Node', function() {
     assert.equal(sr.childNodes.length, 2);
     assert.equal(sr.firstChild.textContent, 'buzz');
     assert.equal(sr.firstChild.nextSibling.textContent, 'quux');
+  });
+
+  test('normalize - issue 441', function() {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode('a'));
+    div.appendChild(document.createTextNode('b'));
+    div.appendChild(document.createElement('span'));
+    div.appendChild(document.createTextNode('c'));
+    div.appendChild(document.createTextNode('d'));
+
+    div.normalize();
+
+    assert.equal(div.textContent, 'abcd');
+    assert.equal(div.childNodes.length, 3);
   });
 
   test('appendChild last and first', function() {

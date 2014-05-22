@@ -696,7 +696,7 @@
         } else {
           if (modNode && remNodes.length) {
             modNode.data += s;
-            cleanUpNodes(remNodes);
+            cleanupNodes(remNodes);
           }
           remNodes = [];
           s = '';
