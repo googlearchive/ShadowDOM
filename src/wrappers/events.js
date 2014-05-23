@@ -382,7 +382,7 @@
     targetTable.set(event, target);
     currentTargetTable.set(event, currentTarget);
 
-    for (var i = 0; i < listeners.length; i++) {
+    for (var i = 0, len = listeners.length; i < len; i++) {
       var listener = listeners[i];
       if (listener.removed) {
         anyRemoved = true;
