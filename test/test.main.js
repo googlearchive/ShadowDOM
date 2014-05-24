@@ -76,6 +76,7 @@ var modules = [
   'ChildNodeInterface.js',
   'Comment.js',
   'Document.js',
+  'DOMTokenList.js',
   'Element.js',
   'HTMLAudioElement.js',
   'HTMLBodyElement.js',

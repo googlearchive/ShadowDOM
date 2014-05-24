@@ -356,9 +356,17 @@ suite('Shadow DOM', function() {
       assert.equal(getVisualInnerHtml(host), '<a class="a"></a>');
       assert.equal(calls, 4);
 
-      a.className = null;
+      a.classList.remove('a');
       assert.equal(getVisualInnerHtml(host), '');
       assert.equal(calls, 5);
+
+      a.classList.add('a');
+      assert.equal(getVisualInnerHtml(host), '<a class="a"></a>');
+      assert.equal(calls, 6);
+
+      a.className = null;
+      assert.equal(getVisualInnerHtml(host), '');
+      assert.equal(calls, 7);
     });
 
   });
