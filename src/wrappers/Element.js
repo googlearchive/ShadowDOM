@@ -8,6 +8,7 @@
   var ChildNodeInterface = scope.ChildNodeInterface;
   var GetElementsByInterface = scope.GetElementsByInterface;
   var Node = scope.wrappers.Node;
+  var DOMTokenList = scope.wrappers.DOMTokenList;
   var ParentNodeInterface = scope.ParentNodeInterface;
   var SelectorsInterface = scope.SelectorsInterface;
   var addWrapNodeListMethod = scope.addWrapNodeListMethod;
@@ -15,6 +16,7 @@
   var mixin = scope.mixin;
   var oneOf = scope.oneOf;
   var registerWrapper = scope.registerWrapper;
+  var unwrap = scope.unwrap;
   var wrappers = scope.wrappers;
 
   var OriginalElement = window.Element;
@@ -54,6 +56,8 @@
     });
   }
 
+  var classListTable = new WeakMap();
+
   function Element(node) {
     Node.call(this, node);
   }
@@ -91,6 +95,31 @@
 
     matches: function(selector) {
       return originalMatches.call(this.impl, selector);
+    },
+
+    get classList() {
+      var list = classListTable.get(this);
+      if (!list) {
+        classListTable.set(this,
+            list = new DOMTokenList(unwrap(this).classList, this));
+      }
+      return list;
+    },
+
+    get className() {
+      return unwrap(this).className;
+    },
+
+    set className(v) {
+      this.setAttribute('class', v);
+    },
+
+    get id() {
+      return unwrap(this).id;
+    },
+
+    set id(v) {
+      this.setAttribute('id', v);
     }
   });
 
@@ -107,28 +136,6 @@
         Element.prototype.createShadowRoot;
   }
 
-  /**
-   * Useful for generating the accessor pair for a property that reflects an
-   * attribute.
-   */
-  function setterDirtiesAttribute(prototype, propertyName, opt_attrName) {
-    var attrName = opt_attrName || propertyName;
-    Object.defineProperty(prototype, propertyName, {
-      get: function() {
-        return this.impl[propertyName];
-      },
-      set: function(v) {
-        this.impl[propertyName] = v;
-        invalidateRendererBasedOnAttribute(this, attrName);
-      },
-      configurable: true,
-      enumerable: true
-    });
-  }
-
-  setterDirtiesAttribute(Element.prototype, 'id');
-  setterDirtiesAttribute(Element.prototype, 'className', 'class');
-
   mixin(Element.prototype, ChildNodeInterface);
   mixin(Element.prototype, GetElementsByInterface);
   mixin(Element.prototype, ParentNodeInterface);
@@ -137,8 +144,7 @@
   registerWrapper(OriginalElement, Element,
                   document.createElementNS(null, 'x'));
 
-  // TODO(arv): Export setterDirtiesAttribute and apply it to more bindings
-  // that reflect attributes.
+  scope.invalidateRendererBasedOnAttribute = invalidateRendererBasedOnAttribute;
   scope.matchesNames = matchesNames;
   scope.wrappers.Element = Element;
 })(window.ShadowDOMPolyfill);
