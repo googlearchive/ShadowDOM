@@ -1405,7 +1405,8 @@ test('retarget order (multiple shadow roots)', function() {
   });
 
   test('add during dispatch', function() {
-    var div = document.createElement('div');
+    div = document.createElement('div');
+    document.body.appendChild(div);
     var fCount = 0;
     var gCount = 0;
     var hCount = 0;
