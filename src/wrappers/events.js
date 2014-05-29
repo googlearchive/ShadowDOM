@@ -475,25 +475,11 @@
       return eventPhaseTable.get(this);
     },
     get path() {
-      var nodeList = new wrappers.NodeList();
       var eventPath = eventPathTable.get(this);
-      if (eventPath) {
-        var index = 0;
-        var lastIndex = eventPath.length - 1;
-        var baseRoot = getTreeScope(currentTargetTable.get(this));
-
-        for (var i = 0; i <= lastIndex; i++) {
-          var currentTarget = eventPath[i];
-          var currentRoot = getTreeScope(currentTarget);
-          if (currentRoot.contains(baseRoot) &&
-              // Make sure we do not add Window to the path.
-              (i !== lastIndex || currentTarget instanceof wrappers.Node)) {
-            nodeList[index++] = currentTarget;
-          }
-        }
-        nodeList.length = index;
-      }
-      return nodeList;
+      if (!eventPath)
+        return [];
+      // TODO(arv): Event path should contain window.
+      return eventPath.slice();
     },
     stopPropagation: function() {
       stopPropagationTable.set(this, true);
