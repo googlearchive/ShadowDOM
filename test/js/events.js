@@ -1194,6 +1194,9 @@ test('retarget order (multiple shadow roots)', function() {
           [
             tree.c,
             tree.content,
+            tree.content2,
+            tree.e,
+            tree.sr2,
             tree.d,
             tree.sr,
             tree.b,
@@ -1209,6 +1212,12 @@ test('retarget order (multiple shadow roots)', function() {
       assertArrayEqual(
           [
             tree.c,
+            tree.content,
+            tree.content2,
+            tree.e,
+            tree.sr2,
+            tree.d,
+            tree.sr,
             tree.b,
             tree.a,
             tree.div,
