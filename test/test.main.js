@@ -75,8 +75,8 @@ mocha.setup({
 var modules = [
   'ChildNodeInterface.js',
   'Comment.js',
-  'Document.js',
   'DOMTokenList.js',
+  'Document.js',
   'Element.js',
   'HTMLAudioElement.js',
   'HTMLBodyElement.js',
@@ -122,6 +122,7 @@ var modules = [
   'TouchEvent.js',
   'TreeScope.js',
   'Window.js',
+  'build-json.js',
   'createTable.js',
   'custom-element.js',
   'events.js',
