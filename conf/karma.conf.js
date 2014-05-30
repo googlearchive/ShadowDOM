@@ -11,6 +11,7 @@ module.exports = function(karma) {
       'tools/test/mocha-htmltest.js',
       'ShadowDOM/conf/mocha.conf.js',
       'ShadowDOM/node_modules/chai/chai.js',
+      'ShadowDOM/build.json',
       'ShadowDOM/shadowdom.js',
       'ShadowDOM/test/test.main.js',
       {pattern: 'ShadowDOM/src/**/*.js', included: false},
