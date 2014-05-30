@@ -12,18 +12,20 @@ suite('build.json', function() {
 
   test('Ensure lists match', function(done) {
     var xhrJson = new XMLHttpRequest;
-    xhrJson.open('GET', '../build.json');
+    // karma serves the test runner at /context.html, need to adjust xhr request url to match
+    var requestBase = window.__karma__ ? '/base/ShadowDOM/' : '../';
+    xhrJson.open('GET', requestBase + 'build.json');
     xhrJson.onload = function() {
       var buildJson = JSON.parse(xhrJson.responseText);
 
       var xhrJs = new XMLHttpRequest;
-      xhrJs.open('GET', '../shadowdom.js');
+      xhrJs.open('GET', requestBase + 'shadowdom.js');
       xhrJs.onload = function() {
         var sources = [];
 
         document.write = function(s) {
           var path =
-              s.slice('<script src="../'.length, - '"><\/script>'.length);
+              s.slice(('<script src="' + requestBase).length, - '"><\/script>'.length);
           sources.push(path);
         };
 

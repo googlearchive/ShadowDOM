@@ -13,6 +13,7 @@ module.exports = function(karma) {
       'ShadowDOM/node_modules/chai/chai.js',
       'ShadowDOM/shadowdom.js',
       'ShadowDOM/test/test.main.js',
+      {pattern: 'ShadowDOM/build.json', included: false},
       {pattern: 'ShadowDOM/src/**/*.js', included: false},
       {pattern: 'ShadowDOM/test/**/*.js', included: false},
       {pattern: 'ShadowDOM/test/**/*.html', included: false},
