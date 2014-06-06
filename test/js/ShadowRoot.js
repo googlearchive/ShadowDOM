@@ -24,6 +24,10 @@ suite('ShadowRoot', function() {
                       'background: green';
 
     assert.equal(sr.elementFromPoint(5, 5), a);
+
+    var sr2 = a.createShadowRoot();
+    assert.equal(sr.elementFromPoint(5, 5), a);
+    assert.equal(sr2.elementFromPoint(5, 5), null);
   });
 
   test('getElementById', function() {

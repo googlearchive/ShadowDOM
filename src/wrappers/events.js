@@ -815,6 +815,15 @@
     if (!element)
       return null;
     var path = getEventPath(element, null);
+
+    // scope the path to this TreeScope
+    var idx = path.lastIndexOf(self);
+    if (idx == -1)
+      return null;
+    else
+      path = path.slice(0, idx);
+
+    // TODO(dfreedm): pass idx to eventRetargetting to avoid array copy
     return eventRetargetting(path, self);
   }
 
