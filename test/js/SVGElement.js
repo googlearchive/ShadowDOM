@@ -54,4 +54,18 @@ suite('SVGElement', function() {
     assert.notInstanceOf(el, HTMLElement);
   });
 
+  test('classList', function() {
+    var el = document.createElementNS(SVG_NS, 'svg');
+    el.setAttribute('class', 'a b');
+
+    assert.isTrue(el.classList === undefined ||
+                  (el.classList instanceof DOMTokenList));
+
+    if (el.classList !== undefined) {
+      assert.equal(el.classList.length, 2);
+      assert.isTrue(el.classList.contains('a'));
+      assert.isTrue(el.classList.contains('b'));
+    }
+  });
+
 });
