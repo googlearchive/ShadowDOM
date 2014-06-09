@@ -18,7 +18,7 @@
   // is an accessor on Element, but IE11 puts classList on HTMLElement, leaving
   // SVGElement without a classList property. We therefore move the accessor for
   // IE11.
-  if (!('classList' in window.SVGElement)) {
+  if (!('classList' in svgTitleElement)) {
     var descr = Object.getOwnPropertyDescriptor(Element.prototype, 'classList');
     Object.defineProperty(HTMLElement.prototype, 'classList', descr);
     delete Element.prototype.classList;
