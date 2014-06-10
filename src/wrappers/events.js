@@ -382,6 +382,10 @@
     targetTable.set(event, target);
     currentTargetTable.set(event, currentTarget);
 
+    // Keep track of the invoke depth so that we only clean up the removed
+    // listeners if we are in the outermost invoke.
+    listeners.depth++;
+
     for (var i = 0, len = listeners.length; i < len; i++) {
       var listener = listeners[i];
       if (listener.removed) {
@@ -410,7 +414,9 @@
       }
     }
 
-    if (anyRemoved) {
+    listeners.depth--;
+
+    if (anyRemoved && listeners.depth === 0) {
       var copy = listeners.slice();
       listeners.length = 0;
       for (var i = 0; i < copy.length; i++) {
@@ -707,6 +713,7 @@
       var listeners = listenersTable.get(this);
       if (!listeners) {
         listeners = [];
+        listeners.depth = 0;
         listenersTable.set(this, listeners);
       } else {
         // Might have a duplicate.
