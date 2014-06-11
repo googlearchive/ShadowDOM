@@ -1448,4 +1448,32 @@ test('retarget order (multiple shadow roots)', function() {
     assert.equal(gCount, 2);
     assert.equal(hCount, 1);
   });
+
+  test('Event reentrancy', function() {
+    div = document.createElement('div');
+    document.body.appendChild(div);
+    var s = '';
+    var depth = 0;
+
+    function f() {
+      s += 'f' + depth;
+      if (depth === 0) {
+        depth++;
+        div.dispatchEvent(new Event('x'));
+      } else if (depth === 1) {
+        div.removeEventListener('x', g);
+      }
+    }
+
+    function g() {
+      s += 'g' + depth;
+    }
+
+    div.addEventListener('x', f);
+    div.addEventListener('x', g);
+
+    div.dispatchEvent(new Event('x'));
+
+    assert.equal(s, 'f0f1');
+  });
 });
