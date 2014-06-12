@@ -104,6 +104,10 @@
     getSelection: function() {
       renderAllPending();
       return new Selection(originalGetSelection.call(unwrap(this)));
+    },
+    getElementsByName: function(name) {
+      return SelectorsInterface.querySelectorAll.call(this,
+          '[name=' + JSON.stringify(String(name)) + ']');
     }
   });
 
@@ -248,6 +252,7 @@
     'createTextNode',
     'elementFromPoint',
     'getElementById',
+    'getElementsByName',
     'getSelection',
   ]);
 

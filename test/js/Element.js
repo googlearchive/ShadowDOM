@@ -6,6 +6,15 @@
 
 suite('Element', function() {
 
+  var wrap = ShadowDOMPolyfill.wrap;
+  var div;
+
+  teardown(function() {
+    if (div && div.parentNode)
+      div.parentNode.removeChild(div);
+    div = null;
+  });
+
   test('querySelector', function() {
     var div = document.createElement('div');
     div.innerHTML = '<a><b></b></a>';
@@ -201,5 +210,45 @@ suite('Element', function() {
 
     assertArrayEqual([content], a.getDestinationInsertionPoints());
     assertArrayEqual([content, contentB], b.getDestinationInsertionPoints());
+  });
+
+  test('getElementsByName', function() {
+    div = document.createElement('div');
+    document.body.appendChild(div);
+    div.innerHTML = '<span name=a>0</span><span name=a>1</span>';
+    var a0 = div.firstChild;
+    var a1 = div.lastChild;
+
+    var as = document.getElementsByName('a');
+    assert.instanceOf(as, NodeList);
+    assert.equal(as.length, 2);
+    assert.equal(as[0], a0);
+    assert.equal(as.item(0), a0);
+    assert.equal(as[1], a1);
+    assert.equal(as.item(1), a1);
+
+    var doc = wrap(document);
+    as = doc.getElementsByName('a');
+    assert.instanceOf(as, NodeList);
+    assert.equal(as.length, 2);
+    assert.equal(as[0], a0);
+    assert.equal(as.item(0), a0);
+    assert.equal(as[1], a1);
+    assert.equal(as.item(1), a1);
+
+    a0.setAttribute('name', '"odd"');
+    as = document.getElementsByName('"odd"');
+    assert.instanceOf(as, NodeList);
+    assert.equal(as.length, 1);
+    assert.equal(as[0], a0);
+    assert.equal(as.item(0), a0);
+
+    var sr = div.createShadowRoot();
+    sr.innerHTML = '<span name=a></span>';
+    as = document.getElementsByName('a');
+    assert.instanceOf(as, NodeList);
+    assert.equal(as.length, 1);
+    assert.equal(as[0], a1);
+    assert.equal(as.item(0), a1);
   });
 });
