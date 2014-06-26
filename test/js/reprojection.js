@@ -223,4 +223,43 @@ suite('Shadow DOM reprojection', function() {
 
     assert.equal(getVisualInnerHtml(xFoo), '<x-zot><div>Hello</div></x-zot>');
   });
+
+  test('Issue 460', function() {
+    // div
+    //  - shadow-root
+    //  -- a
+    //  --- b
+    //  ---- shadow-root
+    //  ----- content
+    //  ---- content (content2)
+    //  - d
+
+    var div = document.createElement('div');
+    var sr = div.createShadowRoot();
+    var a = sr.appendChild(document.createElement('a'));
+    var b = a.appendChild(document.createElement('b'));
+    var sr2 = b.createShadowRoot();
+    var content = sr2.appendChild(document.createElement('content'));
+    var content2 = b.appendChild(document.createElement('content'));
+    var d = div.appendChild(document.createElement('d'));
+
+    assert.equal(getVisualInnerHtml(div), '<a><b><d></d></b></a>');
+
+    var sr3 = a.createShadowRoot();
+    assert.equal(getVisualInnerHtml(div), '<a></a>');
+
+    // div
+    //  - shadow-root
+    //  -- a
+    //  --- shadow-root (sr3)
+    //  ---- content (content3)
+    //  --- b
+    //  ---- shadow-root
+    //  ----- content
+    //  ---- content (content2)
+    //  - d
+
+    var content3 = sr3.appendChild(document.createElement('content'));
+    assert.equal(getVisualInnerHtml(div), '<a><b><d></d></b></a>');
+  });
 });
