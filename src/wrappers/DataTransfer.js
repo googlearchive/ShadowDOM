@@ -17,8 +17,10 @@
   var OriginalDataTransferSetDragImage =
       OriginalDataTransfer.prototype.setDragImage;
 
-  OriginalDataTransfer.prototype.setDragImage = function(image, x, y) {
-    OriginalDataTransferSetDragImage.call(this, unwrap(image), x, y);
-  };
+  if (OriginalDataTransferSetDragImage) {
+    OriginalDataTransfer.prototype.setDragImage = function(image, x, y) {
+      OriginalDataTransferSetDragImage.call(this, unwrap(image), x, y);
+    };
+  }
 
 })(window.ShadowDOMPolyfill);
