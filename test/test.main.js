@@ -78,6 +78,7 @@ var modules = [
   'DOMTokenList.js',
   'Document.js',
   'Element.js',
+  'FormData.js',
   'HTMLAudioElement.js',
   'HTMLBodyElement.js',
   'HTMLButtonElement.js',
