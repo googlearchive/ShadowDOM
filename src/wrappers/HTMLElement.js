@@ -230,6 +230,17 @@
 
       var df = frag(contextElement, text);
       contextElement.insertBefore(df, refNode);
+    },
+
+    get hidden() {
+      return this.hasAttribute('hidden');
+    },
+    set hidden(v) {
+      if (v) {
+        this.setAttribute('hidden', '');
+      } else {
+        this.removeAttribute('hidden');
+      }
     }
   });
 
