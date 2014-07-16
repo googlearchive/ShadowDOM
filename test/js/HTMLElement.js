@@ -101,4 +101,13 @@ suite('HTMLElement', function() {
     assert.equal(div.innerHTML, '<!--&\u00A0<>"-->');
   });
 
+  test('hidden property', function() {
+    var div = document.createElement('div');
+    assert.isFalse(div.hidden);
+    div.hidden = true;
+    assert.isTrue(div.hasAttribute('hidden'));
+    assert.equal(div.getAttribute('hidden'), '');
+    div.hidden = false;
+    assert.isFalse(div.hasAttribute('hidden'));
+  });
 });
