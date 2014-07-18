@@ -16,6 +16,7 @@
 
   var OriginalWindow = window.Window;
   var originalGetComputedStyle = window.getComputedStyle;
+  var originalGetDefaultComputedStyle = window.getDefaultComputedStyle;
   var originalGetSelection = window.getSelection;
 
   function Window(impl) {
@@ -26,6 +27,14 @@
   OriginalWindow.prototype.getComputedStyle = function(el, pseudo) {
     return wrap(this || window).getComputedStyle(unwrapIfNeeded(el), pseudo);
   };
+
+  // Mozilla proprietary extension.
+  if (originalGetDefaultComputedStyle) {
+    OriginalWindow.prototype.getDefaultComputedStyle = function(el, pseudo) {
+      return wrap(this || window).getDefaultComputedStyle(
+          unwrapIfNeeded(el), pseudo);
+    };
+  }
 
   OriginalWindow.prototype.getSelection = function() {
     return wrap(this || window).getSelection();
@@ -61,6 +70,15 @@
       return wrap(unwrap(this).document);
     }
   });
+
+  // Mozilla proprietary extension.
+  if (originalGetDefaultComputedStyle) {
+    Window.prototype.getDefaultComputedStyle = function(el, pseudo) {
+      renderAllPending();
+      return originalGetDefaultComputedStyle.call(unwrap(this),
+          unwrapIfNeeded(el),pseudo);
+    };
+  }
 
   registerWrapper(OriginalWindow, Window, window);
 
