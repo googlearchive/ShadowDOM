@@ -90,7 +90,10 @@ There are bound to be cases where we haven't done the wrapping for you. In those
 
 ex:
 
-    wrap(document).addEventListener(...)
+    wrap(document.body)
+    // or get body of the wrapped document
+    wrap(document).body
+
     unwrap(div).firstChild instanceof HTMLElement
 
 If you plan to work with elements that need to be wrapped over and over, try passing a wrapped version of the element into an immediately-invoked function expression.
