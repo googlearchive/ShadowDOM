@@ -88,6 +88,26 @@ The intent is to wrap all the DOM objects that interact with the DOM tree. For t
 
 There are bound to be cases where we haven't done the wrapping for you. In those cases you can use `wrap` to create a wrapper of a native object, or `unwrap` to get the underlying native object from a wrapper. These two functions are available on the `ShadowDOMPolyfill` object.
 
+ex:
+
+    wrap(document.body)
+    // or get body of the wrapped document
+    wrap(document).body
+
+    unwrap(div).firstChild instanceof HTMLElement
+
+If you plan to work with elements that need to be wrapped over and over, try passing a wrapped version of the element into an immediately-invoked function expression.
+
+    (function(document) {
+      
+      // Now a library like jQuery can add
+      // listeners to the wrapped document
+      $(document).on('click', function(e) {
+        console.log('Clicked on', e.target);
+      });
+
+    })(wrap(document));
+
 #### Event Retargetting
 
 An important aspect of the shadow DOM is that events are retargetted to never expose the shadow DOM to the light DOM. For example.
