@@ -128,7 +128,11 @@
         return findOne(this, selector);
       }
 
-      if (root = getTreeScope(wrappedItem).root) {
+      if (!wrappedItem) {
+        // When the original query returns nothing
+        // we return nothing (to be consistent with the other wrapped calls)
+        return wrappedItem;
+      } else if (root = getTreeScope(wrappedItem).root) {
         if (root instanceof scope.wrappers.ShadowRoot) {
           // When the original query returns an element in the ShadowDOM
           // we must do a manual tree traversal

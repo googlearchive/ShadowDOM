@@ -31,6 +31,12 @@ suite('Element', function() {
 
     assert.equal(div.querySelector('b'), b);
     assert.equal(sr.querySelector('b'), srb);
+
+    var z = div.querySelector('z');
+    assert.equal(z, null);
+
+    var z = sr.querySelector('z');
+    assert.equal(z, null);
   });
 
   skipTest('querySelectorAll', function() {
@@ -62,6 +68,12 @@ suite('Element', function() {
     assert.equal(as.length, 2);
     assert.equal(as[0], a3);
     assert.equal(as[1], a4);
+
+    var z = div.querySelectorAll('z');
+    assert.equal(z.length, 0);
+
+    var z = sr.querySelectorAll('z');
+    assert.equal(z.length, 0);
   });
 
   skipTest('getElementsByTagName', function() {
@@ -93,6 +105,12 @@ suite('Element', function() {
     assert.equal(as.length, 2);
     assert.equal(as[0], a3);
     assert.equal(as[1], a4);
+
+    var z = div.getElementsByTagName('z');
+    assert.equal(z.length, 0);
+
+    var z = sr.getElementsByTagName('z');
+    assert.equal(z.length, 0);
   });
 
   test('getElementsByTagName with colon', function() {
@@ -136,6 +154,20 @@ suite('Element', function() {
     assert.equal(as.item(1), a1);
     assert.equal(as[2], a3);
     assert.equal(as.item(2), a3);
+  });
+
+  test('getElementsByTagNameNS', function() {
+    var div = document.createElement('div');
+    div.innerHTML = '<a>0</a><a>1</a>';
+
+    var sr = div.createShadowRoot();
+    sr.innerHTML = '<a>3</a><a>4</a>';
+
+    var z = div.getElementsByTagNameNS('NS', 'z');
+    assert.equal(z.length, 0);
+
+    var z = sr.getElementsByTagNameNS('NS', 'z');
+    assert.equal(z.length, 0);
   });
 
   skipTest('getElementsByClassName', function() {
