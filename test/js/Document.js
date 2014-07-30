@@ -87,6 +87,9 @@ htmlSuite('Document', function() {
     assert.equal(elements.length, 2);
     assert.equal(elements[0], aa3);
     assert.equal(elements[1], aa4);
+
+    var z = document.getElementsByTagName('z');
+    assert.equal(z.length, 0);
   });
 
   test('getElementsByTagNameNS', function() {
@@ -176,6 +179,14 @@ htmlSuite('Document', function() {
     assert.equal(elements.length, 2);
     assert.equal(elements[0], aa3);
     assert.equal(elements[1], aa4);
+
+    var z = document.querySelectorAll('z');
+    assert.equal(z.length, 0);
+  });
+
+  skipTest('querySelector', function() {
+    var z = document.querySelector('z');
+    assert.equal(z, null);
   });
 
   test('addEventListener', function() {
