@@ -100,7 +100,12 @@
   function querySelectorAllFiltered (p, index, result, selector) {
     var target = this.impl;
     var list;
-    if (target instanceof OriginalElement) {
+    var root = getTreeScope(this).root;
+    if (root instanceof scope.wrappers.ShadowRoot) {
+      // We are in the shadow tree and the logical tree is
+      // going to be disconnected so we do a manual tree traversal
+      return findElements(this, index, result, p, selector, null);
+    } else if (target instanceof OriginalElement) {
       list = originalElementQuerySelectorAll.call(target, selector);
     } else if (target instanceof OriginalDocument) {
       list = originalDocumentQuerySelectorAll.call(target, selector);
@@ -117,8 +122,12 @@
     querySelector: function(selector) {
       var target = this.impl;
       var wrappedItem;
-      var root;
-      if (target instanceof OriginalElement) {
+      var root = getTreeScope(this).root;
+      if (root instanceof scope.wrappers.ShadowRoot) {
+        // We are in the shadow tree and the logical tree is
+        // going to be disconnected so we do a manual tree traversal
+        return findOne(this, selector);
+      } else if (target instanceof OriginalElement) {
         wrappedItem = wrap(originalElementQuerySelector.call(target, selector));
       } else if (target instanceof OriginalDocument) {
         wrappedItem = wrap(originalDocumentQuerySelector.call(target, selector));
@@ -158,7 +167,12 @@
   function getElementsByTagNameFiltered (p, index, result, localName, lowercase) {
     var target = this.impl;
     var list;
-    if (target instanceof OriginalElement) {
+    var root = getTreeScope(this).root;
+    if (root instanceof scope.wrappers.ShadowRoot) {
+      // We are in the shadow tree and the logical tree is
+      // going to be disconnected so we do a manual tree traversal
+      return findElements(this, index, result, p, localName, lowercase);
+    } else if (target instanceof OriginalElement) {
       list = originalElementGetElementsByTagName.call(target, localName, lowercase);
     } else if (target instanceof OriginalDocument) {
       list = originalDocumentGetElementsByTagName.call(target, localName, lowercase);
@@ -174,7 +188,12 @@
   function getElementsByTagNameNSFiltered (p, index, result, ns, localName) {
     var target = this.impl;
     var list;
-    if (target instanceof OriginalElement) {
+    var root = getTreeScope(this).root;
+    if (root instanceof scope.wrappers.ShadowRoot) {
+      // We are in the shadow tree and the logical tree is
+      // going to be disconnected so we do a manual tree traversal
+      return findElements(this, index, result, p, ns, localName);
+    } else if (target instanceof OriginalElement) {
       list = originalElementGetElementsByTagNameNS.call(target, ns, localName);
     } else if (target instanceof OriginalDocument) {
       list = originalDocumentGetElementsByTagNameNS.call(target, ns, localName);
