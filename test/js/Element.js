@@ -285,4 +285,58 @@ suite('Element', function() {
     assert.equal(as[0], a1);
     assert.equal(as.item(0), a1);
   });
+
+  test('sub shadow-root traversal', function() {
+    var div = document.createElement("DIV");
+    var sr = div.createShadowRoot();
+    sr.innerHTML = "<aa><bb></bb></aa>";
+
+    var saal = sr.getElementsByTagName("aa");
+    var sbbl = sr.getElementsByTagName("bb");
+    assert.equal(saal.length, 1);
+    assert.equal(sbbl.length, 1);
+
+    var saa = saal [0];
+    var sbb = sbbl [0];
+    var abbl = saa.getElementsByTagName("bb");
+    assert.equal(abbl.length, 1);
+
+    var abb = abbl [0];
+    assert.instanceOf(abb, HTMLElement);
+    assert.equal(abb, sbb);
+
+    var saal = sr.getElementsByTagNameNS("*", "aa");
+    var sbbl = sr.getElementsByTagNameNS("*", "bb");
+    assert.equal(saal.length, 1);
+    assert.equal(sbbl.length, 1);
+
+    var saa = saal [0];
+    var sbb = sbbl [0];
+    var abbl = saa.getElementsByTagNameNS("*", "bb");
+    assert.equal(abbl.length, 1);
+
+    var abb = abbl [0];
+    assert.instanceOf(abb, HTMLElement);
+    assert.equal(abb, sbb);
+
+    var saal = sr.querySelectorAll("aa");
+    var sbbl = sr.querySelectorAll("bb");
+    assert.equal(saal.length, 1);
+    assert.equal(sbbl.length, 1);
+
+    var saa = saal [0];
+    var sbb = sbbl [0];
+    var abbl = saa.querySelectorAll("bb");
+    assert.equal(abbl.length, 1);
+
+    var abb = abbl [0];
+    assert.instanceOf(abb, HTMLElement);
+    assert.equal(abb, sbb);
+
+    var saa = sr.querySelector("aa");
+    var sbb = sr.querySelector("bb");
+    var abb = saa.querySelector("bb");
+    assert.instanceOf(abb, HTMLElement);
+    assert.equal(abb, sbb);
+  });
 });
