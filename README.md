@@ -4,7 +4,7 @@
 
     var el = document.createElement('div');
     var shadow = el.createShadowRoot();
-    shadow.innerHTML = '<content select="h1"></content>';
+    shadow.innerHTML = '<content select="q"></content>';
     document.body.appendChild(el);
 
 ### Shadow DOM subtrees
