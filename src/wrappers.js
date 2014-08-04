@@ -301,6 +301,7 @@ window.ShadowDOMPolyfill = {};
            object instanceof OriginalRange ||
            object instanceof OriginalDOMImplementation ||
            object instanceof OriginalCanvasRenderingContext2D ||
+           object instanceof OriginalFormData ||
            OriginalWebGLRenderingContext &&
                object instanceof OriginalWebGLRenderingContext ||
            OriginalSVGElementInstance &&
