@@ -282,7 +282,8 @@ window.ShadowDOMPolyfill = {};
   var OriginalCanvasRenderingContext2D = window.CanvasRenderingContext2D;
   var OriginalWebGLRenderingContext = window.WebGLRenderingContext;
   var OriginalSVGElementInstance = window.SVGElementInstance;
-
+  var OriginalFormData = window.FormData;
+  
   function isWrapper(object) {
     return object instanceof wrappers.EventTarget ||
            object instanceof wrappers.Event ||
