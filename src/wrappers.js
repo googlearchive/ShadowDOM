@@ -289,6 +289,7 @@ window.ShadowDOMPolyfill = {};
            object instanceof wrappers.Range ||
            object instanceof wrappers.DOMImplementation ||
            object instanceof wrappers.CanvasRenderingContext2D ||
+           object instanceof wrappers.FormData ||
            wrappers.WebGLRenderingContext &&
                object instanceof wrappers.WebGLRenderingContext;
   }
