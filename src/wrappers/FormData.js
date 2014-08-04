@@ -13,10 +13,10 @@
   var OriginalFormData = window.FormData;
 
   function FormData(formElement) {
-  	if (formElement instanceof OriginalFormData)
-  		this.impl = formElement;
-  	else
-	    this.impl = new OriginalFormData(formElement && unwrap(formElement));
+    if (formElement instanceof OriginalFormData)
+      this.impl = formElement;
+    else
+      this.impl = new OriginalFormData(formElement && unwrap(formElement));
   }
 
   registerWrapper(OriginalFormData, FormData, new OriginalFormData());

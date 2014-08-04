@@ -6,8 +6,8 @@
 
 suite('FormData', function() {
 
-	var wrap = ShadowDOMPolyfill.wrap;
-	var unwrap = ShadowDOMPolyfill.unwrap;
+  var wrap = ShadowDOMPolyfill.wrap;
+  var unwrap = ShadowDOMPolyfill.unwrap;
 
   test('instanceof', function() {
     var fd = new FormData();
@@ -20,11 +20,11 @@ suite('FormData', function() {
     assert.instanceOf(fd, FormData);
   });
 
-	test('wrap/unwrap', function() {
-	  var fd = new FormData();
-	  var unwrapped = unwrap(fd);
-	  var wrapped = wrap(unwrapped);
-	  assert.equal(fd.impl, wrapped.impl);
-	});
+  test('wrap/unwrap', function() {
+    var fd = new FormData();
+    var unwrapped = unwrap(fd);
+    var wrapped = wrap(unwrapped);
+    assert.equal(fd.impl, wrapped.impl);
+  });
 
 });
