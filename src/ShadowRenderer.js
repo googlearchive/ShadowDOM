@@ -538,7 +538,8 @@
   //   ClassSelector
   //   IDSelector
   //   AttributeSelector
-  var selectorStartCharRe = /^[*.#[a-zA-Z_|]/;
+  //   negation
+  var selectorStartCharRe = /^(:not\()?[*.#[a-zA-Z_|]/;
 
   function matches(node, contentElement) {
     var select = contentElement.getAttribute('select');
