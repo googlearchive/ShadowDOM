@@ -23,7 +23,7 @@
   var originalElementGetElementsByTagNameNS = document.documentElement.getElementsByTagNameNS;
 
   var OriginalElement = window.Element;
-  var OriginalDocument = window.HTMLDocument;
+  var OriginalDocument = window.HTMLDocument || window.Document;
 
   function filterNodeList(list, index, result) {
     var wrappedItem = null;
