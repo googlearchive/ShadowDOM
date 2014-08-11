@@ -19,6 +19,7 @@
   var registerTransientObservers = scope.registerTransientObservers;
   var registerWrapper = scope.registerWrapper;
   var setTreeScope = scope.setTreeScope;
+  var unsafeUnwrap = scope.unsafeUnwrap;
   var unwrap = scope.unwrap;
   var unwrapIfNeeded = scope.unwrapIfNeeded;
   var wrap = scope.wrap;
@@ -252,9 +253,9 @@
   function cloneNode(node, deep, opt_doc) {
     var clone;
     if (opt_doc)
-      clone = wrap(originalImportNode.call(opt_doc, node.impl, false));
+      clone = wrap(originalImportNode.call(opt_doc, unsafeUnwrap(node), false));
     else
-      clone = wrap(originalCloneNode.call(node.impl, false));
+      clone = wrap(originalCloneNode.call(unsafeUnwrap(node), false));
 
     if (deep) {
       for (var child = node.firstChild; child; child = child.nextSibling) {
@@ -397,7 +398,7 @@
       if (useNative) {
         ensureSameOwnerDocument(this, childWrapper);
         clearChildNodes(this);
-        originalInsertBefore.call(this.impl, unwrap(childWrapper), refNode);
+        originalInsertBefore.call(unsafeUnwrap(this), unwrap(childWrapper), refNode);
       } else {
         if (!previousNode)
           this.firstChild_ = nodes[0];
@@ -407,7 +408,7 @@
             this.firstChild_ = this.firstChild;
         }
 
-        var parentNode = refNode ? refNode.parentNode : this.impl;
+        var parentNode = refNode ? refNode.parentNode : unsafeUnwrap(this);
 
         // insertBefore refWrapper no matter what the parent is?
         if (parentNode) {
@@ -478,7 +479,7 @@
             childWrapper.parentNode_ = undefined;
       } else {
         clearChildNodes(this);
-        removeChildOriginalHelper(this.impl, childNode);
+        removeChildOriginalHelper(unsafeUnwrap(this), childNode);
       }
 
       if (!surpressMutations) {
@@ -544,7 +545,7 @@
       } else {
         ensureSameOwnerDocument(this, newChildWrapper);
         clearChildNodes(this);
-        originalReplaceChild.call(this.impl, unwrap(newChildWrapper),
+        originalReplaceChild.call(unsafeUnwrap(this), unwrap(newChildWrapper),
                                   oldChildNode);
       }
 
@@ -580,31 +581,31 @@
     get parentNode() {
       // If the parentNode has not been overridden, use the original parentNode.
       return this.parentNode_ !== undefined ?
-          this.parentNode_ : wrap(this.impl.parentNode);
+          this.parentNode_ : wrap(unsafeUnwrap(this).parentNode);
     },
 
     /** @type {Node} */
     get firstChild() {
       return this.firstChild_ !== undefined ?
-          this.firstChild_ : wrap(this.impl.firstChild);
+          this.firstChild_ : wrap(unsafeUnwrap(this).firstChild);
     },
 
     /** @type {Node} */
     get lastChild() {
       return this.lastChild_ !== undefined ?
-          this.lastChild_ : wrap(this.impl.lastChild);
+          this.lastChild_ : wrap(unsafeUnwrap(this).lastChild);
     },
 
     /** @type {Node} */
     get nextSibling() {
       return this.nextSibling_ !== undefined ?
-          this.nextSibling_ : wrap(this.impl.nextSibling);
+          this.nextSibling_ : wrap(unsafeUnwrap(this).nextSibling);
     },
 
     /** @type {Node} */
     get previousSibling() {
       return this.previousSibling_ !== undefined ?
-          this.previousSibling_ : wrap(this.impl.previousSibling);
+          this.previousSibling_ : wrap(unsafeUnwrap(this).previousSibling);
     },
 
     get parentElement() {
@@ -616,7 +617,7 @@
     },
 
     get textContent() {
-      // TODO(arv): This should fallback to this.impl.textContent if there
+      // TODO(arv): This should fallback to unsafeUnwrap(this).textContent if there
       // are no shadow trees below or above the context node.
       var s = '';
       for (var child = this.firstChild; child; child = child.nextSibling) {
@@ -632,12 +633,12 @@
       if (this.invalidateShadowRenderer()) {
         removeAllChildNodes(this);
         if (textContent !== '') {
-          var textNode = this.impl.ownerDocument.createTextNode(textContent);
+          var textNode = unsafeUnwrap(this).ownerDocument.createTextNode(textContent);
           this.appendChild(textNode);
         }
       } else {
         clearChildNodes(this);
-        this.impl.textContent = textContent;
+        unsafeUnwrap(this).textContent = textContent;
       }
 
       var addedNodes = snapshotNodeList(this.childNodes);
@@ -672,7 +673,7 @@
     compareDocumentPosition: function(otherNode) {
       // This only wraps, it therefore only operates on the composed DOM and not
       // the logical DOM.
-      return originalCompareDocumentPosition.call(this.impl,
+      return originalCompareDocumentPosition.call(unsafeUnwrap(this),
                                                   unwrapIfNeeded(otherNode));
     },
 

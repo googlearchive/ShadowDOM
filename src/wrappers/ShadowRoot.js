@@ -13,6 +13,7 @@
   var mixin = scope.mixin;
   var rewrap = scope.rewrap;
   var setInnerHTML = scope.setInnerHTML;
+  var unsafeUnwrap = scope.unsafeUnwrap;
   var unwrap = scope.unwrap;
 
   var shadowHostTable = new WeakMap();
@@ -21,7 +22,7 @@
   var spaceCharRe = /[ \t\n\r\f]/;
 
   function ShadowRoot(hostWrapper) {
-    var node = unwrap(hostWrapper.impl.ownerDocument.createDocumentFragment());
+    var node = unwrap(unsafeUnwrap(hostWrapper).ownerDocument.createDocumentFragment());
     DocumentFragment.call(this, node);
 
     // createDocumentFragment associates the node with a wrapper

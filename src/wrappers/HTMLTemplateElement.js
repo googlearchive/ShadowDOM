@@ -8,6 +8,7 @@
   var HTMLElement = scope.wrappers.HTMLElement;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
+  var unsafeUnwrap = scope.unsafeUnwrap;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
 
@@ -56,7 +57,7 @@
   mixin(HTMLTemplateElement.prototype, {
     get content() {
       if (OriginalHTMLTemplateElement)
-        return wrap(this.impl.content);
+        return wrap(unsafeUnwrap(this).content);
       return contentTable.get(this);
     },
 

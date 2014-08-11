@@ -9,6 +9,8 @@
   var getTreeScope = scope.getTreeScope;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
+  var setWrapper = scope.setWrapper;
+  var unsafeUnwrap = scope.unsafeUnwrap;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
   var wrappers = scope.wrappers;
@@ -463,9 +465,10 @@
   function Event(type, options) {
     if (type instanceof OriginalEvent) {
       var impl = type;
-      if (!OriginalBeforeUnloadEvent && impl.type === 'beforeunload')
+      if (!OriginalBeforeUnloadEvent && impl.type === 'beforeunload') {
         return new BeforeUnloadEvent(impl);
-      this.impl = impl;
+      }
+      setWrapper(impl, this);
     } else {
       return wrap(constructEvent(OriginalEvent, 'Event', type, options));
     }
@@ -509,7 +512,7 @@
     var OriginalEvent = window[name];
     var GenericEvent = function(type, options) {
       if (type instanceof OriginalEvent)
-        this.impl = type;
+        setWrapper(type, this);
       else
         return wrap(constructEvent(OriginalEvent, name, type, options));
     };
@@ -640,10 +643,10 @@
   BeforeUnloadEvent.prototype = Object.create(Event.prototype);
   mixin(BeforeUnloadEvent.prototype, {
     get returnValue() {
-      return this.impl.returnValue;
+      return unsafeUnwrap(this).returnValue;
     },
     set returnValue(v) {
-      this.impl.returnValue = v;
+      unsafeUnwrap(this).returnValue = v;
     }
   });
 
@@ -680,7 +683,7 @@
    * @constructor
    */
   function EventTarget(impl) {
-    this.impl = impl;
+    setWrapper(impl, this);
   }
 
   // Node and Window have different internal type checks in WebKit so we cannot
@@ -818,7 +821,8 @@
   function elementFromPoint(self, document, x, y) {
     scope.renderAllPending();
 
-    var element = wrap(originalElementFromPoint.call(document.impl, x, y));
+    var element =
+        wrap(originalElementFromPoint.call(unsafeUnwrap(document), x, y));
     if (!element)
       return null;
     var path = getEventPath(element, null);

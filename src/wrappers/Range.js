@@ -6,6 +6,8 @@
   'use strict';
 
   var registerWrapper = scope.registerWrapper;
+  var setWrapper = scope.setWrapper;
+  var unsafeUnwrap = scope.unsafeUnwrap;
   var unwrap = scope.unwrap;
   var unwrapIfNeeded = scope.unwrapIfNeeded;
   var wrap = scope.wrap;
@@ -13,78 +15,78 @@
   var OriginalRange = window.Range;
 
   function Range(impl) {
-    this.impl = impl;
+    setWrapper(impl, this);
   }
   Range.prototype = {
     get startContainer() {
-      return wrap(this.impl.startContainer);
+      return wrap(unsafeUnwrap(this).startContainer);
     },
     get endContainer() {
-      return wrap(this.impl.endContainer);
+      return wrap(unsafeUnwrap(this).endContainer);
     },
     get commonAncestorContainer() {
-      return wrap(this.impl.commonAncestorContainer);
+      return wrap(unsafeUnwrap(this).commonAncestorContainer);
     },
     setStart: function(refNode,offset) {
-      this.impl.setStart(unwrapIfNeeded(refNode), offset);
+      unsafeUnwrap(this).setStart(unwrapIfNeeded(refNode), offset);
     },
     setEnd: function(refNode,offset) {
-      this.impl.setEnd(unwrapIfNeeded(refNode), offset);
+      unsafeUnwrap(this).setEnd(unwrapIfNeeded(refNode), offset);
     },
     setStartBefore: function(refNode) {
-      this.impl.setStartBefore(unwrapIfNeeded(refNode));
+      unsafeUnwrap(this).setStartBefore(unwrapIfNeeded(refNode));
     },
     setStartAfter: function(refNode) {
-      this.impl.setStartAfter(unwrapIfNeeded(refNode));
+      unsafeUnwrap(this).setStartAfter(unwrapIfNeeded(refNode));
     },
     setEndBefore: function(refNode) {
-      this.impl.setEndBefore(unwrapIfNeeded(refNode));
+      unsafeUnwrap(this).setEndBefore(unwrapIfNeeded(refNode));
     },
     setEndAfter: function(refNode) {
-      this.impl.setEndAfter(unwrapIfNeeded(refNode));
+      unsafeUnwrap(this).setEndAfter(unwrapIfNeeded(refNode));
     },
     selectNode: function(refNode) {
-      this.impl.selectNode(unwrapIfNeeded(refNode));
+      unsafeUnwrap(this).selectNode(unwrapIfNeeded(refNode));
     },
     selectNodeContents: function(refNode) {
-      this.impl.selectNodeContents(unwrapIfNeeded(refNode));
+      unsafeUnwrap(this).selectNodeContents(unwrapIfNeeded(refNode));
     },
     compareBoundaryPoints: function(how, sourceRange) {
-      return this.impl.compareBoundaryPoints(how, unwrap(sourceRange));
+      return unsafeUnwrap(this).compareBoundaryPoints(how, unwrap(sourceRange));
     },
     extractContents: function() {
-      return wrap(this.impl.extractContents());
+      return wrap(unsafeUnwrap(this).extractContents());
     },
     cloneContents: function() {
-      return wrap(this.impl.cloneContents());
+      return wrap(unsafeUnwrap(this).cloneContents());
     },
     insertNode: function(node) {
-      this.impl.insertNode(unwrapIfNeeded(node));
+      unsafeUnwrap(this).insertNode(unwrapIfNeeded(node));
     },
     surroundContents: function(newParent) {
-      this.impl.surroundContents(unwrapIfNeeded(newParent));
+      unsafeUnwrap(this).surroundContents(unwrapIfNeeded(newParent));
     },
     cloneRange: function() {
-      return wrap(this.impl.cloneRange());
+      return wrap(unsafeUnwrap(this).cloneRange());
     },
     isPointInRange: function(node, offset) {
-      return this.impl.isPointInRange(unwrapIfNeeded(node), offset);
+      return unsafeUnwrap(this).isPointInRange(unwrapIfNeeded(node), offset);
     },
     comparePoint: function(node, offset) {
-      return this.impl.comparePoint(unwrapIfNeeded(node), offset);
+      return unsafeUnwrap(this).comparePoint(unwrapIfNeeded(node), offset);
     },
     intersectsNode: function(node) {
-      return this.impl.intersectsNode(unwrapIfNeeded(node));
+      return unsafeUnwrap(this).intersectsNode(unwrapIfNeeded(node));
     },
     toString: function() {
-      return this.impl.toString();
+      return unsafeUnwrap(this).toString();
     }
   };
 
   // IE9 does not have createContextualFragment.
   if (OriginalRange.prototype.createContextualFragment) {
     Range.prototype.createContextualFragment = function(html) {
-      return wrap(this.impl.createContextualFragment(html));
+      return wrap(unsafeUnwrap(this).createContextualFragment(html));
     };
   }
 

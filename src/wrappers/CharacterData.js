@@ -10,6 +10,7 @@
   var enqueueMutation = scope.enqueueMutation;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
+  var unsafeUnwrap = scope.unsafeUnwrap;
 
   var OriginalCharacterData = window.CharacterData;
 
@@ -25,14 +26,14 @@
       this.data = value;
     },
     get data() {
-      return this.impl.data;
+      return unsafeUnwrap(this).data;
     },
     set data(value) {
-      var oldValue = this.impl.data;
+      var oldValue = unsafeUnwrap(this).data;
       enqueueMutation(this, 'characterData', {
         oldValue: oldValue
       });
-      this.impl.data = value;
+      unsafeUnwrap(this).data = value;
     }
   });
 

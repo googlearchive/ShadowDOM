@@ -14,6 +14,7 @@
   var getTreeScope = scope.getTreeScope;
   var mixin = scope.mixin;
   var oneOf = scope.oneOf;
+  var unsafeUnwrap = scope.unsafeUnwrap;
   var unwrap = scope.unwrap;
   var wrap = scope.wrap;
 
@@ -484,7 +485,7 @@
     },
 
     associateNode: function(node) {
-      node.impl.polymerShadowRenderer_ = this;
+      unsafeUnwrap(node).polymerShadowRenderer_ = this;
     }
   };
 
@@ -607,7 +608,7 @@
    * This gets called when a node was added or removed to it.
    */
   Node.prototype.invalidateShadowRenderer = function(force) {
-    var renderer = this.impl.polymerShadowRenderer_;
+    var renderer = unsafeUnwrap(this).polymerShadowRenderer_;
     if (renderer) {
       renderer.invalidate();
       return true;
@@ -638,7 +639,7 @@
     var renderer;
     if (shadowRoot)
       renderer = getRendererForShadowRoot(shadowRoot);
-    this.impl.polymerShadowRenderer_ = renderer;
+    unsafeUnwrap(this).polymerShadowRenderer_ = renderer;
     if (renderer)
       renderer.invalidate();
   };

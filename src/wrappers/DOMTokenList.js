@@ -5,40 +5,43 @@
 (function(scope) {
   'use strict';
 
+  var setWrapper = scope.setWrapper;
+  var unsafeUnwrap = scope.unsafeUnwrap;
+
   function invalidateClass(el) {
     scope.invalidateRendererBasedOnAttribute(el, 'class');
   }
 
   function DOMTokenList(impl, ownerElement) {
-    this.impl = impl;
+    setWrapper(impl, this);
     this.ownerElement_ = ownerElement;
   }
 
   DOMTokenList.prototype = {
     get length() {
-      return this.impl.length;
+      return unsafeUnwrap(this).length;
     },
     item: function(index) {
-      return this.impl.item(index);
+      return unsafeUnwrap(this).item(index);
     },
     contains: function(token) {
-      return this.impl.contains(token);
+      return unsafeUnwrap(this).contains(token);
     },
     add: function() {
-      this.impl.add.apply(this.impl, arguments);
+      unsafeUnwrap(this).add.apply(unsafeUnwrap(this), arguments);
       invalidateClass(this.ownerElement_);
     },
     remove: function() {
-      this.impl.remove.apply(this.impl, arguments);
+      unsafeUnwrap(this).remove.apply(unsafeUnwrap(this), arguments);
       invalidateClass(this.ownerElement_);
     },
     toggle: function(token) {
-      var rv = this.impl.toggle.apply(this.impl, arguments);
+      var rv = unsafeUnwrap(this).toggle.apply(unsafeUnwrap(this), arguments);
       invalidateClass(this.ownerElement_);
       return rv;
     },
     toString: function() {
-      return this.impl.toString();
+      return unsafeUnwrap(this).toString();
     }
   };
 

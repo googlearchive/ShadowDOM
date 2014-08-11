@@ -136,23 +136,31 @@ window.ShadowDOMPolyfill = {};
     return /^\w[a-zA-Z_0-9]*$/.test(name);
   }
 
+  // The name of the implementation property is intentionally hard to
+  // remember. Unfortunately, browsers are slower doing obj[expr] than
+  // obj.foo so we resort to repeat this ugly name. This ugly name is never
+  // used outside of this file though.
+
   function getGetter(name) {
     return hasEval && isIdentifierName(name) ?
-        new Function('return this.impl.' + name) :
-        function() { return this.impl[name]; };
+        new Function('return this.__impl4cf1e782hg__.' + name) :
+        function() { return this.__impl4cf1e782hg__[name]; };
   }
 
   function getSetter(name) {
     return hasEval && isIdentifierName(name) ?
-        new Function('v', 'this.impl.' + name + ' = v') :
-        function(v) { this.impl[name] = v; };
+        new Function('v', 'this.__impl4cf1e782hg__.' + name + ' = v') :
+        function(v) { this.__impl4cf1e782hg__[name] = v; };
   }
 
   function getMethod(name) {
     return hasEval && isIdentifierName(name) ?
-        new Function('return this.impl.' + name +
-                     '.apply(this.impl, arguments)') :
-        function() { return this.impl[name].apply(this.impl, arguments); };
+        new Function('return this.__impl4cf1e782hg__.' + name +
+                     '.apply(this.__impl4cf1e782hg__, arguments)') :
+        function() {
+          return this.__impl4cf1e782hg__[name].apply(
+              this.__impl4cf1e782hg__, arguments);
+        };
   }
 
   function getDescriptor(source, name) {
@@ -273,41 +281,12 @@ window.ShadowDOMPolyfill = {};
     return GeneratedWrapper;
   }
 
-  var OriginalDOMImplementation = window.DOMImplementation;
-  var OriginalEventTarget = window.EventTarget;
-  var OriginalEvent = window.Event;
-  var OriginalNode = window.Node;
-  var OriginalWindow = window.Window;
-  var OriginalRange = window.Range;
-  var OriginalCanvasRenderingContext2D = window.CanvasRenderingContext2D;
-  var OriginalWebGLRenderingContext = window.WebGLRenderingContext;
-  var OriginalSVGElementInstance = window.SVGElementInstance;
-  var OriginalFormData = window.FormData;
-  
   function isWrapper(object) {
-    return object instanceof wrappers.EventTarget ||
-           object instanceof wrappers.Event ||
-           object instanceof wrappers.Range ||
-           object instanceof wrappers.DOMImplementation ||
-           object instanceof wrappers.CanvasRenderingContext2D ||
-           object instanceof wrappers.FormData ||
-           wrappers.WebGLRenderingContext &&
-               object instanceof wrappers.WebGLRenderingContext;
+    return object && object.__impl4cf1e782hg__;
   }
 
   function isNative(object) {
-    return OriginalEventTarget && object instanceof OriginalEventTarget ||
-           object instanceof OriginalNode ||
-           object instanceof OriginalEvent ||
-           object instanceof OriginalWindow ||
-           object instanceof OriginalRange ||
-           object instanceof OriginalDOMImplementation ||
-           object instanceof OriginalCanvasRenderingContext2D ||
-           object instanceof OriginalFormData ||
-           OriginalWebGLRenderingContext &&
-               object instanceof OriginalWebGLRenderingContext ||
-           OriginalSVGElementInstance &&
-               object instanceof OriginalSVGElementInstance;
+    return !isWrapper(object);
   }
 
   /**
@@ -321,8 +300,8 @@ window.ShadowDOMPolyfill = {};
       return null;
 
     assert(isNative(impl));
-    return impl.polymerWrapper_ ||
-        (impl.polymerWrapper_ = new (getWrapperConstructor(impl))(impl));
+    return impl.__wrapper8e3dd93a60__ ||
+        (impl.__wrapper8e3dd93a60__ = new (getWrapperConstructor(impl))(impl));
   }
 
   /**
@@ -334,7 +313,16 @@ window.ShadowDOMPolyfill = {};
     if (wrapper === null)
       return null;
     assert(isWrapper(wrapper));
-    return wrapper.impl;
+    return wrapper.__impl4cf1e782hg__;
+  }
+
+  function unsafeUnwrap(wrapper) {
+    return wrapper.__impl4cf1e782hg__;
+  }
+
+  function setWrapper(impl, wrapper) {
+    wrapper.__impl4cf1e782hg__ = impl;
+    impl.__wrapper8e3dd93a60__ = wrapper;
   }
 
   /**
@@ -366,7 +354,7 @@ window.ShadowDOMPolyfill = {};
       return;
     assert(isNative(node));
     assert(wrapper === undefined || isWrapper(wrapper));
-    node.polymerWrapper_ = wrapper;
+    node.__wrapper8e3dd93a60__ = wrapper;
   }
 
   var getterDescriptor = {
@@ -382,7 +370,7 @@ window.ShadowDOMPolyfill = {};
 
   function defineWrapGetter(constructor, name) {
     defineGetter(constructor, name, function() {
-      return wrap(this.impl[name]);
+      return wrap(this.__impl4cf1e782hg__[name]);
     });
   }
 
@@ -417,6 +405,8 @@ window.ShadowDOMPolyfill = {};
   scope.registerObject = registerObject;
   scope.registerWrapper = register;
   scope.rewrap = rewrap;
+  scope.setWrapper = setWrapper;
+  scope.unsafeUnwrap = unsafeUnwrap;
   scope.unwrap = unwrap;
   scope.unwrapIfNeeded = unwrapIfNeeded;
   scope.wrap = wrap;

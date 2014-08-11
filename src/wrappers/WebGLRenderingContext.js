@@ -7,6 +7,8 @@
 
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
+  var setWrapper = scope.setWrapper;
+  var unsafeUnwrap = scope.unsafeUnwrap;
   var unwrapIfNeeded = scope.unwrapIfNeeded;
   var wrap = scope.wrap;
 
@@ -17,22 +19,22 @@
     return;
 
   function WebGLRenderingContext(impl) {
-    this.impl = impl;
+    setWrapper(impl, this);
   }
 
   mixin(WebGLRenderingContext.prototype, {
     get canvas() {
-      return wrap(this.impl.canvas);
+      return wrap(unsafeUnwrap(this).canvas);
     },
 
     texImage2D: function() {
       arguments[5] = unwrapIfNeeded(arguments[5]);
-      this.impl.texImage2D.apply(this.impl, arguments);
+      unsafeUnwrap(this).texImage2D.apply(unsafeUnwrap(this), arguments);
     },
 
     texSubImage2D: function() {
       arguments[6] = unwrapIfNeeded(arguments[6]);
-      this.impl.texSubImage2D.apply(this.impl, arguments);
+      unsafeUnwrap(this).texSubImage2D.apply(unsafeUnwrap(this), arguments);
     }
   });
 

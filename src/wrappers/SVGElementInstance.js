@@ -8,6 +8,7 @@
   var EventTarget = scope.wrappers.EventTarget;
   var mixin = scope.mixin;
   var registerWrapper = scope.registerWrapper;
+  var unsafeUnwrap = scope.unsafeUnwrap;
   var wrap = scope.wrap;
 
   var OriginalSVGElementInstance = window.SVGElementInstance;
@@ -22,17 +23,17 @@
   mixin(SVGElementInstance.prototype, {
     /** @type {SVGElement} */
     get correspondingElement() {
-      return wrap(this.impl.correspondingElement);
+      return wrap(unsafeUnwrap(this).correspondingElement);
     },
 
     /** @type {SVGUseElement} */
     get correspondingUseElement() {
-      return wrap(this.impl.correspondingUseElement);
+      return wrap(unsafeUnwrap(this).correspondingUseElement);
     },
 
     /** @type {SVGElementInstance} */
     get parentNode() {
-      return wrap(this.impl.parentNode);
+      return wrap(unsafeUnwrap(this).parentNode);
     },
 
     /** @type {SVGElementInstanceList} */
@@ -42,22 +43,22 @@
 
     /** @type {SVGElementInstance} */
     get firstChild() {
-      return wrap(this.impl.firstChild);
+      return wrap(unsafeUnwrap(this).firstChild);
     },
 
     /** @type {SVGElementInstance} */
     get lastChild() {
-      return wrap(this.impl.lastChild);
+      return wrap(unsafeUnwrap(this).lastChild);
     },
 
     /** @type {SVGElementInstance} */
     get previousSibling() {
-      return wrap(this.impl.previousSibling);
+      return wrap(unsafeUnwrap(this).previousSibling);
     },
 
     /** @type {SVGElementInstance} */
     get nextSibling() {
-      return wrap(this.impl.nextSibling);
+      return wrap(unsafeUnwrap(this).nextSibling);
     }
   });
 
