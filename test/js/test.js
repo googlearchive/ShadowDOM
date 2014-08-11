@@ -193,6 +193,29 @@ suite('Shadow DOM', function() {
                  '<a data-test="a b c"></a>');
     });
 
+    suite('Not selector', function() {
+      testRender('Type',
+                 '<a></a><b></b>',
+                 '<content select=":not(a)"></content>',
+                 '<b></b>');
+      testRender('ID',
+                 '<a id="a"></a><a id="b"></a>',
+                 '<content select=":not(#a)"></content>',
+                 '<a id="b"></a>');
+      testRender('Class',
+                 '<a class="a"></a><a class="b"></a>',
+                 '<content select=":not(.a)"></content>',
+                 '<a class="b"></a>');
+      testRender('Attribute',
+                 '<a a="a"></a><a b="b"></a>',
+                 '<content select=":not([a])"></content>',
+                 '<a b="b"></a>');
+      testRender('Attribute Value',
+                 '<a x="a"></a><a x="b"></a>',
+                 '<content select=":not([x=a])"></content>',
+                 '<a x="b"></a>');
+    });
+
   });
 
   suite('Nested shadow hosts', function() {
