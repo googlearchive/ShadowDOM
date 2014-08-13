@@ -15,6 +15,11 @@ suite('HTMLImageElement', function() {
     assert.instanceOf(img, HTMLElement);
   });
 
+  test('constructor', function() {
+    assert.equal(HTMLImageElement, document.createElement('img').constructor);
+    assert.equal(HTMLImageElement, new Image().constructor);
+  });
+
   test('Image', function() {
     var img = new Image();
     assert.instanceOf(img, HTMLImageElement);

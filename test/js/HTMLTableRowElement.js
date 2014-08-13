@@ -12,6 +12,12 @@ suite('HTMLTableRowElement', function() {
     assert.instanceOf(row, HTMLTableRowElement);
   });
 
+  test('constructor', function() {
+    var table = createTable();
+    var row = table.querySelector('tr');
+    assert.equal(HTMLTableRowElement, row.constructor);
+  });
+
   test('cells', function() {
     var table = createTable();
     var row = table.querySelector('tr');

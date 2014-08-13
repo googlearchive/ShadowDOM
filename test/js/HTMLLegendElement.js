@@ -15,4 +15,14 @@ suite('HTMLLegendElement', function() {
     assert.equal(legend.form, form);
   });
 
+  test('instanceof', function() {
+    assert.instanceOf(document.createElement('legend'), HTMLLegendElement);
+  });
+
+  test('constructor', function() {
+    assert.equal(HTMLLegendElement,
+                 document.createElement('legend').constructor);
+  });
+
+
 });

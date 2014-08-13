@@ -83,4 +83,13 @@ suite('HTMLSelectElement', function() {
     assert.equal(div.firstChild, null);
   });
 
+  test('instanceof', function() {
+    assert.instanceOf(document.createElement('select'), HTMLSelectElement);
+  });
+
+  test('constructor', function() {
+    assert.equal(HTMLSelectElement,
+                 document.createElement('select').constructor);
+  });
+
 });

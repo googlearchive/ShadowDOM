@@ -12,4 +12,10 @@ suite('Comment', function() {
     assert.instanceOf(div.firstChild, Comment);
   });
 
+  test('instanceof', function() {
+    var div = document.createElement('div');
+    div.innerHTML = '<!-- comment -->';
+    assert.equal(Comment, div.firstChild.constructor);
+  });
+
 });

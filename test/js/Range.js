@@ -24,6 +24,11 @@ suite('Range', function() {
     assert.instanceOf(range2, Range);
   });
 
+  test('constructor', function() {
+    var range = document.createRange();
+    assert.equal(Range, range.constructor);
+  });
+
   test('createContextualFragment', function() {
     // IE9 does not support createContextualFragment.
     if (!Range.prototype.createContextualFragment)

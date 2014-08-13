@@ -14,6 +14,11 @@ suite('FormData', function() {
     assert.instanceOf(fd, FormData);
   });
 
+  test('constructor', function() {
+    var fd = new FormData();
+    assert.equal(FormData, fd.constructor);
+  });
+
   test('form element', function() {
     var formElement = document.createElement('form');
     var fd = new FormData(formElement)

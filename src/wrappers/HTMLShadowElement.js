@@ -16,6 +16,7 @@
     HTMLElement.call(this, node);
   }
   HTMLShadowElement.prototype = Object.create(HTMLElement.prototype);
+  HTMLShadowElement.prototype.constructor = HTMLShadowElement;
 
   // getDistributedNodes is added in ShadowRenderer
 

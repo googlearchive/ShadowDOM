@@ -55,6 +55,7 @@
   HTMLTemplateElement.prototype = Object.create(HTMLElement.prototype);
 
   mixin(HTMLTemplateElement.prototype, {
+    constructor: HTMLTemplateElement,
     get content() {
       if (OriginalHTMLTemplateElement)
         return wrap(unsafeUnwrap(this).content);

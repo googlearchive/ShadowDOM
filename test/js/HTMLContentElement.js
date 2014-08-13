@@ -228,4 +228,13 @@ suite('HTMLContentElement', function() {
     var content = document.createElement('content');
     assert.deepEqual(content.getDistributedNodes(), []);
   });
+
+  test('instanceof', function() {
+    assert.instanceOf(document.createElement('content'), HTMLContentElement);
+  });
+
+  test('constructor', function() {
+    assert.equal(HTMLContentElement,
+                 document.createElement('content').constructor);
+  });
 });

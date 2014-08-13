@@ -496,6 +496,7 @@ htmlSuite('Events', function() {
     assert.equal(e.bubbles, true);
     assert.equal(e.cancelable, true);
     assert.instanceOf(e, Event);
+    assert.equal(Event, e.constructor);
   });
 
   test('new CustomEvent', function() {
@@ -503,6 +504,7 @@ htmlSuite('Events', function() {
     assert.equal(e.type, 'x');
     assert.equal(e.detail, 42);
     assert.instanceOf(e, CustomEvent);
+    assert.equal(CustomEvent, e.constructor);
   });
 
   test('new MouseEvent', function() {
@@ -511,6 +513,7 @@ htmlSuite('Events', function() {
     assert.equal(e.type, 'mouseover');
     assert.equal(e.relatedTarget, div);
     assert.instanceOf(e, MouseEvent);
+    assert.equal(MouseEvent, e.constructor);
   });
 
   /**

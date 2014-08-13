@@ -282,4 +282,14 @@ suite('MutationObserver', function() {
     div.removeChild(a);
   });
 
+  test('instanceof', function() {
+    var mo = new MutationObserver(function(records, observer) {});
+    assert.instanceOf(mo, MutationObserver);
+  });
+
+  test('constructor', function() {
+    var mo = new MutationObserver(function(records, observer) {});
+    assert.equal(MutationObserver, mo.constructor);
+  });
+
 });

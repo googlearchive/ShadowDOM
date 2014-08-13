@@ -11,6 +11,11 @@ suite('HTMLTableElement', function() {
     assert.instanceOf(table, HTMLTableElement);
   });
 
+  test('constructor', function() {
+    assert.equal(HTMLTableElement,
+                 document.createElement('table').constructor);
+  });
+
   test('caption', function() {
     var table = createTable();
     assert.equal(table.caption.localName, 'caption');

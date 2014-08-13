@@ -195,4 +195,13 @@ suite('HTMLCanvasElement', function() {
     assert.isNumber(canvas.height);
   });
 
+  test('instanceof', function() {
+    assert.instanceOf(document.createElement('canvas'), HTMLCanvasElement);
+  });
+
+  test('constructor', function() {
+    assert.equal(HTMLCanvasElement,
+                 document.createElement('canvas').constructor);
+  });
+
 });

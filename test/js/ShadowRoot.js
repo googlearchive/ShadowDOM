@@ -89,4 +89,14 @@ suite('ShadowRoot', function() {
     assert.equal(host, sr2.host);
   });
 
+  test('instanceof', function() {
+    var sr = document.createElement('div').createShadowRoot();
+    assert.instanceOf(sr, ShadowRoot);
+  });
+
+  test('constructor', function() {
+    var sr = document.createElement('div').createShadowRoot();
+    assert.equal(ShadowRoot, sr.constructor);
+  });
+
 });

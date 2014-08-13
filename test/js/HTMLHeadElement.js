@@ -93,4 +93,14 @@ suite('HTMLHeadElement', function() {
     assert.isTrue(document.head.contains(doc.head.firstChild));
     assert.isTrue(document.head.contains(document.head.firstChild));
   });
+
+  test('instanceof', function() {
+    assert.instanceOf(document.createElement('head'), HTMLHeadElement);
+  });
+
+  test('constructor', function() {
+    assert.equal(HTMLHeadElement,
+                 document.createElement('head').constructor);
+  });
+
 });

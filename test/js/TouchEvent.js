@@ -40,6 +40,11 @@ htmlSuite('Events', function() {
     assert.instanceOf(e, Event);
   });
 
+  test('constructor', function() {
+    var e = document.createEvent('TouchEvent');
+    assert.equal(TouchEvent, e.constructor);
+  });
+
   test('Touch', function() {
     // There is no way to create a native Touch object so we use a mock impl.
 

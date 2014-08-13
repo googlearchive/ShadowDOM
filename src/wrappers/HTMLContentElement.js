@@ -16,6 +16,8 @@
   }
   HTMLContentElement.prototype = Object.create(HTMLElement.prototype);
   mixin(HTMLContentElement.prototype, {
+    constructor: HTMLContentElement,
+
     get select() {
       return this.getAttribute('select');
     },

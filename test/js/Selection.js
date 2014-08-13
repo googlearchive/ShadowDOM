@@ -43,6 +43,11 @@ suite('Selection', function() {
     assert.instanceOf(selection, Selection);
   });
 
+  test('constructor', function() {
+    var selection = window.getSelection();
+    assert.equal(Selection, selection.constructor);
+  });
+
   test('getSelection()', function() {
     var selection = getSelection();
     assert.instanceOf(selection, Selection);

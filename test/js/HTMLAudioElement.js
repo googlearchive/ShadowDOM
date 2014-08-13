@@ -14,6 +14,11 @@ suite('HTMLAudioElement', function() {
     assert.instanceOf(audio, HTMLElement);
   });
 
+  test('constructor', function() {
+    var audio = document.createElement('audio');
+    assert.equal(audio.constructor, HTMLAudioElement);
+  });
+
   test('Audio', function() {
     var audio = new Audio();
     assert.instanceOf(audio, HTMLAudioElement);
