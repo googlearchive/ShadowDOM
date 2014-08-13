@@ -10,6 +10,8 @@
 
   var OriginalHTMLMediaElement = window.HTMLMediaElement;
 
+  if (!OriginalHTMLMediaElement) return;
+
   function HTMLMediaElement(node) {
     HTMLElement.call(this, node);
   }

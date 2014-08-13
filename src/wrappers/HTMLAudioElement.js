@@ -12,6 +12,8 @@
 
   var OriginalHTMLAudioElement = window.HTMLAudioElement;
 
+  if (!OriginalHTMLAudioElement) return;
+
   function HTMLAudioElement(node) {
     HTMLMediaElement.call(this, node);
   }
