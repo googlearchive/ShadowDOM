@@ -11,6 +11,11 @@ suite('DOMTokenList', function() {
     assert.instanceOf(div.classList, DOMTokenList);
   });
 
+  test('constructor', function() {
+    var div = document.createElement('div');
+    assert.equal(DOMTokenList, div.classList.constructor);
+  });
+
   test('identity', function() {
     var div = document.createElement('div');
     assert.equal(div.classList, div.classList);

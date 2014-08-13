@@ -13,4 +13,13 @@ suite('HTMLTextAreaElement', function() {
     assert.equal(textArea.form, form);
   });
 
+  test('instanceof', function() {
+    assert.instanceOf(document.createElement('textarea'), HTMLTextAreaElement);
+  });
+
+  test('constructor', function() {
+    assert.equal(HTMLTextAreaElement,
+                 document.createElement('textarea').constructor);
+  });
+
 });

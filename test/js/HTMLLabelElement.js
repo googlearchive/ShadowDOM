@@ -13,4 +13,13 @@ suite('HTMLLabelElement', function() {
     assert.equal(label.form, form);
   });
 
+  test('instanceof', function() {
+    assert.instanceOf(document.createElement('label'), HTMLLabelElement);
+  });
+
+  test('constructor', function() {
+    assert.equal(HTMLLabelElement,
+                 document.createElement('label').constructor);
+  });
+
 });

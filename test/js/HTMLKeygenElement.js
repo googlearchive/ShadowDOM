@@ -16,4 +16,13 @@ suite('HTMLKeygenElement', function() {
     assert.equal(keygen.form, form);
   });
 
+  test('instanceof', function() {
+    assert.instanceOf(document.createElement('keygen'), HTMLKeygenElement);
+  });
+
+  test('constructor', function() {
+    assert.equal(HTMLKeygenElement,
+                 document.createElement('keygen').constructor);
+  });
+
 });

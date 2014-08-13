@@ -14,6 +14,11 @@ suite('HTMLHtmlElement', function() {
     assert.equal(wrap(document.documentElement), doc.documentElement);
   });
 
+  test('constructor', function() {
+    assert.equal(HTMLHtmlElement,
+                 document.createElement('html').constructor);
+  });
+
   test('appendChild', function() {
     var doc = wrap(document);
 

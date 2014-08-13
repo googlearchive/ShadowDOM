@@ -14,4 +14,13 @@ suite('HTMLFormElement', function() {
     assert.equal(form.elements.length, 1);
   });
 
+  test('instanceof', function() {
+    assert.instanceOf(document.createElement('form'), HTMLFormElement);
+  });
+
+  test('constructor', function() {
+    assert.equal(HTMLFormElement,
+                 document.createElement('form').constructor);
+  });
+
 });

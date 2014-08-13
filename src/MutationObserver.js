@@ -255,6 +255,8 @@
   }
 
   MutationObserver.prototype = {
+    constructor: MutationObserver,
+
     // http://dom.spec.whatwg.org/#dom-mutationobserver-observe
     observe: function(target, options) {
       target = wrapIfNeeded(target);

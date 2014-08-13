@@ -12,6 +12,12 @@ suite('Text', function() {
     assert.instanceOf(div.firstChild, Text);
   });
 
+  test('constructor', function() {
+    var div = document.createElement('div');
+    div.textContent = 'abc';
+    assert.equal(Text, div.firstChild.constructor);
+  });
+
   test('splitText', function() {
     var t = document.createTextNode('abcd');
     var t2 = t.splitText(3);

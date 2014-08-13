@@ -18,6 +18,7 @@
   }
 
   DOMTokenList.prototype = {
+    constructor: DOMTokenList,
     get length() {
       return unsafeUnwrap(this).length;
     },

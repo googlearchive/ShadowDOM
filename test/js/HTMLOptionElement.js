@@ -22,6 +22,12 @@ suite('HTMLOptionElement', function() {
     assert.instanceOf(option, HTMLElement);
   });
 
+  test('constructor', function() {
+    assert.equal(HTMLOptionElement,
+                 document.createElement('option').constructor);
+    assert.equal(HTMLOptionElement, new Option().constructor);
+  });
+
   test('Option', function() {
     var option = new Option();
     assert.instanceOf(option, HTMLOptionElement);

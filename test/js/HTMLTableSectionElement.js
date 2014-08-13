@@ -14,6 +14,14 @@ suite('HTMLTableSectionElement', function() {
     assert.instanceOf(tfoot, HTMLTableSectionElement);
   });
 
+  test('constructor', function() {
+    var table = createTable();
+    var thead = table.querySelector('thead');
+    assert.equal(HTMLTableSectionElement, thead.constructor);
+    var tfoot = table.querySelector('tfoot');
+    assert.equal(HTMLTableSectionElement, tfoot.constructor);
+  });
+
   test('rows', function() {
     var table = createTable();
     var thead = table.querySelector('thead');

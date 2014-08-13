@@ -13,4 +13,13 @@ suite('HTMLInputElement', function() {
     assert.equal(input.form, form);
   });
 
+  test('instanceof', function() {
+    assert.instanceOf(document.createElement('input'), HTMLInputElement);
+  });
+
+  test('constructor', function() {
+    assert.equal(HTMLInputElement,
+                 document.createElement('input').constructor);
+  });
+
 });

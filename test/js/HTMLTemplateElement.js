@@ -144,4 +144,13 @@ suite('HTML Template Element', function() {
                  '<div><template><a></a><b></b></template></div>');
   });
 
+  test('instanceOf', function() {
+    assert.instanceOf(document.createElement('template'), HTMLTemplateElement);
+  });
+
+  test('constructor', function() {
+    assert.equal(HTMLTemplateElement,
+        document.createElement('template').constructor);
+  });
+
 });

@@ -67,4 +67,14 @@ suite('Window', function() {
     document.body.removeChild(host);
   });
 
+  test('instanceof', function() {
+    var win = wrap(window);
+    assert.instanceOf(win, Window);
+  });
+
+  test('constructor', function() {
+    var win = wrap(window);
+    assert.equal(Window, win.constructor);
+  });
+
 });

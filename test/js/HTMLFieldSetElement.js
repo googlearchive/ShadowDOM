@@ -13,4 +13,13 @@ suite('HTMLFieldSetElement', function() {
     assert.equal(fieldSet.form, form);
   });
 
+  test('instanceof', function() {
+    assert.instanceOf(document.createElement('fieldset'), HTMLFieldSetElement);
+  });
+
+  test('constructor', function() {
+    assert.equal(HTMLFieldSetElement,
+                 document.createElement('fieldset').constructor);
+  });
+
 });

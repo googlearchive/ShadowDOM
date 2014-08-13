@@ -21,6 +21,7 @@
   }
   HTMLTableSectionElement.prototype = Object.create(HTMLElement.prototype);
   mixin(HTMLTableSectionElement.prototype, {
+    constructor: HTMLTableSectionElement,
     get rows() {
       return wrapHTMLCollection(unwrap(this).rows);
     },
