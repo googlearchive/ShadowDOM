@@ -17,7 +17,7 @@ suite('Element', function() {
 
   function skipTest () {}
 
-  skipTest('querySelector', function() {
+  test('querySelector', function() {
     var div = document.createElement('div');
     div.innerHTML = '<a><b></b></a>';
     var b = div.firstChild.firstChild;
@@ -39,7 +39,7 @@ suite('Element', function() {
     assert.equal(z, null);
   });
 
-  skipTest('querySelectorAll', function() {
+  test('querySelectorAll', function() {
     var div = document.createElement('div');
     div.innerHTML = '<a>0</a><a>1</a>';
     var a0 = div.firstChild;
@@ -51,6 +51,13 @@ suite('Element', function() {
     assert.equal(as.item(0), a0);
     assert.equal(as[1], a1);
     assert.equal(as.item(1), a1);
+  });
+
+  skipTest('querySelectorAll', function() {
+    var div = document.createElement('div');
+    div.innerHTML = '<a>0</a><a>1</a>';
+    var a0 = div.firstChild;
+    var a1 = div.lastChild;
 
     var sr = div.createShadowRoot();
     sr.innerHTML = '<a>3</a><a>4</a>';
@@ -74,6 +81,44 @@ suite('Element', function() {
 
     var z = sr.querySelectorAll('z');
     assert.equal(z.length, 0);
+  });
+
+  test('querySelector deep', function() {
+    var div = document.createElement('div');
+    div.innerHTML = '<aa></aa><aa></aa>';
+    var aa1 = div.firstChild;
+    var aa2 = div.lastChild;
+
+    var sr = div.createShadowRoot();
+    sr.innerHTML = '<bb></bb><content></content>';
+    var bb = sr.firstChild;
+
+    div.offsetHeight;
+
+    assert.equal(aa1, div.querySelector('div /deep/ aa'));
+    assert.equal(bb, div.querySelector('div /deep/ bb'));
+  });
+
+  test('querySelectorAll deep', function() {
+    var div = document.createElement('div');
+    div.innerHTML = '<aa></aa><aa></aa>';
+    var aa1 = div.firstChild;
+    var aa2 = div.lastChild;
+
+    var sr = div.createShadowRoot();
+    sr.innerHTML = '<bb></bb><content></content>';
+    var bb = sr.firstChild;
+
+    div.offsetHeight;
+
+    var list = div.querySelectorAll('div /deep/ aa');
+    assert.equal(2, list.length);
+    assert.equal(aa1, list[0]);
+    assert.equal(aa2, list[1]);
+
+    list = div.querySelectorAll('div /deep/ bb');
+    assert.equal(1, list.length);
+    assert.equal(bb, list[0]);
   });
 
   skipTest('getElementsByTagName', function() {

@@ -26,12 +26,12 @@
   var OriginalElement = window.Element;
   var OriginalDocument = window.HTMLDocument || window.Document;
 
-  function filterNodeList(list, index, result) {
+  function filterNodeList(list, index, result, deep) {
     var wrappedItem = null;
     var root = null;
     for (var i = 0, length = list.length; i < length; i++) {
       wrappedItem = wrap(list[i]);
-      if (root = getTreeScope(wrappedItem).root) {
+      if (!deep && (root = getTreeScope(wrappedItem).root)) {
         if (root instanceof scope.wrappers.ShadowRoot) {
           continue;
         }
@@ -40,6 +40,10 @@
     }
 
     return index;
+  }
+
+  function shimSelector(selector) {
+    return String(selector).replace(/\/deep\//g, ' ');
   }
 
   function findOne(node, selector) {
@@ -98,7 +102,7 @@
   // Structural Pseudo Classes are not guarenteed to be correct
   // http://www.w3.org/TR/css3-selectors/#simple-selectors
 
-  function querySelectorAllFiltered (p, index, result, selector) {
+  function querySelectorAllFiltered(p, index, result, selector, deep) {
     var target = unsafeUnwrap(this);
     var list;
     var root = getTreeScope(this).root;
@@ -116,11 +120,15 @@
       return findElements(this, index, result, p, selector, null);
     }
 
-    return filterNodeList(list, index, result);
+    return filterNodeList(list, index, result, deep);
   }
 
   var SelectorsInterface = {
     querySelector: function(selector) {
+      var shimmed = shimSelector(selector);
+      var deep = shimmed !== selector;
+      selector = shimmed;
+
       var target = unsafeUnwrap(this);
       var wrappedItem;
       var root = getTreeScope(this).root;
@@ -142,7 +150,7 @@
         // When the original query returns nothing
         // we return nothing (to be consistent with the other wrapped calls)
         return wrappedItem;
-      } else if (root = getTreeScope(wrappedItem).root) {
+      } else if (!deep && (root = getTreeScope(wrappedItem).root)) {
         if (root instanceof scope.wrappers.ShadowRoot) {
           // When the original query returns an element in the ShadowDOM
           // we must do a manual tree traversal
@@ -153,19 +161,25 @@
       return wrappedItem;
     },
     querySelectorAll: function(selector) {
+      var shimmed = shimSelector(selector);
+      var deep = shimmed !== selector;
+      selector = shimmed;
+
       var result = new NodeList();
 
       result.length = querySelectorAllFiltered.call(this,
           matchesSelector,
           0,
           result,
-          selector);
+          selector,
+          deep);
 
       return result;
     }
   };
 
-  function getElementsByTagNameFiltered (p, index, result, localName, lowercase) {
+  function getElementsByTagNameFiltered(p, index, result, localName,
+                                        lowercase) {
     var target = unsafeUnwrap(this);
     var list;
     var root = getTreeScope(this).root;
@@ -174,19 +188,21 @@
       // going to be disconnected so we do a manual tree traversal
       return findElements(this, index, result, p, localName, lowercase);
     } else if (target instanceof OriginalElement) {
-      list = originalElementGetElementsByTagName.call(target, localName, lowercase);
+      list = originalElementGetElementsByTagName.call(target, localName,
+                                                      lowercase);
     } else if (target instanceof OriginalDocument) {
-      list = originalDocumentGetElementsByTagName.call(target, localName, lowercase);
+      list = originalDocumentGetElementsByTagName.call(target, localName,
+                                                       lowercase);
     } else {
       // When we get a ShadowRoot the logical tree is going to be disconnected
       // so we do a manual tree traversal
       return findElements(this, index, result, p, localName, lowercase);
     }
 
-    return filterNodeList(list, index, result);
+    return filterNodeList(list, index, result, false);
   }
 
-  function getElementsByTagNameNSFiltered (p, index, result, ns, localName) {
+  function getElementsByTagNameNSFiltered(p, index, result, ns, localName) {
     var target = unsafeUnwrap(this);
     var list;
     var root = getTreeScope(this).root;
@@ -204,7 +220,7 @@
       return findElements(this, index, result, p, ns, localName);
     }
 
-    return filterNodeList(list, index, result);
+    return filterNodeList(list, index, result, false);
   }
 
   var GetElementsByInterface = {
@@ -212,9 +228,9 @@
       var result = new HTMLCollection();
       var match = localName === '*' ? matchesEveryThing : matchesTagName;
 
-      result.length = getElementsByTagNameFiltered.call(this, 
+      result.length = getElementsByTagNameFiltered.call(this,
           match,
-          0, 
+          0,
           result,
           localName,
           localName.toLowerCase());
@@ -236,8 +252,8 @@
       } else {
         match = localName === '*' ? matchesNameSpace : matchesLocalNameNS;
       }
-      
-      result.length = getElementsByTagNameNSFiltered.call(this, 
+
+      result.length = getElementsByTagNameNSFiltered.call(this,
           match,
           0,
           result,

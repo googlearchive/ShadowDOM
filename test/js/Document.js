@@ -49,7 +49,7 @@ htmlSuite('Document', function() {
     assert.equal(doc.head.parentNode, doc.documentElement);
   });
 
-  skipTest('getElementsByTagName', function() {
+  test('getElementsByTagName', function() {
     var elements = document.getElementsByTagName('body');
     assert.isTrue(elements instanceof HTMLCollection);
     assert.equal(elements.length, 1);
@@ -65,7 +65,9 @@ htmlSuite('Document', function() {
     assert.isTrue(elements2[0] instanceof HTMLElement);
     assert.equal(doc.body, elements2[0]);
     assert.equal(doc.body, elements2.item(0));
+  });
 
+  skipTest('getElementsByTagName', function() {
     div = document.body.appendChild(document.createElement('div'));
     div.innerHTML = '<aa></aa><aa></aa>';
     var aa1 = div.firstChild;
@@ -143,7 +145,7 @@ htmlSuite('Document', function() {
     assert.equal(all.length, 0);
   });
 
-  skipTest('querySelectorAll', function() {
+  test('querySelectorAll', function() {
     var elements = document.querySelectorAll('body');
     assert.isTrue(elements instanceof NodeList);
     assert.equal(elements.length, 1);
@@ -157,7 +159,9 @@ htmlSuite('Document', function() {
     assert.equal(elements2.length, 1);
     assert.isTrue(elements2[0] instanceof HTMLElement);
     assert.equal(doc.body, elements2[0]);
+  });
 
+  skipTest('querySelectorAll', function() {
     div = document.body.appendChild(document.createElement('div'));
     div.innerHTML = '<aa></aa><aa></aa>';
     var aa1 = div.firstChild;
@@ -184,9 +188,47 @@ htmlSuite('Document', function() {
     assert.equal(z.length, 0);
   });
 
-  skipTest('querySelector', function() {
+  test('querySelector', function() {
     var z = document.querySelector('z');
     assert.equal(z, null);
+  });
+
+  test('querySelector deep', function() {
+    div = document.body.appendChild(document.createElement('div'));
+    div.innerHTML = '<aa></aa><aa></aa>';
+    var aa1 = div.firstChild;
+    var aa2 = div.lastChild;
+
+    var sr = div.createShadowRoot();
+    sr.innerHTML = '<bb></bb><content></content>';
+    var bb = sr.firstChild;
+
+    div.offsetHeight;
+
+    assert.equal(aa1, document.querySelector('div /deep/ aa'));
+    assert.equal(bb, document.querySelector('div /deep/ bb'));
+  });
+
+  test('querySelectorAll deep', function() {
+    div = document.body.appendChild(document.createElement('div'));
+    div.innerHTML = '<aa></aa><aa></aa>';
+    var aa1 = div.firstChild;
+    var aa2 = div.lastChild;
+
+    var sr = div.createShadowRoot();
+    sr.innerHTML = '<bb></bb><content></content>';
+    var bb = sr.firstChild;
+
+    div.offsetHeight;
+
+    var list = document.querySelectorAll('div /deep/ aa');
+    assert.equal(2, list.length);
+    assert.equal(aa1, list[0]);
+    assert.equal(aa2, list[1]);
+
+    list = document.querySelectorAll('div /deep/ bb');
+    assert.equal(1, list.length);
+    assert.equal(bb, list[0]);
   });
 
   test('addEventListener', function() {
