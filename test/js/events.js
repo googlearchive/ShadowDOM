@@ -928,6 +928,7 @@ test('retarget order (multiple shadow roots)', function() {
   });
 
   htmlTest('html/on-load-test.html');
+  htmlTest('html/on-unload-test.html');
 
   test('event wrap round trip', function() {
     var e = new Event('x');
