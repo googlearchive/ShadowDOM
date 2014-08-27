@@ -540,28 +540,24 @@ suite('Shadow DOM rerender', function() {
 
   test('minimal dom changes', function() {
     var div = document.createElement('div');
-    var OriginalNodePrototype =
-        // Node.prototype
-        Object.getPrototypeOf(
-            // Element.prototype
-            Object.getPrototypeOf(
-                // HTMLElement.prototype
-                Object.getPrototypeOf(
-                    // HTMLDivElement.prototype
-                    Object.getPrototypeOf(unwrap(div)))));
 
-    var originalInsertBefore = OriginalNodePrototype.insertBefore;
-    var originalRemoveChild = OriginalNodePrototype.removeChild;
+    // TODO(jmesserly): ideally we would intercept all of the visual DOM
+    // operations, but that isn't possible because they are captured in the code
+    // as originalInsertBefore/originalRemoveChild, so we only see the calls
+    // inside ShadowRenderer.
+
+    var originalInsertBefore = ShadowDOMPolyfill.originalInsertBefore;
+    var originalRemoveChild = ShadowDOMPolyfill.originalRemoveChild;
 
     var insertBeforeCount = 0;
     var removeChildCount = 0;
 
-    OriginalNodePrototype.insertBefore = function(newChild, refChild) {
+    ShadowDOMPolyfill.originalInsertBefore = function(newChild, refChild) {
       insertBeforeCount++;
       return originalInsertBefore.call(this, newChild, refChild);
     };
 
-    OriginalNodePrototype.removeChild = function(child) {
+    ShadowDOMPolyfill.originalRemoveChild = function(child) {
       removeChildCount++;
       return originalRemoveChild.call(this, child);
     };
@@ -642,8 +638,8 @@ suite('Shadow DOM rerender', function() {
 
 
     } finally {
-      OriginalNodePrototype.insertBefore =  originalInsertBefore;
-      OriginalNodePrototype.removeChild = originalRemoveChild;
+      ShadowDOMPolyfill.originalInsertBefore =  originalInsertBefore;
+      ShadowDOMPolyfill.originalRemoveChild = originalRemoveChild;
     }
   });
 });
