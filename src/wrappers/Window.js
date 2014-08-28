@@ -42,6 +42,7 @@
 
   // Work around for https://bugzilla.mozilla.org/show_bug.cgi?id=943065
   delete window.getComputedStyle;
+  delete window.getDefaultComputedStyle;
   delete window.getSelection;
 
   ['addEventListener', 'removeEventListener', 'dispatchEvent'].forEach(
