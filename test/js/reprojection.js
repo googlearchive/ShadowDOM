@@ -262,4 +262,34 @@ suite('Shadow DOM reprojection', function() {
     var content3 = sr3.appendChild(document.createElement('content'));
     assert.equal(getVisualInnerHtml(div), '<a><b><d></d></b></a>');
   });
+
+  test('Polymer Issue 512', function () {
+    // div
+    //  - shadow-root
+    //  -- content
+    //  - a
+    //  -- shadow-root
+    //  --- content
+    //  -- b
+
+    var div = document.createElement('div');
+    var sr = div.createShadowRoot();
+    var content = sr.appendChild(document.createElement('content'));
+    var a = div.appendChild(document.createElement('a'));
+    var b = a.appendChild(document.createElement('b'));
+    b.offsetWidth;
+
+    var srA = a.createShadowRoot();
+    var contentA = srA.appendChild(document.createElement('content'));
+    // Ensure we don't improperly reset the insertion point for the shadow host
+    // node "a" when we re-render it. The fact that "a" was inserted somewhere
+    // else is not a concern when we are only re-rendering its shadow root.
+    b.offsetWidth;
+
+    assertArrayEqual(content.getDistributedNodes(), [a]);
+    assertArrayEqual(contentA.getDistributedNodes(), [b]);
+
+    assertArrayEqual(a.getDestinationInsertionPoints(), [content]);
+    assertArrayEqual(b.getDestinationInsertionPoints(), [contentA]);
+  });
 });

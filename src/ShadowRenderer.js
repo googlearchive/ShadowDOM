@@ -298,7 +298,7 @@
 
     // http://w3c.github.io/webcomponents/spec/shadow/#distribution-algorithms
     distribution: function(root) {
-      this.resetAll(root);
+      this.resetAllSubtrees(root);
       this.distributionResolution(root);
     },
 
@@ -308,6 +308,10 @@
       else
         resetDestinationInsertionPoints(node);
 
+      this.resetAllSubtrees(node);
+    },
+
+    resetAllSubtrees: function(node) {
       for (var child = node.firstChild; child; child = child.nextSibling) {
         this.resetAll(child);
       }
