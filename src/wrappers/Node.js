@@ -730,6 +730,8 @@
   scope.nodeWasRemoved = nodeWasRemoved;
   scope.nodesWereAdded = nodesWereAdded;
   scope.nodesWereRemoved = nodesWereRemoved;
+  scope.originalInsertBefore = originalInsertBefore;
+  scope.originalRemoveChild = originalRemoveChild;
   scope.snapshotNodeList = snapshotNodeList;
   scope.wrappers.Node = Node;
 

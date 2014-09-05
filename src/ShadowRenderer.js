@@ -73,7 +73,7 @@
       refChildWrapper.previousSibling_ = refChildWrapper.previousSibling;
     }
 
-    parentNode.insertBefore(newChild, refChild);
+    scope.originalInsertBefore.call(parentNode, newChild, refChild);
   }
 
   function remove(nodeWrapper) {
@@ -95,7 +95,7 @@
     if (parentNodeWrapper.firstChild === nodeWrapper)
       parentNodeWrapper.firstChild_ = nodeWrapper;
 
-    parentNode.removeChild(node);
+    scope.originalRemoveChild.call(parentNode, node);
   }
 
   var distributedNodesTable = new WeakMap();

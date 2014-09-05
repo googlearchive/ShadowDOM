@@ -122,4 +122,6 @@ htmlSuite('HTMLBodyElement', function() {
   });
 
   htmlTest('html/document-body-inner-html.html');
+
+  htmlTest('html/document-body-shadow-root.html');
 });
