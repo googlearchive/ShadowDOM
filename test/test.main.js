@@ -124,6 +124,7 @@ var modules = [
   'TouchEvent.js',
   'TreeScope.js',
   'Window.js',
+  'XMLHttpRequest.js',
   'build-json.js',
   'createTable.js',
   'custom-element.js',

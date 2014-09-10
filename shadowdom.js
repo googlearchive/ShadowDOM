@@ -62,6 +62,7 @@
     'src/wrappers/Window.js',
     'src/wrappers/DataTransfer.js',
     'src/wrappers/FormData.js',
+    'src/wrappers/XMLHttpRequest.js',
     'src/wrappers/override-constructors.js'
   ].forEach(function(src) {
     document.write('<script src="' + base + src + '"></script>');
