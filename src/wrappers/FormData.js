@@ -13,6 +13,10 @@
 
   var OriginalFormData = window.FormData;
 
+  if(!OriginalFormData) {
+    throw new Error("window.FormData is undefined.");
+  }
+
   function FormData(formElement) {
     var impl;
     if (formElement instanceof OriginalFormData) {
