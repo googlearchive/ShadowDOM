@@ -12,6 +12,7 @@
   var unwrap = scope.unwrap;
 
   var OriginalFormData = window.FormData;
+  if (!OriginalFormData) return;
 
   function FormData(formElement) {
     var impl;
