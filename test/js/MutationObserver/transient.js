@@ -273,6 +273,34 @@ suite('MutationObserver', function() {
       var grandChild = child.appendChild(document.createElement('span'));
     });
 
+    // https://dom.spec.whatwg.org/#notify-mutation-observers
+    test('removed at end of microtask', function(done) {
+      var div = document.createElement('div');
+      var child = div.appendChild(document.createTextNode('text'));
+      var observer = new MutationObserver(function() {});
+      observer.observe(div, {
+        characterData: true,
+        subtree: true
+      });
+      div.removeChild(child);
+
+      records = observer.takeRecords();
+      assert.equal(records.length, 0);
+
+      // Run after all other end-of-microtask things, like observers, have
+      // had their chance to run. Use `setTimeout(4)` to keep the test isolated
+      // from details of the MutationObserver system and to have it run late
+      // enough on browsers without true microtasks.
+      setTimeout(function() {
+        child.data = 'changed';
+
+        records = observer.takeRecords();
+        assert.equal(records.length, 0);
+
+        done();
+      }, 4);
+    });
+
   });
 
 });

@@ -15,7 +15,13 @@
   var globalMutationObservers = [];
   var isScheduled = false;
 
-  function scheduleCallback() {
+  function scheduleCallback(observer) {
+    if (observer.scheduled_)
+      return;
+
+    observer.scheduled_ = true;
+    globalMutationObservers.push(observer);
+
     if (isScheduled)
       return;
     setEndOfMicrotask(notifyObservers);
@@ -35,6 +41,7 @@
 
       for (var i = 0; i < notifyList.length; i++) {
         var mo = notifyList[i];
+        mo.scheduled_ = false;
         var queue = mo.takeRecords();
         removeTransientObserversFor(mo);
         if (queue.length) {
@@ -150,8 +157,6 @@
       }
     }
 
-    var anyObserversEnqueued = false;
-
     // 4.
     for (var uid in interestedObservers) {
       var observer = interestedObservers[uid];
@@ -184,15 +189,9 @@
         record.oldValue = associatedStrings[uid];
 
       // 8.
-      if (!observer.records_.length) {
-        globalMutationObservers.push(observer);
-        anyObserversEnqueued = true;
-      }
+      scheduleCallback(observer);
       observer.records_.push(record);
     }
-
-    if (anyObserversEnqueued)
-      scheduleCallback();
   }
 
   var slice = Array.prototype.slice;
@@ -255,6 +254,7 @@
     this.nodes_ = [];
     this.records_ = [];
     this.uid_ = ++uidCounter;
+    this.scheduled_ = false;
   }
 
   MutationObserver.prototype = {
@@ -339,6 +339,10 @@
       // the required listeners set up on the target.
       if (node === this.target)
         return;
+
+      // Make sure we remove transient observers at the end of microtask, even
+      // if we didn't get any change records.
+      scheduleCallback(this.observer);
 
       this.transientObservedNodes.push(node);
       var registrations = registrationsTable.get(node);
