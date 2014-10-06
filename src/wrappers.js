@@ -180,7 +180,7 @@ window.ShadowDOMPolyfill = {};
   // https://bugs.webkit.org/show_bug.cgi?id=49739
   var isBrokenSafari = function() {
     var descr = Object.getOwnPropertyDescriptor(Node.prototype, 'nodeType');
-    return !!descr && 'set' in descr;
+    return descr && !descr.get && !descr.set;
   }();
 
   function installProperty(source, target, allowMethod, opt_blacklist) {
