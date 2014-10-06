@@ -179,12 +179,8 @@ window.ShadowDOMPolyfill = {};
   // shape of the descriptor and make all properties read-write.
   // https://bugs.webkit.org/show_bug.cgi?id=49739
   var isBrokenSafari = function() {
-    // Whether this is Safari 8 or not
-    if (!/AppleWebKit.*Version\/8\.0.*Safari/i.test(navigator.userAgent)) {
-      return false;
-    }
     var descr = Object.getOwnPropertyDescriptor(Node.prototype, 'nodeType');
-    return !!descr && 'set' in descr;
+    return descr && !descr.get && !descr.set;
   }();
 
   function installProperty(source, target, allowMethod, opt_blacklist) {
