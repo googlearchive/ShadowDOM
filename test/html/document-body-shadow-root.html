@@ -1,33 +1,50 @@
 <!DOCTYPE html>
-<script src="../../../tools/test/chai/chai.js"></script>
-<script src="../../../tools/test/htmltest.js"></script>
-<script src="../../shadowdom.js"></script>
-<script>
+<!--
+    @license
+    Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
+    This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+    The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+    The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+    Code distributed by Google as part of the polymer project is also
+    subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<html>
+<head>
+  <meta charset="UTF-8">
+  <script src="../../../web-component-tester/browser.js"></script>
+  <script src="../env.js"></script>
+</head>
+<body>
+  <script>
+    var wrap = ShadowDOMPolyfill.wrap;
+    var doc = wrap(document);
 
-var assert = chai.assert;
-var wrap = ShadowDOMPolyfill.wrap;
-var doc = wrap(document);
+    suite('shadowRoot on document.body', function() {
+      var sr;
 
-doc.addEventListener('DOMContentLoaded', function(e) {
+      suiteSetup(function() {
+        doc.body.innerHTML = 'You should NOT see this.';
+        sr = doc.body.createShadowRoot();
+        sr.innerHTML = 'You should see this<content>';
 
-  doc.body.innerHTML = 'You should NOT see this.';
+        doc.body.offsetHeight;
+        doc.body.innerHTML = '... and you should also see this';
+        doc.body.offsetHeight;
+      });
 
-  var sr = doc.body.createShadowRoot();
-  var firstStr = 'You should see this';
-  var secondStr = '... and you should also see this';
-  sr.innerHTML = firstStr + '<content>';
+      test('has a populated light DOM', function() {
+        assert.equal(doc.body.innerHTML, '... and you should also see this');
+      });
 
-  doc.body.offsetHeight;
+      test('has a populated shadowRoot', function() {
+        assert.equal(sr.firstChild.textContent, 'You should see this');
+      });
 
-  doc.body.innerHTML = secondStr;
+      test('exposes projected content', function() {
+        assert.equal(document.body.textContent, 'You should see this... and you should also see this');
+      });
 
-  doc.body.offsetHeight;
-
-  assert.equal(doc.body.innerHTML, secondStr);
-  assert.equal(sr.firstChild.textContent, firstStr);
-  assert.equal(document.body.textContent, firstStr + secondStr);
-
-  done();
-});
-
-</script>
+    });
+  </script>
+</body>
+</html>

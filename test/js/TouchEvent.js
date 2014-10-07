@@ -4,7 +4,7 @@
  * license that can be found in the LICENSE file.
  */
 
-htmlSuite('Events', function() {
+suite('Events', function() {
 
   var unwrap = ShadowDOMPolyfill.unwrap;
   var wrap = ShadowDOMPolyfill.wrap;

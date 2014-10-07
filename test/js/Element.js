@@ -15,8 +15,6 @@ suite('Element', function() {
     div = null;
   });
 
-  function skipTest () {}
-
   test('querySelector', function() {
     var div = document.createElement('div');
     div.innerHTML = '<a><b></b></a>';
@@ -53,7 +51,7 @@ suite('Element', function() {
     assert.equal(as.item(1), a1);
   });
 
-  skipTest('querySelectorAll', function() {
+  test.skip('querySelectorAll', function() {
     var div = document.createElement('div');
     div.innerHTML = '<a>0</a><a>1</a>';
     var a0 = div.firstChild;
@@ -121,7 +119,7 @@ suite('Element', function() {
     assert.equal(bb, list[0]);
   });
 
-  skipTest('getElementsByTagName', function() {
+  test.skip('getElementsByTagName', function() {
     var div = document.createElement('div');
     div.innerHTML = '<a>0</a><a>1</a>';
     var a0 = div.firstChild;
@@ -215,7 +213,7 @@ suite('Element', function() {
     assert.equal(z.length, 0);
   });
 
-  skipTest('getElementsByClassName', function() {
+  test.skip('getElementsByClassName', function() {
     var div = document.createElement('div');
     div.innerHTML = '<span class=a>0</span><span class=a>1</span>';
     var a0 = div.firstChild;

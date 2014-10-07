@@ -4,7 +4,7 @@
  * license that can be found in the LICENSE file.
  */
 
-htmlSuite('Document', function() {
+suite('Document', function() {
 
   var wrap = ShadowDOMPolyfill.wrap;
 
@@ -16,8 +16,6 @@ htmlSuite('Document', function() {
       div = undefined;
     }
   });
-
-  function skipTest () {}
 
   test('Ensure Document has ParentNodeInterface', function() {
     var doc = wrap(document).implementation.createHTMLDocument('');
@@ -67,7 +65,7 @@ htmlSuite('Document', function() {
     assert.equal(doc.body, elements2.item(0));
   });
 
-  skipTest('getElementsByTagName', function() {
+  test.skip('getElementsByTagName', function() {
     div = document.body.appendChild(document.createElement('div'));
     div.innerHTML = '<aa></aa><aa></aa>';
     var aa1 = div.firstChild;
@@ -161,7 +159,7 @@ htmlSuite('Document', function() {
     assert.equal(doc.body, elements2[0]);
   });
 
-  skipTest('querySelectorAll', function() {
+  test.skip('querySelectorAll', function() {
     div = document.body.appendChild(document.createElement('div'));
     div.innerHTML = '<aa></aa><aa></aa>';
     var aa1 = div.firstChild;
@@ -668,7 +666,4 @@ htmlSuite('Document', function() {
     assert.equal('<span is="x-a-span-2"></span>', a3.outerHTML);
   });
 
-  htmlTest('html/document-write.html');
-
-  htmlTest('html/head-then-body.html');
 });

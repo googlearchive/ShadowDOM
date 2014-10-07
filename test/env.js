@@ -4,21 +4,12 @@
  * license that can be found in the LICENSE file.
  */
 
-var assert = chai.assert;
-
-var thisFile = 'test.main.js';
-var base;
-(function() {
-  var s$ = document.querySelectorAll('script[src]');
-  Array.prototype.forEach.call(s$, function(s) {
-    var src = s.getAttribute('src');
-    var re = new RegExp(thisFile + '[^\\\\]*');
-    var match = src.match(re);
-    if (match) {
-      base = src.slice(0, -match[0].length);
-    }
-  });
-})();
+var root = /\/test\/.+\//.test(window.location.pathname) ? '../..' : '..';
+if (WCT.util.getParam('build') === 'min') {
+  document.write('\<script src="' + root + '/ShadowDOM.min.js"\>\</script\>');
+} else {
+  document.write('\<script src="' + root + '/shadowdom.js"\>\</script\>');
+}
 
 function expectStructure(nodeOrWrapper, nonNullFields) {
   assert(nodeOrWrapper);
@@ -66,77 +57,3 @@ function expectMutationRecord(record, expected) {
   assert.equal(record.oldValue,
       expected.oldValue === undefined ? null : expected.oldValue);
 }
-
-mocha.setup({
-  ui: 'tdd',
-  globals: ['console', 'getInterface']
-})
-
-var modules = [
-  'ChildNodeInterface.js',
-  'Comment.js',
-  'DOMTokenList.js',
-  'Document.js',
-  'Element.js',
-  'FormData.js',
-  'HTMLAudioElement.js',
-  'HTMLBodyElement.js',
-  'HTMLButtonElement.js',
-  'HTMLCanvasElement.js',
-  'HTMLContentElement.js',
-  'HTMLElement.js',
-  'HTMLFieldSetElement.js',
-  'HTMLFormElement.js',
-  'HTMLHeadElement.js',
-  'HTMLHtmlElement.js',
-  'HTMLImageElement.js',
-  'HTMLInputElement.js',
-  'HTMLKeygenElement.js',
-  'HTMLLabelElement.js',
-  'HTMLLegendElement.js',
-  'HTMLObjectElement.js',
-  'HTMLOptionElement.js',
-  'HTMLOutputElement.js',
-  'HTMLSelectElement.js',
-  'HTMLShadowElement.js',
-  'HTMLTableElement.js',
-  'HTMLTableRowElement.js',
-  'HTMLTableSectionElement.js',
-  'HTMLTemplateElement.js',
-  'HTMLTextAreaElement.js',
-  'MutationObserver.js',
-  'MutationObserver/attributes.js',
-  'MutationObserver/callback.js',
-  'MutationObserver/characterData.js',
-  'MutationObserver/childList.js',
-  'MutationObserver/mixed.js',
-  'MutationObserver/options.js',
-  'MutationObserver/shadow-root.js',
-  'MutationObserver/transient.js',
-  'Node.js',
-  'ParentNodeInterface.js',
-  'Range.js',
-  'SVGElement.js',
-  'SVGElementInstance.js',
-  'Selection.js',
-  'ShadowRoot.js',
-  'Text.js',
-  'TouchEvent.js',
-  'TreeScope.js',
-  'Window.js',
-  'XMLHttpRequest.js',
-  'build-json.js',
-  'createTable.js',
-  'custom-element.js',
-  'events.js',
-  'microtask.js',
-  'paralleltrees.js',
-  'reprojection.js',
-  'rerender.js',
-  'test.js',
-  'wrappers.js',
-];
-
-modules.forEach(function(inSrc) {
-  document.write('<script src="' + base + 'js/' + inSrc + '"></script>');
-});

@@ -6,18 +6,21 @@
 module.exports = function(grunt) {
   ShadowDOM = grunt.file.readJSON('build.json');
   grunt.initConfig({
-    karma: {
-      options: {
-        configFile: 'conf/karma.conf.js',
-        keepalive: true
+    'wct-test': {
+      local: {
+        options: {remote: false},
       },
-      buildbot: {
-        reporters: ['crbot'],
-        logLevel: 'OFF'
+      'local-min': {
+        options: {remote: false, webRunner: 'test/index.html?build=min'},
       },
-      ShadowDOM: {
-      }
+      remote: {
+        options: {remote: true},
+      },
+      'remote-min': {
+        options: {remote: true, webRunner: 'test/index.html?build=min'},
+      },
     },
+
     uglify: {
       ShadowDOM: {
         options: {
@@ -57,13 +60,16 @@ module.exports = function(grunt) {
   // plugins
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-yuidoc');
-  grunt.loadNpmTasks('grunt-karma');
+  grunt.loadNpmTasks('web-component-tester');
 
   // tasks
-  grunt.registerTask('default', ['uglify']);
+  grunt.registerTask('default', ['minify']);
   grunt.registerTask('minify', ['uglify']);
   grunt.registerTask('docs', ['yuidoc']);
-  grunt.registerTask('test', ['karma:ShadowDOM']);
-  grunt.registerTask('test-buildbot', ['karma:buildbot']);
+  grunt.registerTask('test', ['wct-test:local']);
+  grunt.registerTask('test-min', ['minify', 'wct-test:local-min']);
+  grunt.registerTask('test-remote', ['wct-test:remote']);
+  grunt.registerTask('test-remote-min', ['minify', 'wct-test:remote-min']);
+  grunt.registerTask('test-buildbot', ['test-min']);
 };
 
