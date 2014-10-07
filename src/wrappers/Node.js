@@ -628,6 +628,7 @@
       return s;
     },
     set textContent(textContent) {
+      if (textContent == null) textContent = '';
       var removedNodes = snapshotNodeList(this.childNodes);
 
       if (this.invalidateShadowRenderer()) {

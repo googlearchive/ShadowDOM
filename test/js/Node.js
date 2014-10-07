@@ -348,6 +348,13 @@ suite('Node', function() {
     assert.equal(div.textContent, 'abef');
   });
 
+  test('null textContent', function() {
+    var div = document.createElement('div');
+    var root = div.createShadowRoot();
+    div.textContent = null;
+    assert.equal(div.textContent, '');
+  });
+
   test('normalize', function() {
     var div = document.createElement('div');
     div.appendChild(document.createTextNode('foo\n'));
