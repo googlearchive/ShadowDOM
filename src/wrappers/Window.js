@@ -59,6 +59,9 @@
   mixin(Window.prototype, {
     getComputedStyle: function(el, pseudo) {
       renderAllPending();
+      if (!(el instanceof HTMLElement)) {
+        return true;
+      }
       return originalGetComputedStyle.call(unwrap(this), unwrapIfNeeded(el),
                                            pseudo);
     },
